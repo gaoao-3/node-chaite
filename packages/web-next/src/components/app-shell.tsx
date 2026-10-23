@@ -160,6 +160,7 @@ export function AppShell() {
 
   return (
     <div
+      data-theme={preferences.preferences.theme}
       data-density={preferences.preferences.density}
       className={preferences.preferences.reduceMotion ? "reduce-motion" : undefined}
     >

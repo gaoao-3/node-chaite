@@ -22,16 +22,16 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-200 disabled:opacity-40",
+        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:cursor-not-allowed disabled:opacity-40",
         checked
-          ? "border-violet-300/35 bg-violet-500/70 shadow-[0_0_18px_-6px_rgba(139,92,246,0.9)]"
-          : "border-white/[0.1] bg-white/[0.06]",
+          ? "bg-emerald-500 shadow-[0_0_12px_-2px_rgba(16,185,129,0.4)]"
+          : "bg-white/[0.12] hover:bg-white/[0.18]",
       )}
     >
       <span
         className={cn(
-          "absolute top-0.5 h-3.5 w-3.5 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.5)] transition-transform duration-200",
-          checked ? "translate-x-[18px]" : "translate-x-[3px]",
+          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+          checked ? "translate-x-[22px]" : "translate-x-[2px]",
         )}
       />
     </button>
@@ -53,7 +53,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="flex items-center gap-0.5 rounded-lg border border-white/[0.06] bg-black/25 p-0.5"
+      className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-black/25 p-1"
     >
       {options.map((option) => (
         <button
@@ -63,9 +63,9 @@ export function Segmented<T extends string>({
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "rounded-md px-2.5 py-1 text-[10px] font-medium transition-colors",
+            "rounded-md px-3 py-1 text-[11px] font-medium transition-colors",
             value === option.value
-              ? "bg-white/[0.09] text-mist-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+              ? "bg-white/[0.12] text-mist-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
               : "text-mist-500 hover:text-mist-300",
           )}
         >

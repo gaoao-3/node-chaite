@@ -205,7 +205,13 @@ export function fetchSessionSnapshot(token: string, sessionId: string, limit = 5
 export function sendPrompt(
   token: string,
   sessionId: string,
-  input: { prompt: string; displayText?: string; model?: string; skillName?: string },
+  input: {
+    prompt: string;
+    displayText?: string;
+    model?: string;
+    skillName?: string;
+    images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+  },
 ): Promise<{ accepted: boolean; sessionId: string; turnId: string; startedAt: number }> {
   return request(`/api/agent/sessions/${encodeURIComponent(sessionId)}/prompt`, {
     token,

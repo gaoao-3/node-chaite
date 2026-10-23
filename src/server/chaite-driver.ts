@@ -62,10 +62,20 @@ function partsOf(response: ModelResponse): { parts: OutboundReplyPart[]; text: s
   return { parts, text: texts.join('\n') }
 }
 
-function buildUserMessage(prompt: string): UserMessage {
+function buildUserMessage(prompt: string, images?: Array<{ url?: string; base64?: string; mimeType?: string }>): UserMessage {
+  const content: Array<TextContent | ImageContent> = [{ type: 'text', text: prompt }]
+  if (images && images.length > 0) {
+    for (const img of images) {
+      content.push({
+        type: 'image',
+        image: img.base64 || img.url || '',
+        mimeType: img.mimeType || 'image/jpeg',
+      })
+    }
+  }
   return {
     role: 'user',
-    content: [{ type: 'text', text: prompt }],
+    content,
   }
 }
 
@@ -229,7 +239,7 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
       } as unknown as Parameters<Chaite['sendMessage']>[2]
 
       const response = await chaite.sendMessage(
-        buildUserMessage(context.prompt),
+        buildUserMessage(context.prompt, context.images),
         buildEvent(context, defaultUserId),
         sendOptions,
       )

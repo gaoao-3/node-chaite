@@ -655,6 +655,7 @@ export class SessionRegistry {
         prompt: input.prompt,
         turnId,
         signal,
+        images: input.images,
         emit: event => {
           if (!signal.aborted) session.append(event)
         },
@@ -735,6 +736,7 @@ interface NormalisedPromptInput {
   model?: string
   skillName?: string
   metadata?: Record<string, unknown>
+  images?: Array<{ url?: string; base64?: string; mimeType?: string }>
 }
 
 function normalizePromptInput(input: unknown): NormalisedPromptInput {
@@ -753,6 +755,16 @@ function normalizePromptInput(input: unknown): NormalisedPromptInput {
   if (typeof input.model === 'string' && input.model.trim()) normalized.model = input.model.trim()
   if (typeof input.skillName === 'string' && input.skillName.trim()) normalized.skillName = input.skillName.trim()
   if (isRecord(input.metadata)) normalized.metadata = input.metadata
+  if (Array.isArray(input.images)) {
+    normalized.images = input.images
+      .filter(isRecord)
+      .map(item => ({
+        url: typeof item.url === 'string' ? item.url : undefined,
+        base64: typeof item.base64 === 'string' ? item.base64 : undefined,
+        mimeType: typeof item.mimeType === 'string' ? item.mimeType : undefined,
+      }))
+      .filter(item => item.url || item.base64)
+  }
   return normalized
 }
 

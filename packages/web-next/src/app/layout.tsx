@@ -35,6 +35,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=JSON.parse(localStorage.getItem("chaite.console.preferences")||"{}");var t=p.theme||"slate";document.documentElement.dataset.theme=t;if(["light","mist","sand","rose"].indexOf(t)>=0){document.documentElement.classList.remove("dark")}else{document.documentElement.classList.add("dark")}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="relative h-full overflow-hidden">{children}</body>
     </html>
   );

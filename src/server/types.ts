@@ -302,6 +302,7 @@ export interface AgentPromptInput {
   model?: string
   skillName?: string
   metadata?: Record<string, unknown>
+  images?: Array<{ url?: string; base64?: string; mimeType?: string }>
 }
 
 export interface PromptDriverResult {
@@ -319,6 +320,7 @@ export interface PromptDriverContext {
   prompt: string
   turnId: string
   signal: AbortSignal
+  images?: Array<{ url?: string; base64?: string; mimeType?: string }>
   /** Append one event to the session and broadcast it to SSE clients. */
   emit(event: AgentEventDraft): void
   /**

@@ -56,7 +56,14 @@ export interface UseAgentSessionResult {
   lastHeartbeatAt: number | null;
   pendingApprovals: ApprovalState[];
   promptPending: boolean;
-  sendPrompt: (prompt: string, options?: { model?: string; skillName?: string }) => Promise<boolean>;
+  sendPrompt: (
+    prompt: string,
+    options?: {
+      model?: string;
+      skillName?: string;
+      images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+    },
+  ) => Promise<boolean>;
   cancel: () => Promise<void>;
   respond: (requestId: string, option: HumanApprovalOption) => Promise<boolean>;
   refresh: () => void;
@@ -381,7 +388,14 @@ export function useAgentSession({
   }, [commit, enabled, preview, reconnectKey, replaceView, sessionId, token]);
 
   const sendPrompt = useCallback(
-    async (prompt: string, options: { model?: string; skillName?: string } = {}) => {
+    async (
+      prompt: string,
+      options: {
+        model?: string;
+        skillName?: string;
+        images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+      } = {},
+    ) => {
       const text = prompt.trim();
       if (!text || !token || !sessionId || preview) return false;
       const current = viewRef.current;
@@ -395,6 +409,7 @@ export function useAgentSession({
           displayText: text,
           model: options.model,
           skillName: options.skillName,
+          images: options.images,
         });
         return true;
       } catch (caught) {
