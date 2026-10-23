@@ -5,3 +5,6 @@ dist
 src/version.ts
 frontend/build
 gateway-qq.log
+packages/web-next/.next/
+packages/web-next/node_modules/
+packages/web-next/web-next.log
