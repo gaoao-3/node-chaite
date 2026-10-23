@@ -34,21 +34,22 @@ function stateDirectory(): string {
  * evolution candidates.
  */
 export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies {
-  const sessions = new SessionRegistry({
-    driver: createChaitePromptDriver({
-      resolveChaite: async () => resolveChaiteSync(),
-      defaultUserId: 'web-console',
-    }),
-  })
-  const fusion = new FusionTaskService({
-    persistence: new JsonFilePersistence(path.join(stateDirectory(), 'web-fusion-tasks.json')),
-    onPersistError: error => console.warn('[chaite-web] Failed to persist Fusion tasks:', error),
-  })
   const evolution = new EvolutionService({
     persistence: new JsonFilePersistence(path.join(stateDirectory(), 'web-evolution-traces.json')),
     getRegistry: () => resolveChaiteSync()?.getSkillRegistry(),
     skillsDir: path.resolve(process.cwd(), 'skills/active'),
     onPersistError: error => console.warn('[chaite-web] Failed to persist evolution traces:', error),
+  })
+  const sessions = new SessionRegistry({
+    driver: createChaitePromptDriver({
+      resolveChaite: async () => resolveChaiteSync(),
+      defaultUserId: 'web-console',
+      evolutionService: evolution,
+    }),
+  })
+  const fusion = new FusionTaskService({
+    persistence: new JsonFilePersistence(path.join(stateDirectory(), 'web-fusion-tasks.json')),
+    onPersistError: error => console.warn('[chaite-web] Failed to persist Fusion tasks:', error),
   })
   const skills = new SkillsService(() => resolveChaiteSync()?.getSkillRegistry())
   return { sessions, fusion, evolution, skills }

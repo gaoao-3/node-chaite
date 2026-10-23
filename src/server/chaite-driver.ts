@@ -4,6 +4,8 @@ import type { ImageContent, ModelResponse, ModelResponseChunk, TextContent, User
 import type { OutboundReplyPart } from '../agent/gateway-contracts'
 import { ServiceUnavailableError } from './errors'
 import type { PromptDriverContext, PromptDriverResult, SessionPromptDriver } from './types'
+import type { EvolutionService } from './evolution-service'
+import { synthesizeAndRecordEvolution } from './evolution-synthesizer'
 
 export interface ChaitePromptDriverOptions {
   /** Use an already-initialised Chaite instance. */
@@ -12,6 +14,8 @@ export interface ChaitePromptDriverOptions {
   resolveChaite?: () => Promise<Chaite | undefined>
   /** Fallback user id when the session has no platform sender. */
   defaultUserId?: string
+  /** Evolution service for Hermes / nekocode closed learning loop. */
+  evolutionService?: EvolutionService
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -119,6 +123,22 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
       const skillPreset = skillName ? registry?.getSkillByName(skillName)?.frontmatter.preset : undefined
       const preset = presets.find(item => item.name === skillPreset) ?? presets[0]
 
+      const startedAt = Date.now()
+      const executedToolCalls: Array<{
+        id: string
+        name: string
+        arguments: Record<string, unknown>
+        status: 'succeeded' | 'failed' | 'denied' | 'skipped'
+        resultPreview?: string
+        error?: { code?: string; message: string }
+        durationMs?: number
+      }> = []
+      const errorRetries: Array<{
+        attempt: number
+        error: { code?: string; message: string }
+        recovered: boolean
+      }> = []
+
       let chunkIndex = 0
       const onChunk = async (chunk: ModelResponseChunk): Promise<void> => {
         if (context.signal.aborted) return
@@ -137,6 +157,22 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
           }
         }
         for (const call of chunk.toolCall ?? []) {
+          let parsedArgs: Record<string, unknown> = {}
+          try {
+            parsedArgs = typeof call.function.arguments === 'string'
+              ? JSON.parse(call.function.arguments)
+              : (call.function.arguments || {})
+          } catch {
+            parsedArgs = {}
+          }
+          if (!executedToolCalls.some(c => c.id === call.id)) {
+            executedToolCalls.push({
+              id: call.id,
+              name: call.function.name,
+              arguments: parsedArgs,
+              status: 'succeeded',
+            })
+          }
           context.emit({
             type: 'tool_status',
             toolCallId: call.id,
@@ -146,6 +182,34 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
             startedAt: Date.now(),
           })
         }
+      }
+
+      const onToolCallResult = async (
+        call: { id: string; name: string; args: unknown },
+        result: { content: string; error?: boolean; durationMs?: number }
+      ) => {
+        const item = executedToolCalls.find(c => c.id === call.id)
+        if (item) {
+          item.status = result.error ? 'failed' : 'succeeded'
+          item.resultPreview = result.content
+          item.durationMs = result.durationMs
+          if (result.error) {
+            item.error = { message: result.content.slice(0, 240) }
+            errorRetries.push({
+              attempt: errorRetries.length + 1,
+              error: { message: result.content.slice(0, 240) },
+              recovered: true,
+            })
+          }
+        }
+        context.emit({
+          type: 'tool_status',
+          toolCallId: call.id,
+          toolName: call.name,
+          status: result.error ? 'failed' : 'succeeded',
+          resultPreview: preview(result.content),
+          completedAt: Date.now(),
+        })
       }
 
       const metadata = context.session.metadata
@@ -161,6 +225,7 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
         skillName,
         stream: true,
         onChunk,
+        onToolCallResult,
       } as unknown as Parameters<Chaite['sendMessage']>[2]
 
       const response = await chaite.sendMessage(
@@ -174,6 +239,25 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
       }
 
       const { parts, text } = partsOf(response)
+
+      // Hermes & nekocode Closed Learning Loop 自动闭环反思
+      if (options.evolutionService) {
+        synthesizeAndRecordEvolution({
+          sessionId: context.session.id,
+          platform: context.session.platform,
+          botId: context.session.botId,
+          prompt: context.prompt,
+          replyText: text,
+          toolCalls: executedToolCalls,
+          errorRetries,
+          startedAt,
+          completedAt: Date.now(),
+        }, options.evolutionService).catch((err: unknown) => {
+          // 异步静默，不阻塞正常对话
+          console.warn('[chaite-driver] Evolution synthesis error:', err)
+        })
+      }
+
       return {
         finishReason: 'stop',
         parts: parts.length > 0 ? parts : [{ type: 'text', text }],

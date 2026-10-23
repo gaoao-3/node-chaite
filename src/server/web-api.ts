@@ -365,6 +365,24 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
     sendOk(res, service.review(req.params.id as string, req.body))
   }))
 
+  router.post('/fusion/tasks/:id/execute', route(async (req, res) => {
+    const service = requireService(dependencies.fusion, 'FusionTaskService')
+    const { FusionRunner } = await import('./fusion-runner')
+    const runner = new FusionRunner({
+      fusionService: service,
+      resolveChaite: async () => {
+        try {
+          const { Chaite } = await import('../core/chaite')
+          return Chaite.getInstance() as any
+        } catch {
+          return undefined
+        }
+      },
+    })
+    const executed = await runner.runTask(req.params.id as string)
+    sendOk(res, executed)
+  }))
+
   router.get('/fusion/stats', route((_req, res) => {
     const service = requireService(dependencies.fusion, 'FusionTaskService')
     sendOk(res, service.stats())

@@ -499,6 +499,16 @@ export class AbstractClient implements IClient {
           }
 
           this.logger.info(`tool ${fcName} result ${toolResult}`)
+          if (options.onToolCallResult) {
+            try {
+              await options.onToolCallResult(
+                { id: r.id, name: fcName, args: fcArgs },
+                { content: toolResult, error: !tool || toolResult.startsWith('ERROR:'), durationMs: Date.now() - _toolCallStart },
+              )
+            } catch (cbErr) {
+              this.logger.warn(cbErr as Error)
+            }
+          }
           toolCallResults.push({
             tool_call_id: r.id,
             ...(r.providerCallId !== undefined ? { providerCallId: r.providerCallId } : {}),

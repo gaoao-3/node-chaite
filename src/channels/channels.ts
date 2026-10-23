@@ -122,7 +122,15 @@ export class Channel extends AbstractShareable<Channel> implements Wait {
       this.adapterType = params.adapterType
     }
     if (params.options) {
-      this.options = new BaseClientOptions().fromString(JSON.stringify(params.options))
+      if (params.options instanceof BaseClientOptions) {
+        this.options = params.options
+      } else {
+        const tools = (params.options as any).tools
+        this.options = new BaseClientOptions().fromString(JSON.stringify(params.options))
+        if (tools && Array.isArray(tools)) {
+          this.options.tools = tools
+        }
+      }
     }
     this.weight = params.weight || 1
     this.priority = params.priority || 1

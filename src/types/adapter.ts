@@ -45,6 +45,7 @@ export class SendMessageOption implements Serializable, DeSerializable<SendMessa
     this.responseModalities = option.responseModalities
     this.onChunk = option.onChunk
     this.onMessageWithToolCall = option.onMessageWithToolCall
+    this.onToolCallResult = option.onToolCallResult
     this.toolCallLimit = option.toolCallLimit
     this._consecutiveToolCallCount = option._consecutiveToolCallCount
     this._consecutiveIdenticalToolCallCount = option._consecutiveIdenticalToolCallCount
@@ -157,6 +158,11 @@ export class SendMessageOption implements Serializable, DeSerializable<SendMessa
      * @param message
      */
   onMessageWithToolCall?(message: MessageContent): Promise<void>
+
+  /**
+   * Callback fired when a tool finishes execution (success or error).
+   */
+  onToolCallResult?(call: { id: string; name: string; args: unknown }, result: { content: string; error?: boolean; durationMs?: number }): Promise<void> | void
 
   fromString(str: string): SendMessageOption {
     return JSON.parse(str) as SendMessageOption
