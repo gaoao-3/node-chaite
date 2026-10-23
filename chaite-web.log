@@ -761,3 +761,19 @@ Node.js v22.23.3
 
 [32m[Chaite][18:39:48.205][INFO][0m Chaite server is running at http://0.0.0.0:3200
 [32m[Chaite][18:39:48.925][INFO][0m Login success, generating tokenadmin123456
+[32m[Chaite][18:44:09.663][INFO][0m Login success, generating tokenadmin123456
+[31m[Chaite][18:45:11.756][ERROR][0m {}
+[32m[Chaite][19:06:48.792][INFO][0m Scanned 0 tool: []
+[36m[Chaite][19:06:48.793][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/tools
+[32m[Chaite][19:06:48.804][INFO][0m Scanned 0 processor: []
+[36m[Chaite][19:06:48.804][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/processors
+
+======================================================
+🖥️  Chaite Agent Headless Web API 已启动！
+🌐 API 地址: http://127.0.0.1:3200/api/agent
+🔑 管理员登录口令: admin123456
+======================================================
+
+[32m[Chaite][19:06:48.810][INFO][0m Chaite server is running at http://0.0.0.0:3200
+[32m[Chaite][19:07:15.179][INFO][0m Login success, generating tokenadmin123456
+[32m[Chaite][19:07:31.242][INFO][0m Login success, generating tokenadmin123456

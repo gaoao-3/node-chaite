@@ -20,6 +20,10 @@ import {
 } from './utils'
 import { ChaiteStorage } from './types/storage'
 import { SkillRegistry } from './agent/skills/SkillRegistry'
+import {
+  closeAllAgentEventStreams,
+  getAgentWebApiDependencies,
+} from './server/index'
 import path from 'node:path'
 
 // 简易内存存储驱动实现
@@ -118,24 +122,29 @@ async function start() {
   const authHandler = new PersistentAuthHandler(ADMIN_PASSWORD)
   chaite.setFrontendAuthHandler(authHandler)
 
-  // 3. 启动 Express Web 服务并挂载已编译的 Vue3 前端面板
-  const frontendDir = path.resolve(process.cwd(), 'frontend/build')
+  // 3. 启动 Headless Web API 服务。
+  // 旧版 NaiveUI 管理面板不再默认挂载；全新前台可通过 CHAITE_FRONTEND_DIR 显式接入。
+  const frontendDir = process.env.CHAITE_FRONTEND_DIR
+    ? path.resolve(process.env.CHAITE_FRONTEND_DIR)
+    : undefined
 
-  const { server } = runServer(HOST, PORT, undefined, {
-    frontendDir,
-  })
+  const { server } = runServer(HOST, PORT, undefined, { frontendDir })
 
   console.log('\n======================================================')
-  console.log('🖥️  Chaite Agent Web 控制台与管理服务已启动！')
-  console.log(`🌐 访问地址: http://${HOST === '0.0.0.0' ? '127.0.0.1' : HOST}:${PORT}`)
+  console.log('🖥️  Chaite Agent Headless Web API 已启动！')
+  console.log(`🌐 API 地址: http://${HOST === '0.0.0.0' ? '127.0.0.1' : HOST}:${PORT}/api/agent`)
   console.log(`🔑 管理员登录口令: ${ADMIN_PASSWORD}`)
   console.log('======================================================\n')
 
-  process.on('SIGTERM', () => {
+  const shutdown = () => {
+    closeAllAgentEventStreams()
+    getAgentWebApiDependencies().sessions.closeAll('server shutting down')
     server.close(() => {
       process.exit(0)
     })
-  })
+  }
+  process.once('SIGTERM', shutdown)
+  process.once('SIGINT', shutdown)
 }
 
 start().catch((err) => {

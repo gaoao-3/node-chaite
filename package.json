@@ -31,7 +31,8 @@
     "test": "jest",
     "test:pg": "NODE_OPTIONS=--experimental-vm-modules jest --testPathIgnorePatterns=/node_modules/ --testPathPattern=\"(postgres|migrate\\.pg)\\.test\\.ts\"",
     "test:pg:integration": "jest --testPathIgnorePatterns=/node_modules/ --testPathPattern=\"postgres\\.integration\\.test\\.ts\" --runInBand",
-    "test:adapters": "node scripts/test-adapter-compat.mjs"
+    "test:adapters": "node scripts/test-adapter-compat.mjs",
+    "test:web-api": "jest src/server --runInBand"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.134.0",

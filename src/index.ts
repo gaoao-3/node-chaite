@@ -19,3 +19,7 @@ export * from './controllers'
 
 // Agent subsystem — import from 'chaite/agent' or directly from this namespace
 export * from './agent/index'
+
+// Modern web backend (sessions, SSE, Fusion, evolution). Mountable without the
+// legacy management panel.
+export * from './server/index'

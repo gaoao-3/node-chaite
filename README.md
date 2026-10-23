@@ -79,11 +79,21 @@ pnpm run build
 npx tsx src/gateway/qq/onebot-adapter.ts
 ```
 
-### 3. 打开 Web 控制台
+### 3. 启动并调用现代 Web 后端 API
 ```bash
-cd frontend && pnpm run dev
+pnpm dev      # 启动 Chaite 核心与其 Web 服务
 ```
-访问 `http://localhost:5173` 查看：
+新增的会话工作台 / SSE / Fusion / 自进化 API 挂载在 `/api/agent`，
+完整协议见 [`docs/web-api.md`](docs/web-api.md)。运行其测试：
+
+```bash
+pnpm test:web-api
+```
+
+### 4. 全新 Web 前台
+旧版 NaiveUI 管理面板已不再由后端默认挂载。全新的 Session 工作台可直接调用
+`/api/agent` 下的 SSE 与 REST 接口；构建产物可通过 `CHAITE_FRONTEND_DIR` 挂载。
+新前台将展示：
 - 🚀 **Fusion 协同**：查看主副手任务分发与 Diff 审查
 - 🧬 **自进化熔炉**：查看实战执行轨迹与 4 维评估打分试炼场
 - 🛡️ **安全审批门禁**：查看高危操作拦截与 SHA-256 防篡改签名
