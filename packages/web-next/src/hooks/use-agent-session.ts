@@ -352,9 +352,12 @@ export function useAgentSession({
 
     watchdog = window.setInterval(() => {
       if (stopped || closed) return;
-      if (Date.now() - lastBeat > 95_000) {
+      const elapsed = Date.now() - lastBeat;
+      if (elapsed > 95_000) {
         controller?.abort();
         scheduleRetry();
+      } else if (elapsed > 60_000) {
+        setConnection((current) => (current === "live" ? "reconnecting" : current));
       }
     }, 20_000);
 
@@ -413,6 +416,25 @@ export function useAgentSession({
 
   const cancel = useCallback(async () => {
     if (!token || !sessionId || preview) return;
+    const currentView = viewRef.current;
+    // 即时回滚乐观状态，避免按钮卡在 loading
+    const clearedView = {
+      ...currentView,
+      isStreaming: false,
+      timeline: currentView.timeline.map(item => {
+        if (item.kind === "assistant" && !item.done) {
+          return {
+            ...item,
+            status: "cancelled" as const,
+            error: "已手动取消生成",
+            isComplete: true,
+          };
+        }
+        return item;
+      }),
+    };
+    commit(clearedView);
+
     try {
       await apiCancelPrompt(token, sessionId, "用户从 Web 控制台终止");
     } catch (caught) {
@@ -422,7 +444,7 @@ export function useAgentSession({
       }
       setError(errorMessage(caught));
     }
-  }, [preview, sessionId, token]);
+  }, [commit, preview, sessionId, token]);
 
   const respond = useCallback(
     async (requestId: string, option: HumanApprovalOption) => {

@@ -11,6 +11,7 @@ export interface ConsolePreferences {
   autoScroll: boolean;
   preview: boolean;
   defaultPlatform: GatewayPlatform;
+  defaultModel: string;
 }
 
 const STORAGE_KEY = "chaite.console.preferences";
@@ -21,6 +22,7 @@ const DEFAULTS: ConsolePreferences = {
   autoScroll: true,
   preview: false,
   defaultPlatform: "web",
+  defaultModel: "",
 };
 
 function readPreferences(): ConsolePreferences {
@@ -38,6 +40,7 @@ function readPreferences(): ConsolePreferences {
         parsed.defaultPlatform === "qq" || parsed.defaultPlatform === "dsh" || parsed.defaultPlatform === "web"
           ? parsed.defaultPlatform
           : "web",
+      defaultModel: typeof parsed.defaultModel === "string" ? parsed.defaultModel : "",
     };
   } catch {
     return DEFAULTS;

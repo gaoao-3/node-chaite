@@ -124,10 +124,11 @@ export function AppShell() {
 
   const createSession = React.useCallback(
     async (input?: { platform: GatewayPlatform; title: string; model?: string }) => {
+      const requestedModel = input?.model ?? (preferences.preferences.defaultModel.trim() ? preferences.preferences.defaultModel : undefined);
       const session = await sessionStore.createSession({
         platform: input?.platform ?? preferences.preferences.defaultPlatform,
         title: input?.title ?? "新会话",
-        model: input?.model,
+        model: requestedModel,
       });
       if (!session) return null;
       setSelectedId(session.id);
@@ -135,7 +136,7 @@ export function AppShell() {
       setMobileOpen(false);
       return session;
     },
-    [preferences.preferences.defaultPlatform, sessionStore],
+    [preferences.preferences.defaultPlatform, preferences.preferences.defaultModel, sessionStore],
   );
 
   const renameSession = React.useCallback(

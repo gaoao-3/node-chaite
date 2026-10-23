@@ -65,6 +65,9 @@ export type TimelineItem =
       done: boolean;
       images?: AssistantImage[];
       usage?: GatewayUsage;
+      status?: "streaming" | "complete" | "cancelled" | "error";
+      error?: string;
+      isComplete?: boolean;
     }
   | {
       kind: "tool";

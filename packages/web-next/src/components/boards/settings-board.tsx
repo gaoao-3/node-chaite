@@ -49,15 +49,15 @@ function SettingRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 border-b border-white/[0.05] py-2.5 last:border-0 last:pb-0 first:pt-0">
+    <div className="flex items-center gap-3 border-b border-white/[0.05] py-3.5 last:border-0 last:pb-1 first:pt-1">
       {icon ? (
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.025] text-mist-500">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] text-mist-500">
           {icon}
         </span>
       ) : null}
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium text-mist-200">{title}</div>
-        {description ? <div className="mt-0.5 text-[9.5px] leading-relaxed text-mist-600">{description}</div> : null}
+      <div className="min-w-0 flex-1 pr-2">
+        <div className="text-[13px] font-semibold text-mist-100">{title}</div>
+        {description ? <div className="mt-1 text-[11px] leading-relaxed text-mist-500">{description}</div> : null}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -225,12 +225,23 @@ export function SettingsBoard({
             </SettingRow>
             <SettingRow
               icon={<Cpu className="h-3.5 w-3.5" />}
-              title="驱动模型"
-              description="由后端 ChatPreset 决定，可在会话 PATCH 时覆盖。"
+              title="默认驱动模型"
+              description="新建会话时默认使用的后端模型。"
             >
-              <span className="rounded-md border border-white/[0.06] bg-black/25 px-2 py-1 font-mono text-[9.5px] text-mist-400">
-                auto
-              </span>
+              <div className="flex w-full flex-wrap items-center justify-end gap-1.5 sm:w-auto">
+                <div className="flex w-full flex-wrap items-center justify-end gap-1.5">
+                  <input
+                    type="text"
+                    value={preferences.defaultModel}
+                    onChange={(e) => update({ defaultModel: e.target.value })}
+                    placeholder="auto 或 gemini-3.8-flash-high"
+                    className="w-full max-w-[220px] rounded-md border border-white/[0.08] bg-black/25 px-2 py-1 font-mono text-[10px] text-mist-100 outline-none focus:border-violet-300/40"
+                  />
+                </div>
+                <Button size="xs" variant="subtle" onClick={() => update({ defaultModel: "" })}>
+                  恢复 auto
+                </Button>
+              </div>
             </SettingRow>
             <div className="mt-2.5 flex items-center justify-between rounded-lg border border-white/[0.055] bg-black/15 px-2.5 py-2">
               <span className="text-[9.5px] text-mist-600">恢复默认偏好（不影响登录凭据）</span>
