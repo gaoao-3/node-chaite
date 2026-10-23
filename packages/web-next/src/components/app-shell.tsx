@@ -114,16 +114,28 @@ export function AppShell() {
     setMobileOpen(false);
   }, []);
 
+  const toggleSidebar = React.useCallback(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setMobileOpen((open) => !open);
+    } else {
+      setCollapsed((value) => !value);
+    }
+  }, []);
+
   const createSession = React.useCallback(
-    async (input: { platform: GatewayPlatform; title: string; model?: string }) => {
-      const session = await sessionStore.createSession(input);
-      if (!session) return false;
+    async (input?: { platform: GatewayPlatform; title: string; model?: string }) => {
+      const session = await sessionStore.createSession({
+        platform: input?.platform ?? preferences.preferences.defaultPlatform,
+        title: input?.title ?? "新会话",
+        model: input?.model,
+      });
+      if (!session) return null;
       setSelectedId(session.id);
       setView("chat");
       setMobileOpen(false);
-      return true;
+      return session;
     },
-    [sessionStore],
+    [preferences.preferences.defaultPlatform, sessionStore],
   );
 
   const renameSession = React.useCallback(
@@ -186,7 +198,8 @@ export function AppShell() {
               token={auth.token}
               session={activeSession}
               preview={preferences.preferences.preview}
-              onMenu={() => setMobileOpen(true)}
+              onMenu={toggleSidebar}
+              onCreateSession={createSession}
               onUnauthorized={handleUnauthorized}
               onSessionsChanged={() => void sessionStore.refresh({ quiet: true })}
               onRename={renameSession}
@@ -196,11 +209,12 @@ export function AppShell() {
             />
           ) : null}
 
-          {view === "fusion" ? <FusionBoard data={fusion} onGoChat={() => changeView("chat")} /> : null}
-          {view === "evolution" ? <EvolutionBoard data={evolution} /> : null}
+          {view === "fusion" ? <FusionBoard data={fusion} onGoChat={() => changeView("chat")} onMenu={toggleSidebar} /> : null}
+          {view === "evolution" ? <EvolutionBoard data={evolution} onMenu={toggleSidebar} /> : null}
           {view === "approvals" ? (
             <ApprovalsBoard
               feed={approvalsFeed}
+              onMenu={toggleSidebar}
               onOpenSession={(sessionId) => {
                 selectSession(sessionId);
               }}
@@ -216,6 +230,7 @@ export function AppShell() {
               sessionCount={sessionStore.sessions.length}
               onLogout={auth.logout}
               onReconnect={reconnectAll}
+              onMenu={toggleSidebar}
             />
           ) : null}
         </div>

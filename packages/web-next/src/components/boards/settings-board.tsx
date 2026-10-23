@@ -73,6 +73,7 @@ export function SettingsBoard({
   sessionCount,
   onLogout,
   onReconnect,
+  onMenu,
 }: {
   preferences: ConsolePreferences;
   update: (patch: Partial<ConsolePreferences>) => void;
@@ -82,12 +83,14 @@ export function SettingsBoard({
   sessionCount: number;
   onLogout: () => void;
   onReconnect: () => void;
+  onMenu?: () => void;
 }) {
   const [reveal, setReveal] = React.useState(false);
   const origin = typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:3000";
 
   return (
     <BoardPage
+      onMenu={onMenu}
       icon={<Settings2 className="h-4 w-4" />}
       eyebrow="Preferences"
       title="设置"

@@ -22,6 +22,7 @@ interface MessageStreamProps {
   onSuggestion: (prompt: string) => void;
   onRespond: (requestId: string, option: HumanApprovalOption) => Promise<boolean>;
   onExitPreview: () => void;
+  onCreateSession?: () => void;
   autoScroll?: boolean;
 }
 
@@ -85,6 +86,7 @@ export function MessageStream({
   onSuggestion,
   onRespond,
   onExitPreview,
+  onCreateSession,
   autoScroll = true,
 }: MessageStreamProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -156,7 +158,7 @@ export function MessageStream({
         {loading && totalItems === 0 ? (
           <LoadingSkeleton />
         ) : totalItems === 0 ? (
-          <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} />
+          <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
         ) : (
           <div className="chat-stream mx-auto flex w-full max-w-[760px] flex-col gap-4 pb-2">
             {view.timeline.map((item) => {

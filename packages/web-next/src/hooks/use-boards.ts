@@ -11,6 +11,7 @@ import {
   mergeEvolutionTrace,
   reviewEvolutionTrace,
   updateFusionStatus,
+  executeFusionTask,
 } from "@/lib/api";
 import type {
   EvolutionStats,
@@ -31,6 +32,7 @@ export interface FusionData {
   error: string | null;
   refresh: () => Promise<void>;
   advance: (taskId: string, status: string) => Promise<boolean>;
+  execute: (taskId: string) => Promise<boolean>;
 }
 
 export function useFusionData(token: string | null, onUnauthorized?: () => void): FusionData {
@@ -104,7 +106,26 @@ export function useFusionData(token: string | null, onUnauthorized?: () => void)
     [load],
   );
 
-  return { tasks, stats, loading, refreshing, error, refresh: () => load(true), advance };
+  const execute = useCallback(
+    async (taskId: string) => {
+      if (!tokenRef.current) return false;
+      try {
+        await executeFusionTask(tokenRef.current, taskId);
+        await load(true);
+        return true;
+      } catch (caught) {
+        if (caught instanceof UnauthorizedError) {
+          authRef.current?.();
+          return false;
+        }
+        setError(messageOf(caught, "执行 Fusion 任务失败"));
+        return false;
+      }
+    },
+    [load],
+  );
+
+  return { tasks, stats, loading, refreshing, error, refresh: () => load(true), advance, execute };
 }
 
 export interface EvolutionData {

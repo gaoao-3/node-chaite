@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BoardPage({
@@ -9,6 +10,7 @@ export function BoardPage({
   title,
   description,
   actions,
+  onMenu,
   children,
 }: {
   icon: React.ReactNode;
@@ -16,12 +18,24 @@ export function BoardPage({
   title: string;
   description: string;
   actions?: React.ReactNode;
+  onMenu?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <main className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-fade opacity-[0.16]" />
       <header className="glass relative z-10 flex h-[68px] shrink-0 items-center gap-3 border-b border-white/[0.06] px-4 sm:px-6">
+        {onMenu ? (
+          <button
+            type="button"
+            onClick={onMenu}
+            aria-label="切换侧边栏"
+            title="切换侧边栏"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        ) : null}
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-300/18 bg-gradient-to-br from-violet-400/[0.12] to-cyan-300/[0.04] text-violet-200">
           {icon}
         </div>

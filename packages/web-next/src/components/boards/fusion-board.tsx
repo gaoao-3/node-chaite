@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   ArrowDown,
   ArrowRight,
-  ArrowUpRight,
   Bot,
   CheckCheck,
   CircleDashed,
@@ -33,7 +32,17 @@ import { FUSION_STATUS_META } from "@/lib/platform";
 import type { FusionTaskRecord } from "@/lib/types";
 import { cn, formatPercent, formatRelativeTime, truncate } from "@/lib/utils";
 
-function TaskCard({ task, onAdvance }: { task: FusionTaskRecord; onAdvance: (id: string, status: string) => void }) {
+function TaskCard({
+  task,
+  onAdvance,
+  onExecute,
+  executing,
+}: {
+  task: FusionTaskRecord;
+  onAdvance: (id: string, status: string) => void;
+  onExecute?: (id: string) => void;
+  executing?: boolean;
+}) {
   const meta = FUSION_STATUS_META[task.status] ?? FUSION_STATUS_META.queued;
   const criteria = task.spec.review_criteria ?? [];
   const tools = task.spec.target_tools ?? [];
@@ -112,18 +121,33 @@ function TaskCard({ task, onAdvance }: { task: FusionTaskRecord; onAdvance: (id:
           ) : null}
         </div>
 
-        {nextStatus ? (
-          <Button
-            size="xs"
-            variant="subtle"
-            onClick={() => onAdvance(task.id, nextStatus)}
-            className="shrink-0"
-            title={`推进到 ${nextStatus}`}
-          >
-            推进
-            <ArrowRight className="h-3 w-3" />
-          </Button>
-        ) : null}
+        <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center">
+          {onExecute && task.status !== "approved" ? (
+            <Button
+              size="xs"
+              variant="primary"
+              loading={executing}
+              disabled={executing}
+              onClick={() => onExecute(task.id)}
+              title="双星协同执行：Sidekick 运行工具并由主脑交叉评审"
+            >
+              <Rocket className="h-3 w-3" />
+              执行
+            </Button>
+          ) : null}
+          {nextStatus ? (
+            <Button
+              size="xs"
+              variant="subtle"
+              disabled={executing}
+              onClick={() => onAdvance(task.id, nextStatus)}
+              title={`推进状态到 ${nextStatus}`}
+            >
+              推进
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -205,10 +229,19 @@ function Connector({ label, vertical = false }: { label: string; vertical?: bool
 export function FusionBoard({
   data,
   onGoChat,
+  onMenu,
 }: {
   data: FusionData;
   onGoChat: () => void;
+  onMenu?: () => void;
 }) {
+  const [executingId, setExecutingId] = React.useState<string | null>(null);
+
+  const handleExecute = async (id: string) => {
+    setExecutingId(id);
+    await data.execute(id);
+    setExecutingId(null);
+  };
   const byStatus = data.stats?.byStatus ?? {};
   const running = (byStatus.running ?? 0) + (byStatus.dispatched ?? 0) + (byStatus.queued ?? 0);
   const review = (byStatus.review ?? 0) + (byStatus.changes_requested ?? 0);
@@ -217,6 +250,7 @@ export function FusionBoard({
 
   return (
     <BoardPage
+      onMenu={onMenu}
       icon={<Rocket className="h-4 w-4" />}
       eyebrow="Orchestration"
       title="Fusion 协同"
@@ -365,7 +399,7 @@ export function FusionBoard({
         ) : (
           <div className="space-y-2">
             {data.tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onAdvance={(id, status) => void data.advance(id, status)} />
+              <TaskCard key={task.id} task={task} onAdvance={(id, status) => void data.advance(id, status)} onExecute={handleExecute} executing={executingId === task.id} />
             ))}
           </div>
         )}
@@ -393,7 +427,7 @@ export function FusionBoard({
             <div className="flex items-center gap-2 text-[11px] font-medium text-mist-200">
               <item.icon className="h-3.5 w-3.5 text-violet-300/70" />
               {item.title}
-              <ArrowUpRight className="ml-auto h-3 w-3 text-mist-700" />
+              <span className="ml-auto rounded border border-white/[0.06] bg-black/20 px-1 py-0.5 font-mono text-[8.5px] text-mist-600">Spec</span>
             </div>
             <p className="mt-1.5 text-[10px] leading-relaxed text-mist-600">{item.text}</p>
           </div>

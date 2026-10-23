@@ -70,9 +70,11 @@ function RiskPolicy() {
 export function ApprovalsBoard({
   feed,
   onOpenSession,
+  onMenu,
 }: {
   feed: UseApprovalsFeedResult;
   onOpenSession: (sessionId: string) => void;
+  onMenu?: () => void;
 }) {
   const [filter, setFilter] = React.useState<RiskFilter>("all");
   const approvals = feed.approvals;
@@ -94,6 +96,7 @@ export function ApprovalsBoard({
 
   return (
     <BoardPage
+      onMenu={onMenu}
       icon={<ShieldAlert className="h-4 w-4" />}
       eyebrow="Security"
       title="安全审批"

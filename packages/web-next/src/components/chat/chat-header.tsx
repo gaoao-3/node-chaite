@@ -7,6 +7,7 @@ import {
   Cpu,
   Menu,
   Pencil,
+  Plus,
   RefreshCw,
   ShieldAlert,
   Sparkles,
@@ -41,6 +42,7 @@ export interface ChatHeaderProps {
   onRename: (title: string) => Promise<boolean>;
   onRefresh: () => void;
   onOpenApprovals: () => void;
+  onCreateSession?: () => void;
 }
 
 export function ChatHeader({
@@ -53,6 +55,7 @@ export function ChatHeader({
   onRename,
   onRefresh,
   onOpenApprovals,
+  onCreateSession,
 }: ChatHeaderProps) {
   const meta = CONNECTION_META[connection] ?? CONNECTION_META.idle;
   const [editing, setEditing] = React.useState(false);
@@ -89,11 +92,24 @@ export function ChatHeader({
       <button
         type="button"
         onClick={onMenu}
-        aria-label="打开会话列表"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:text-mist-100 md:hidden"
+        aria-label="切换侧边栏"
+        title="切换侧边栏"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100"
       >
         <Menu className="h-4 w-4" />
       </button>
+
+      {onCreateSession ? (
+        <button
+          type="button"
+          onClick={onCreateSession}
+          aria-label="新建会话"
+          title="新建会话"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      ) : null}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -141,7 +157,14 @@ export function ChatHeader({
             </div>
           ) : (
             <>
-              <h1 className="min-w-0 truncate text-[14px] font-semibold tracking-[-0.02em] text-mist-100">
+              <h1
+                onClick={() => { if (session) setEditing(true); }}
+                className={cn(
+                  "min-w-0 truncate text-[14px] font-semibold tracking-[-0.02em] text-mist-100",
+                  session && "cursor-pointer hover:text-mist-200 transition-colors"
+                )}
+                title={session ? "点击编辑会话标题" : undefined}
+              >
                 {session?.title || "未选择会话"}
               </h1>
               {session ? (
@@ -150,7 +173,7 @@ export function ChatHeader({
                   onClick={() => setEditing(true)}
                   aria-label="重命名会话"
                   title="重命名会话"
-                  className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-md text-mist-700 transition-colors hover:bg-white/[0.06] hover:text-mist-300 sm:flex"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-mist-600 transition-colors hover:bg-white/[0.06] hover:text-mist-200"
                 >
                   <Pencil className="h-3 w-3" />
                 </button>

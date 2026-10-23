@@ -355,7 +355,7 @@ function TraceCard({
   );
 }
 
-export function EvolutionBoard({ data }: { data: EvolutionData }) {
+export function EvolutionBoard({ data, onMenu }: { data: EvolutionData; onMenu?: () => void }) {
   const [busy, setBusy] = React.useState<string | null>(null);
   const scores = React.useMemo(() => averageScores(data.traces), [data.traces]);
   const average =
@@ -377,6 +377,7 @@ export function EvolutionBoard({ data }: { data: EvolutionData }) {
 
   return (
     <BoardPage
+      onMenu={onMenu}
       icon={<Dna className="h-4 w-4" />}
       eyebrow="Self-evolution"
       title="自进化熔炉"

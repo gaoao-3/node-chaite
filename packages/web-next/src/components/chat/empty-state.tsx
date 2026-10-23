@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { ArrowUpRight, Radio, ShieldCheck, Sparkles, TerminalSquare, WandSparkles } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +32,12 @@ export function ChatEmptyState({
   onSuggestion,
   hasSession,
   preview,
+  onCreateSession,
 }: {
   onSuggestion: (prompt: string) => void;
   hasSession: boolean;
   preview?: boolean;
+  onCreateSession?: () => void;
 }) {
   return (
     <div className="relative mx-auto flex w-full max-w-[760px] flex-col items-center px-1 pt-10 pb-6 text-center sm:pt-16">
@@ -60,6 +64,14 @@ export function ChatEmptyState({
             ? "输入任务、粘贴日志，或从下面的建议开始。思考过程、工具调用与审批会实时出现在同一条时间线上。"
             : "Chaite 会把多端会话、实时事件与安全审批汇聚到这里。"}
         </p>
+        {!hasSession && onCreateSession ? (
+          <div className="mt-5 flex justify-center">
+            <Button size="md" variant="primary" onClick={onCreateSession} className="shadow-[0_8px_24px_-8px_rgba(139,92,246,0.7)]">
+              <Plus className="h-4 w-4" />
+              立即新建会话
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-8 grid w-full gap-2.5 sm:grid-cols-3">

@@ -116,30 +116,49 @@ export function Sidebar({
       {/* Brand / collapse */}
       <div
         className={cn(
-          "flex h-[64px] shrink-0 items-center border-b border-white/[0.055]",
-          compact ? "flex-col justify-center gap-1.5 px-2 pt-2" : "justify-between px-4",
+          "relative flex h-[64px] shrink-0 items-center border-b border-white/[0.055]",
+          compact ? "flex-col justify-center gap-1 px-2 pt-1" : "justify-between px-4",
         )}
       >
-        {compact ? <BrandMark size={30} /> : <BrandLockup />}
-        <div className={cn("flex items-center gap-1", compact && "absolute right-1.5 top-1.5")}>
+        {compact ? (
           <button
             type="button"
             onClick={onToggleCollapse}
-            title={collapsed ? "展开侧边栏" : "收起侧边栏"}
-            aria-label={collapsed ? "展开侧边栏" : "收起侧边栏"}
-            className="hidden h-7 w-7 items-center justify-center rounded-lg text-mist-600 transition-colors hover:bg-white/[0.06] hover:text-mist-300 md:flex"
+            title="展开侧边栏"
+            aria-label="展开侧边栏"
+            className="group flex flex-col items-center justify-center gap-0.5 transition-transform hover:scale-105"
           >
-            {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+            <BrandMark size={26} />
+            <span className="flex items-center gap-0.5 font-mono text-[8px] text-mist-600 group-hover:text-violet-300">
+              <PanelLeftOpen className="h-2.5 w-2.5" />
+              展开
+            </span>
           </button>
-          <button
-            type="button"
-            onClick={onCloseMobile}
-            aria-label="关闭侧边栏"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-mist-500 transition-colors hover:bg-white/[0.06] hover:text-mist-200 md:hidden"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        ) : (
+          <>
+            <BrandLockup />
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                title={collapsed ? "展开侧边栏" : "收起侧边栏"}
+                aria-label={collapsed ? "展开侧边栏" : "收起侧边栏"}
+                className="hidden h-7 w-7 items-center justify-center rounded-lg text-mist-600 transition-colors hover:bg-white/[0.06] hover:text-mist-300 md:flex"
+              >
+                {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                type="button"
+                onClick={onCloseMobile}
+                aria-label="关闭侧边栏"
+                title="关闭侧边栏"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100 md:hidden"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* New session + search */}

@@ -18,6 +18,7 @@ export interface ChatWorkspaceProps {
   onOpenApprovals: () => void;
   onExitPreview: () => void;
   autoScroll: boolean;
+  onCreateSession?: (input?: { platform: "qq" | "dsh" | "web"; title: string; model?: string }) => Promise<AgentSessionInfo | null>;
 }
 
 export function ChatWorkspace({
@@ -31,6 +32,7 @@ export function ChatWorkspace({
   onOpenApprovals,
   onExitPreview,
   autoScroll,
+  onCreateSession,
 }: ChatWorkspaceProps) {
   const agent = useAgentSession({
     token,
@@ -53,11 +55,30 @@ export function ChatWorkspace({
 
   const send = React.useCallback(
     async (text: string) => {
+      if (!session) {
+        if (onCreateSession) {
+          const created = await onCreateSession({
+            platform: "web",
+            title: text.slice(0, 24),
+          });
+          if (created && token) {
+            try {
+              const { sendPrompt } = await import("@/lib/api");
+              await sendPrompt(token, created.id, { prompt: text });
+              onSessionsChanged();
+              return true;
+            } catch (err) {
+              console.error("Auto send error:", err);
+            }
+          }
+        }
+        return false;
+      }
       const ok = await agent.sendPrompt(text);
       if (ok) onSessionsChanged();
       return ok;
     },
-    [agent, onSessionsChanged],
+    [agent, onCreateSession, onSessionsChanged, session, token],
   );
 
   const suggestion = React.useCallback((prompt: string) => {
@@ -87,6 +108,7 @@ export function ChatWorkspace({
         onRename={rename}
         onRefresh={agent.refresh}
         onOpenApprovals={onOpenApprovals}
+        onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
       />
 
       <MessageStream
@@ -99,6 +121,7 @@ export function ChatWorkspace({
         onRespond={agent.respond}
         onExitPreview={onExitPreview}
         autoScroll={autoScroll}
+        onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
       />
 
       <Composer
@@ -106,7 +129,7 @@ export function ChatWorkspace({
         onChange={setDraft}
         onSend={send}
         onCancel={() => void agent.cancel()}
-        disabled={!session && !preview}
+        disabled={preview}
         streaming={agent.view.isStreaming}
         promptPending={agent.promptPending}
         preview={preview}

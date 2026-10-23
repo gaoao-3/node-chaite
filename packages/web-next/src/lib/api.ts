@@ -271,6 +271,13 @@ export function updateFusionStatus(
   });
 }
 
+export function executeFusionTask(token: string, taskId: string): Promise<FusionTaskRecord> {
+  return request<FusionTaskRecord>(`/api/agent/fusion/tasks/${encodeURIComponent(taskId)}/execute`, {
+    token,
+    method: "POST",
+  });
+}
+
 // ─── Evolution ───────────────────────────────────────────────────────────────
 
 export function fetchEvolutionTraces(

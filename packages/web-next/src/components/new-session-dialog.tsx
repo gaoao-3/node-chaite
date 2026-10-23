@@ -18,7 +18,7 @@ export function NewSessionDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreate: (input: { platform: GatewayPlatform; title: string; model?: string }) => Promise<boolean>;
+  onCreate: (input: { platform: GatewayPlatform; title: string; model?: string }) => Promise<unknown>;
   defaultPlatform: GatewayPlatform;
 }) {
   const [platform, setPlatform] = React.useState<GatewayPlatform>(defaultPlatform);
@@ -46,13 +46,13 @@ export function NewSessionDialog({
       hour: "2-digit",
       minute: "2-digit",
     }).format(new Date())}`;
-    const ok = await onCreate({
+    const created = await onCreate({
       platform,
       title: title.trim() || fallback,
       model: model.trim() || undefined,
     });
     setCreating(false);
-    if (ok) onClose();
+    if (created) onClose();
     else setError("创建失败，请检查后端连接或稍后重试。");
   };
 
