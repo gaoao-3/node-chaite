@@ -1,0 +1,763 @@
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17
+export class WorkflowTrigger extends CronTrigger {
+                                     ^
+
+ReferenceError: Cannot access 'CronTrigger' before initialization
+    at <anonymous> (/home/hina/数据盘/projects/node-chaite/src/agent/triggers/WorkflowTrigger.ts:17:38)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.23.3
+[31m[Chaite][18:36:54.601][ERROR][0m Error scanning tool directory: Error: ENOENT: no such file or directory, scandir '/home/hina/数据盘/projects/node-chaite/data/tools'
+    at async Object.readdir (node:internal/fs/promises:955:18)
+    at async ToolManager.scanInstances (/home/hina/数据盘/projects/node-chaite/src/share/shareable.ts:77:21)
+    at async ToolManager.initialize (/home/hina/数据盘/projects/node-chaite/src/share/shareable.ts:44:5)
+    at async Function.init (/home/hina/数据盘/projects/node-chaite/src/share/tool.ts:25:5)
+    at async start (/home/hina/数据盘/projects/node-chaite/src/server.ts:66:24) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/hina/数据盘/projects/node-chaite/data/tools'
+}
+[36m[Chaite][18:36:54.603][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/tools
+[31m[Chaite][18:36:54.613][ERROR][0m Error scanning processor directory: Error: ENOENT: no such file or directory, scandir '/home/hina/数据盘/projects/node-chaite/data/processors'
+    at async Object.readdir (node:internal/fs/promises:955:18)
+    at async ProcessorsManager.scanInstances (/home/hina/数据盘/projects/node-chaite/src/share/shareable.ts:77:21)
+    at async ProcessorsManager.initialize (/home/hina/数据盘/projects/node-chaite/src/share/shareable.ts:44:5)
+    at async Function.init (/home/hina/数据盘/projects/node-chaite/src/share/processors.ts:27:5)
+    at async start (/home/hina/数据盘/projects/node-chaite/src/server.ts:67:29) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: '/home/hina/数据盘/projects/node-chaite/data/processors'
+}
+[36m[Chaite][18:36:54.613][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/processors
+
+======================================================
+🖥️  Chaite Agent Web 控制台与管理服务已启动！
+🌐 访问地址: http://127.0.0.1:3200
+🔑 管理员登录 Token: 1792751814-xbdk2mjv7fb
+======================================================
+
+[32m[Chaite][18:36:54.619][INFO][0m Chaite server is running at http://0.0.0.0:3200
+[32m[Chaite][18:37:37.357][INFO][0m Scanned 0 tool: []
+[36m[Chaite][18:37:37.358][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/tools
+[32m[Chaite][18:37:37.374][INFO][0m Scanned 0 processor: []
+[36m[Chaite][18:37:37.374][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/processors
+
+======================================================
+🖥️  Chaite Agent Web 控制台与管理服务已启动！
+🌐 访问地址: http://127.0.0.1:3200
+🔑 管理员登录 Token: 1792751857-j4rtp3yfcyk
+======================================================
+
+[32m[Chaite][18:37:37.379][INFO][0m Chaite server is running at http://0.0.0.0:3200
+[32m[Chaite][18:38:40.206][INFO][0m Scanned 0 tool: []
+[36m[Chaite][18:38:40.207][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/tools
+[32m[Chaite][18:38:40.217][INFO][0m Scanned 0 processor: []
+[36m[Chaite][18:38:40.217][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/processors
+
+======================================================
+🖥️  Chaite Agent Web 控制台与管理服务已启动！
+🌐 访问地址: http://127.0.0.1:3200
+🔑 管理员登录 Token: 1792751920-ri49g0j51w
+======================================================
+
+[32m[Chaite][18:38:40.223][INFO][0m Chaite server is running at http://0.0.0.0:3200
+[32m[Chaite][18:38:41.164][INFO][0m Login success, generating token1792751920-ri49g0j51w
+[32m[Chaite][18:39:48.183][INFO][0m Scanned 0 tool: []
+[36m[Chaite][18:39:48.184][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/tools
+[32m[Chaite][18:39:48.200][INFO][0m Scanned 0 processor: []
+[36m[Chaite][18:39:48.200][DEBUG][0m File watcher set up for directory: /home/hina/数据盘/projects/node-chaite/data/processors
+
+======================================================
+🖥️  Chaite Agent Web 控制台与管理服务已启动！
+🌐 访问地址: http://127.0.0.1:3200
+🔑 管理员登录口令: admin123456
+======================================================
+
+[32m[Chaite][18:39:48.205][INFO][0m Chaite server is running at http://0.0.0.0:3200
+[32m[Chaite][18:39:48.925][INFO][0m Login success, generating tokenadmin123456

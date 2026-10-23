@@ -1,7 +1,7 @@
 import { CronTrigger } from '../../types/trigger'
 import type { ChaiteContext } from '../../types/common'
 import type { WorkflowDefinition } from '../workflow/workflow.types'
-import { Chaite } from '../../core'
+// Chaite is imported lazily inside methods to prevent circular import deadlock
 
 /**
  * A CronTrigger that runs a WorkflowDefinition when fired.
@@ -39,6 +39,7 @@ export class WorkflowTrigger extends CronTrigger {
   }
 
   protected async execute(_context: ChaiteContext): Promise<void> {
+    const { Chaite } = require('../../core')
     const chaite = Chaite.getInstance()
     const engine = chaite.getWorkflowEngine()
     if (!engine) {
@@ -99,6 +100,7 @@ export class SkillWorkflowTrigger extends CronTrigger {
   }
 
   protected async execute(_context: ChaiteContext): Promise<void> {
+    const { Chaite } = require('../../core')
     const chaite = Chaite.getInstance()
     const registry = chaite.getSkillRegistry()
     if (!registry) {

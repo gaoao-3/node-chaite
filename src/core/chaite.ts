@@ -24,7 +24,7 @@ import {
 import { Channel, ChatPreset } from '../channels'
 import { RAGManager } from '../rag'
 import EventEmitter from 'node:events'
-import { ApiServerOptions, runServer } from '../controllers'
+import type { ApiServerOptions } from '../controllers'
 import { ToolsGroupManager } from '../share'
 import { TriggerManager } from '../share'
 import type { Application } from 'express'
@@ -611,6 +611,8 @@ export class Chaite extends EventEmitter {
   }
 
   runApiServer(configureApp?: (app: Application) => void, options: ApiServerOptions = {}): Application {
+    // Lazy require runServer to break circular dependency with controllers
+    const { runServer } = require('../controllers')
     const { app } = runServer(
       this.globalConfig?.getHost() || DEFAULT_HOST,
       this.globalConfig?.getPort() || DEFAULT_PORT,
