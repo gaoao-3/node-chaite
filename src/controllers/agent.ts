@@ -520,4 +520,438 @@ router.post('/mcp-servers/:id/test', (req: Request<{ id: string }>, res: Respons
   })
 })
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FUSION DUAL-AGENT  /api/agent/fusion
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const sampleFusionTasks = [
+  {
+    taskId: 'fusion_task_9021',
+    sessionId: 'qq:group_789456123',
+    instruction: '重构并优化 Dockerfile 实现多阶段构建，将运行时镜像体积压缩 40% 以上并确保编译通过',
+    targetTools: [
+      { name: 'read_file', source: 'builtin', required: true },
+      { name: 'write_file', source: 'builtin', required: true },
+      { name: 'exec_bash', source: 'local', required: true, notes: '用于验证 docker build' },
+    ],
+    diffSchema: {
+      format: 'unified_diff',
+      path_scope: ['Dockerfile', '.dockerignore'],
+      max_files: 2,
+      max_changed_lines: 80,
+    },
+    reviewCriteria: [
+      { id: 'size_reduction', description: '最终产出镜像体积减少 30% 以上', weight: 0.5, evaluator: 'main_agent', required: true },
+      { id: 'build_success', description: '执行 docker build . 无报错且 smoke test 正常', weight: 0.5, evaluator: 'tests', required: true },
+    ],
+    budget: { max_tool_calls: 10, max_wall_clock_ms: 60000, max_tokens: 16000, max_attempts: 2 },
+    mainModel: 'Claude-3.7-Sonnet (Architect)',
+    sidekickModel: 'DeepSeek-V4.1-Flash (Executor)',
+    status: 'reviewing',
+    producedDiff: `--- a/Dockerfile\n+++ b/Dockerfile\n@@ -1,15 +1,18 @@\n-FROM node:20\n-WORKDIR /app\n-COPY . .\n-RUN npm install\n-RUN npm run build\n-CMD ["node", "dist/index.js"]\n+# Build stage\n+FROM node:20-alpine AS builder\n+WORKDIR /app\n+COPY package.json pnpm-lock.yaml ./\n+RUN corepack enable && pnpm install --frozen-lockfile\n+COPY . .\n+RUN pnpm run build\n+\n+# Production stage\n+FROM node:20-alpine AS runner\n+WORKDIR /app\n+ENV NODE_ENV=production\n+COPY --from=builder /app/package.json ./package.json\n+COPY --from=builder /app/dist ./dist\n+USER node\n+EXPOSE 3000\n+CMD ["node", "dist/index.js"]`,
+    reviewScore: 0.95,
+    reviewFeedback: '分层优雅，使用了 node:20-alpine 与非 root 用户，体积从 1.1GB 降低至 142MB，达标！',
+    createdAt: Date.now() - 360000,
+  },
+  {
+    taskId: 'fusion_task_9022',
+    sessionId: 'web:session_playground',
+    instruction: '编写 QQ 群友签到与好感度计算工具模块，附带单元测试',
+    targetTools: [
+      { name: 'write_file', source: 'builtin', required: true },
+      { name: 'run_test', source: 'local', required: true },
+    ],
+    diffSchema: {
+      format: 'unified_diff',
+      path_scope: ['src/tools/checkin.ts', 'src/tools/checkin.test.ts'],
+      max_files: 2,
+      max_changed_lines: 120,
+    },
+    reviewCriteria: [
+      { id: 'test_pass', description: '所有测试用例 100% 通过', weight: 0.6, evaluator: 'tests', required: true },
+      { id: 'clean_code', description: '无 lint 警告且类型健全', weight: 0.4, evaluator: 'main_agent' },
+    ],
+    budget: { max_tool_calls: 6, max_wall_clock_ms: 30000, max_tokens: 8000 },
+    mainModel: 'Claude-3.7-Sonnet (Architect)',
+    sidekickModel: 'DeepSeek-V4.1-Flash (Executor)',
+    status: 'completed',
+    producedDiff: `--- /dev/null\n+++ b/src/tools/checkin.ts\n@@ -0,0 +1,24 @@\n+export function calculateFavorability(base: number, streakDays: number): number {\n+  const bonus = Math.min(streakDays * 2, 20);\n+  return base + bonus + Math.floor(Math.random() * 5);\n+}`,
+    reviewScore: 1.0,
+    reviewFeedback: '测试全部通过，逻辑闭环，已合并。',
+    createdAt: Date.now() - 86400000,
+    completedAt: Date.now() - 86350000,
+  },
+]
+
+/** GET /api/agent/fusion/tasks */
+router.get('/fusion/tasks', (req: Request, res: Response) => {
+  handle(res, async () => paginate(sampleFusionTasks, req))
+})
+
+/** GET /api/agent/fusion/tasks/:id */
+router.get('/fusion/tasks/:id', (req: Request<{ id: string }>, res: Response) => {
+  handle(res, async () => {
+    const task = sampleFusionTasks.find(t => t.taskId === req.params.id)
+    if (!task) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Fusion task not found'))
+      return null
+    }
+    return task
+  })
+})
+
+/** POST /api/agent/fusion/tasks */
+router.post('/fusion/tasks', (req: Request, res: Response) => {
+  handle(res, async () => {
+    const newTask = {
+      taskId: `fusion_task_${Date.now()}`,
+      sessionId: req.body.sessionId || 'web:manual_dispatch',
+      instruction: req.body.instruction || '新委托任务',
+      targetTools: req.body.targetTools || [{ name: 'read_file' }, { name: 'write_file' }],
+      diffSchema: req.body.diffSchema || { format: 'unified_diff', max_files: 5, max_changed_lines: 200 },
+      reviewCriteria: req.body.reviewCriteria || [{ id: 'general', description: '代码准确无误', weight: 1.0 }],
+      budget: req.body.budget || { max_tool_calls: 8, max_wall_clock_ms: 45000 },
+      mainModel: req.body.mainModel || 'Claude-3.7-Sonnet (Architect)',
+      sidekickModel: req.body.sidekickModel || 'DeepSeek-V4.1-Flash (Executor)',
+      status: 'executing',
+      createdAt: Date.now(),
+    }
+    sampleFusionTasks.unshift(newTask as any)
+    return newTask
+  })
+})
+
+/** POST /api/agent/fusion/tasks/:id/review */
+router.post('/fusion/tasks/:id/review', (req: Request<{ id: string }>, res: Response) => {
+  handle(res, async () => {
+    const task = sampleFusionTasks.find(t => t.taskId === req.params.id)
+    if (!task) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Fusion task not found'))
+      return null
+    }
+    const { status, feedback } = req.body
+    task.status = status === 'approved' ? 'completed' : 'failed'
+    task.reviewFeedback = feedback || (status === 'approved' ? '人工审查通过并接受变更' : '人工审查已驳回')
+    task.completedAt = Date.now()
+    return { updated: true }
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SELF-EVOLUTION & SKILL-FORGE  /api/agent/evolution
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const sampleEvolutionTraces = [
+  {
+    traceId: 'trace_evo_101',
+    sessionId: 'qq:group_984512301',
+    platform: 'qq',
+    botId: 'bot_main_qq',
+    userIntent: {
+      raw: 'NapCat 刚才掉线了，查一下为什么断连并自动拉起，不要重启整台机器',
+      category: 'ops_troubleshooting',
+    },
+    outcome: 'success',
+    toolCalls: [
+      { callId: 'c1', name: 'read_log', arguments: { path: '/var/log/napcat.log', lines: 50 }, status: 'ok', attempt: 1 },
+      { callId: 'c2', name: 'check_port', arguments: { port: 3001 }, status: 'error', attempt: 1, error: { kind: 'RETRYABLE', message: 'Connection refused on port 3001' } },
+      { callId: 'c3', name: 'restart_service', arguments: { service: 'napcat-docker' }, status: 'ok', attempt: 2 },
+      { callId: 'c4', name: 'ping_ws', arguments: { endpoint: 'ws://127.0.0.1:3001' }, status: 'ok', attempt: 1, resultPreview: 'pong: 2ms' },
+    ],
+    errorRetries: [
+      { attempt: 1, reason: '端口 3001 拒绝连接，容器异常退出', recovered: true, occurredAt: Date.now() - 1700000 },
+    ],
+    scores: {
+      correctness: 0.94,
+      efficiency: 0.88,
+      safety: 0.98,
+      reusability: 0.92,
+    },
+    compositeScore: 7.4,
+    draftSkillName: 'troubleshoot-napcat-disconnect',
+    draftSkillMd: `---
+name: troubleshoot-napcat-disconnect
+description: 诊断并自动恢复 NapCat / OneBot 掉线与连接拒绝异常
+keywords: ["napcat", "qqbot 掉线", "onebot connection refused"]
+triggers: ["napcat 掉线", "qq机器人断联", "connection refused 3001"]
+executionMode: direct
+---
+
+# NapCat 断线排查恢复工作流
+
+## 触发时机
+当 QQ 机器人出现心跳丢失、WebSocket 拒绝连接 (3001) 时激活。
+
+## 标准排查步骤
+1. 读取 NapCat 容器最新 50 行日志：\`read_log('/var/log/napcat.log', lines=50)\`
+2. 检查 3001 端口存活状态。
+3. 若容器死锁，平滑重启 docker 服务：\`restart_service('napcat-docker')\`
+4. 发起 ws ping 探针确认恢复。
+
+## 避坑禁忌
+- 严禁直接执行宿主机 reboot 命令。
+- 恢复后必须验证至少 1 次握手。`,
+    lessons: [
+      'NapCat 容易因内存溢出引发 3001 端口静默关闭',
+      '优先检查容器状态再拉起，比直接 kill 进程更安全',
+    ],
+    startedAt: Date.now() - 1800000,
+    completedAt: Date.now() - 1740000,
+    mergedToSkill: false,
+  },
+  {
+    traceId: 'trace_evo_102',
+    sessionId: 'dsh:mobile_sync',
+    platform: 'dsh',
+    botId: 'dsh_hub',
+    userIntent: {
+      raw: '把上周所有的用户对话 Token 消耗按模型分类导出 Markdown 表格',
+      category: 'data_analysis',
+    },
+    outcome: 'success',
+    toolCalls: [
+      { callId: 'c11', name: 'query_usage_db', arguments: { days: 7 }, status: 'ok', attempt: 1 },
+      { callId: 'c12', name: 'format_markdown_table', arguments: { groupBy: 'model' }, status: 'ok', attempt: 1 },
+    ],
+    errorRetries: [],
+    scores: {
+      correctness: 0.96,
+      efficiency: 0.95,
+      safety: 1.0,
+      reusability: 0.85,
+    },
+    compositeScore: 7.5,
+    draftSkillName: 'generate-model-token-report',
+    draftSkillMd: `---
+name: generate-model-token-report
+description: 按周期与模型分类汇总 Token 消耗与成本分析
+keywords: ["token 统计", "模型费用", "使用量报表"]
+executionMode: direct
+---
+
+# 模型使用统计报表工作流
+1. 查询指定天数内的数据库统计指标。
+2. 按模型家族（Claude/OpenAI/Gemini/DeepSeek）聚合统计输入/输出/思考Token。
+3. 输出结构化 Markdown 表格。`,
+    lessons: [
+      '对思考模型单独列出 reasoningTokens 能更准确评估开销',
+    ],
+    startedAt: Date.now() - 7200000,
+    completedAt: Date.now() - 7180000,
+    mergedToSkill: true,
+  },
+]
+
+/** GET /api/agent/evolution/traces */
+router.get('/evolution/traces', (req: Request, res: Response) => {
+  handle(res, async () => paginate(sampleEvolutionTraces, req))
+})
+
+/** GET /api/agent/evolution/traces/:id */
+router.get('/evolution/traces/:id', (req: Request<{ id: string }>, res: Response) => {
+  handle(res, async () => {
+    const trace = sampleEvolutionTraces.find(t => t.traceId === req.params.id)
+    if (!trace) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Evolution trace not found'))
+      return null
+    }
+    return trace
+  })
+})
+
+/** POST /api/agent/evolution/evaluate */
+router.post('/evolution/evaluate', (req: Request, res: Response) => {
+  handle(res, async () => {
+    const { draftSkillMd } = req.body
+    if (!draftSkillMd || draftSkillMd.length < 20) {
+      throw new Error('技能文本过短，无法通过 4 维评估')
+    }
+    const hasTriggers = draftSkillMd.includes('triggers') || draftSkillMd.includes('keywords')
+    const hasSteps = draftSkillMd.includes('1.') || draftSkillMd.includes('步骤')
+    const hasSafety = draftSkillMd.includes('避坑') || draftSkillMd.includes('禁忌') || draftSkillMd.includes('安全')
+
+    const correctness = hasSteps ? 0.92 : 0.65
+    const efficiency = 0.90
+    const safety = hasSafety ? 0.96 : 0.70
+    const reusability = hasTriggers ? 0.94 : 0.60
+    const composite = (correctness * 2 + efficiency * 2 + safety * 2 + reusability * 2).toFixed(1)
+
+    return {
+      scores: { correctness, efficiency, safety, reusability },
+      compositeScore: Number(composite),
+      passed: Number(composite) >= 6.0,
+      breakdown: {
+        triggerQuality: hasTriggers ? '优 (包含清晰的触发词与场景)' : '中 (建议补充具体触发场景)',
+        stepClarity: hasSteps ? '优 (步骤明确且具备可执行性)' : '缺 (缺少步骤编号与指令)',
+        safetyCompleteness: hasSafety ? '优 (包含安全禁忌与避坑指南)' : '待完善 (建议增加高危拦截说明)',
+        discriminability: '达标 (具有明确的领域专精增量)',
+      },
+    }
+  })
+})
+
+/** POST /api/agent/evolution/traces/:id/merge */
+router.post('/evolution/traces/:id/merge', (req: Request<{ id: string }>, res: Response) => {
+  handle(res, async () => {
+    const trace = sampleEvolutionTraces.find(t => t.traceId === req.params.id)
+    if (!trace) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Evolution trace not found'))
+      return null
+    }
+    const registry = Chaite.getInstance().getSkillRegistry()
+    if (!registry) return notConfigured(res, 'SkillRegistry')
+
+    const skillName = req.body.skillName || trace.draftSkillName
+    const content = trace.draftSkillMd
+
+    const skillsDir = registry.getSkillsDir()
+    const targetDir = path.join(skillsDir, skillName)
+    if (!fs.existsSync(targetDir)) {
+      await fs.promises.mkdir(targetDir, { recursive: true })
+    }
+    await fs.promises.writeFile(path.join(targetDir, 'SKILL.md'), content, 'utf8')
+    await registry.load()
+
+    trace.mergedToSkill = true
+    return { success: true, skillName }
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HUMAN-IN-THE-LOOP APPROVALS  /api/agent/approvals
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const sampleApprovals = [
+  {
+    requestId: 'appr_req_5001',
+    platform: 'qq',
+    botId: 'bot_main_qq',
+    sessionId: 'qq:group_984512301',
+    riskLevel: 'critical',
+    status: 'pending',
+    action: {
+      type: 'shell',
+      title: '执行系统高危命令 (rm -rf 缓存清理)',
+      summary: '清理 /var/cache/app-data/ 目录下所有缓存并重启子进程',
+      toolName: 'exec_bash',
+      command: 'rm -rf /var/cache/app-data/* && systemctl restart qqbot-worker',
+      riskLevel: 'critical',
+      parameters: { timeoutMs: 15000 },
+    },
+    reason: '由于群友批量生成多张高清图导致磁盘剩余空间低于 5%，Agent 提议清理临时缓存',
+    integrityDigest: 'sha256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
+    requestedBy: { initiatorRole: 'sidekick', agentId: 'deepseek-v4.1-flash' },
+    createdAt: Date.now() - 120000,
+    expiresAt: Date.now() + 480000,
+  },
+  {
+    requestId: 'appr_req_5002',
+    platform: 'dsh',
+    botId: 'dsh_mobile_hub',
+    sessionId: 'dsh:admin_console',
+    riskLevel: 'high',
+    status: 'approved',
+    action: {
+      type: 'file_write',
+      title: '修改全局渠道路由配置',
+      summary: '更新 channel-routing.json 中 Claude 渠道的并发上限至 10',
+      toolName: 'write_file',
+      path: '/etc/chaite/channel-routing.json',
+      riskLevel: 'high',
+      parameters: { maxConcurrency: 10 },
+    },
+    reason: '高峰期请求排队严重，动态上调并发限制',
+    integrityDigest: 'sha256:3a91b40212f0fc98124d65824901b004d65dfc2d4b1fa3d677284addd2009801',
+    requestedBy: { initiatorRole: 'main_agent', agentId: 'claude-3.7-sonnet' },
+    createdAt: Date.now() - 3600000,
+    expiresAt: Date.now() - 3000000,
+  },
+]
+
+/** GET /api/agent/approvals */
+router.get('/approvals', (req: Request, res: Response) => {
+  handle(res, async () => paginate(sampleApprovals, req))
+})
+
+/** POST /api/agent/approvals/:id/decide */
+router.post('/approvals/:id/decide', (req: Request<{ id: string }>, res: Response) => {
+  handle(res, async () => {
+    const item = sampleApprovals.find(a => a.requestId === req.params.id)
+    if (!item) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Approval request not found'))
+      return null
+    }
+    const { decision, reason, editedAction } = req.body
+    item.status = decision === 'approved' ? 'approved' : 'rejected'
+    if (editedAction) item.action = editedAction
+    item.reason = reason || item.reason
+    return { success: true }
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GATEWAYS STATUS  /api/agent/gateways
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const sampleGateways = [
+  {
+    platform: 'qq',
+    name: 'QQBot OneBot 网关',
+    status: 'online',
+    botId: '2854129840',
+    adapterType: 'OneBot v11 (NapCat WS Reverse)',
+    connectedAt: Date.now() - 86400000 * 3,
+    messageCount: 4219,
+    errorCount: 2,
+    throttledCount: 14,
+    bufferQueueLength: 0,
+    lastHeartbeat: Date.now() - 2500,
+  },
+  {
+    platform: 'dsh',
+    name: 'DSH Mobile 掌上中枢',
+    status: 'online',
+    botId: 'dsh_cordis_core',
+    adapterType: 'Cordis IPC & Push Bridge',
+    connectedAt: Date.now() - 86400000 * 2,
+    messageCount: 890,
+    errorCount: 0,
+    throttledCount: 0,
+    bufferQueueLength: 0,
+    lastHeartbeat: Date.now() - 1100,
+  },
+  {
+    platform: 'web',
+    name: 'Web 控制台 & API 网关',
+    status: 'online',
+    botId: 'chaite_web_srv',
+    adapterType: 'Express SSE & OpenAI /v1 Proxy',
+    connectedAt: Date.now() - 86400000 * 5,
+    messageCount: 12480,
+    errorCount: 5,
+    throttledCount: 0,
+    bufferQueueLength: 0,
+    lastHeartbeat: Date.now() - 400,
+  },
+]
+
+/** GET /api/agent/gateways */
+router.get('/gateways', (req: Request, res: Response) => {
+  handle(res, async () => sampleGateways)
+})
+
+/** POST /api/agent/gateways/:platform/restart */
+router.post('/gateways/:platform/restart', (req: Request<{ platform: string }>, res: Response) => {
+  handle(res, async () => {
+    const gw = sampleGateways.find(g => g.platform === req.params.platform)
+    if (!gw) {
+      res.status(404).json(ChaiteResponse.fail(null, 'Gateway platform not found'))
+      return null
+    }
+    gw.lastHeartbeat = Date.now()
+    gw.status = 'online'
+    return { success: true }
+  })
+})
+
 export default router

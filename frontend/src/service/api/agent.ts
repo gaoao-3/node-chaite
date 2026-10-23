@@ -251,3 +251,200 @@ export function deleteMcpServer(id: string) {
 export function testMcpServer(id: string) {
   return request.Post<Service.ResponseResult<McpTestResult>>(`/api/agent/mcp-servers/${id}/test`, {})
 }
+
+// ─── Fusion Dual-Agent ────────────────────────────────────────────────────────
+
+export interface FusionToolTarget {
+  name: string
+  source?: 'local' | 'mcp' | 'builtin' | 'skill' | 'remote'
+  server?: string
+  required?: boolean
+  notes?: string
+}
+
+export interface FusionDiffSchema {
+  format: 'unified_diff' | 'json_patch' | 'structured_patch' | 'none'
+  path_scope?: string[]
+  max_files?: number
+  max_changed_lines?: number
+}
+
+export interface FusionReviewCriterion {
+  id: string
+  description: string
+  weight: number
+  required?: boolean
+  evaluator?: 'main_agent' | 'sidekick_self' | 'tests' | 'human' | 'automated'
+  pass_condition?: string
+}
+
+export interface FusionTaskBudget {
+  max_tool_calls?: number
+  max_wall_clock_ms?: number
+  max_tokens?: number
+  max_attempts?: number
+}
+
+export interface FusionTaskRecord {
+  taskId: string
+  sessionId: string
+  instruction: string
+  targetTools: FusionToolTarget[]
+  diffSchema: FusionDiffSchema
+  reviewCriteria: FusionReviewCriterion[]
+  budget?: FusionTaskBudget
+  sidekickModel: string
+  mainModel: string
+  status: 'pending' | 'executing' | 'reviewing' | 'completed' | 'failed'
+  producedDiff?: string
+  reviewScore?: number
+  reviewFeedback?: string
+  createdAt: number
+  completedAt?: number
+}
+
+export function fetchFusionTaskList(query: AgentPageQuery = {}) {
+  return request.Get<Service.ResponseResult<AgentPage<FusionTaskRecord>>>('/api/agent/fusion/tasks', { params: query })
+}
+
+export function fetchFusionTaskDetail(taskId: string) {
+  return request.Get<Service.ResponseResult<FusionTaskRecord>>(`/api/agent/fusion/tasks/${encodeURIComponent(taskId)}`)
+}
+
+export function createFusionTask(data: Partial<FusionTaskRecord>) {
+  return request.Post<Service.ResponseResult<FusionTaskRecord>>('/api/agent/fusion/tasks', data)
+}
+
+export function reviewFusionTask(taskId: string, decision: { status: 'approved' | 'rejected'; feedback?: string }) {
+  return request.Post<Service.ResponseResult<{ updated: boolean }>>(`/api/agent/fusion/tasks/${encodeURIComponent(taskId)}/review`, decision)
+}
+
+// ─── Self-Evolution & Skill-Forge ─────────────────────────────────────────────
+
+export interface EvolutionScores {
+  correctness: number
+  efficiency: number
+  safety: number
+  reusability: number
+}
+
+export interface EvolutionToolCall {
+  callId: string
+  name: string
+  arguments: Record<string, unknown>
+  status: 'ok' | 'error' | 'retried' | 'skipped' | 'denied'
+  attempt: number
+  resultPreview?: string
+  error?: {
+    kind: 'RETRYABLE' | 'POLICY_DENIED' | 'FATAL'
+    message: string
+  }
+}
+
+export interface EvolutionRetryRecord {
+  attempt: number
+  reason: string
+  recovered: boolean
+  occurredAt: number
+}
+
+export interface EvolutionTraceRecord {
+  traceId: string
+  sessionId: string
+  platform: 'qq' | 'dsh' | 'web'
+  botId: string
+  userIntent: {
+    raw: string
+    category?: string
+  }
+  outcome: 'success' | 'partial' | 'failure'
+  toolCalls: EvolutionToolCall[]
+  errorRetries: EvolutionRetryRecord[]
+  scores: EvolutionScores
+  compositeScore: number
+  draftSkillName: string
+  draftSkillMd: string
+  lessons: string[]
+  startedAt: number
+  completedAt: number
+  mergedToSkill?: boolean
+}
+
+export function fetchEvolutionTraceList(query: AgentPageQuery = {}) {
+  return request.Get<Service.ResponseResult<AgentPage<EvolutionTraceRecord>>>('/api/agent/evolution/traces', { params: query })
+}
+
+export function fetchEvolutionTraceDetail(traceId: string) {
+  return request.Get<Service.ResponseResult<EvolutionTraceRecord>>(`/api/agent/evolution/traces/${encodeURIComponent(traceId)}`)
+}
+
+export function evaluateSkillCandidate(draftSkillMd: string) {
+  return request.Post<Service.ResponseResult<{ scores: EvolutionScores; passed: boolean; breakdown: Record<string, string> }>>('/api/agent/evolution/evaluate', { draftSkillMd })
+}
+
+export function mergeEvolutionSkill(traceId: string, options?: { skillName?: string; overwrite?: boolean }) {
+  return request.Post<Service.ResponseResult<{ success: boolean; skillName: string }>>(`/api/agent/evolution/traces/${encodeURIComponent(traceId)}/merge`, options || {})
+}
+
+// ─── Human-in-the-Loop Approval Gate ─────────────────────────────────────────
+
+export interface HumanApprovalAction {
+  type: 'tool_call' | 'file_write' | 'shell' | 'network' | 'external_side_effect' | 'custom'
+  title: string
+  summary: string
+  toolName?: string
+  command?: string
+  path?: string
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'
+  parameters?: Record<string, unknown>
+}
+
+export interface HumanApprovalRequestRecord {
+  requestId: string
+  platform: 'qq' | 'dsh' | 'web'
+  botId: string
+  sessionId: string
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'
+  action: HumanApprovalAction
+  status: 'pending' | 'approved' | 'rejected' | 'expired'
+  reason?: string
+  integrityDigest: string
+  requestedBy: {
+    initiatorRole: string
+    agentId?: string
+  }
+  createdAt: number
+  expiresAt: number
+}
+
+export function fetchApprovalList(query: AgentPageQuery = {}) {
+  return request.Get<Service.ResponseResult<AgentPage<HumanApprovalRequestRecord>>>('/api/agent/approvals', { params: query })
+}
+
+export function submitApprovalDecision(requestId: string, decision: { decision: 'approved' | 'rejected' | 'modified'; reason?: string; editedAction?: any }) {
+  return request.Post<Service.ResponseResult<{ success: boolean }>>(`/api/agent/approvals/${encodeURIComponent(requestId)}/decide`, decision)
+}
+
+// ─── Gateway Adapters Status ──────────────────────────────────────────────────
+
+export interface GatewayPlatformStatus {
+  platform: 'qq' | 'dsh' | 'web'
+  name: string
+  status: 'online' | 'offline' | 'degraded'
+  botId: string
+  adapterType: string
+  connectedAt: number
+  messageCount: number
+  errorCount: number
+  throttledCount: number
+  bufferQueueLength: number
+  lastHeartbeat: number
+}
+
+export function fetchGatewayStatusList() {
+  return request.Get<Service.ResponseResult<GatewayPlatformStatus[]>>('/api/agent/gateways')
+}
+
+export function restartGatewayAdapter(platform: string) {
+  return request.Post<Service.ResponseResult<{ success: boolean }>>(`/api/agent/gateways/${encodeURIComponent(platform)}/restart`, {})
+}

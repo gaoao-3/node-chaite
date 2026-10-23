@@ -1,94 +1,101 @@
-# node-chaite
+# 🤖 Chaite-Agent (Platform)
 
-用于[chatgpt-plugin v3](https://github.com/ikechan8370/chatgpt-plugin/tree/v3)和[karin-plugin-chaite](https://github.com/ikechan8370/karin-plugin-chaite)的公用依赖。
+> **The headless, progressive, microkernel Agent runtime for modern chat bots & beyond.**
 
+`chaite-agent` 是一个高扩展、面向多平台（QQBot / DSH Mobile / Web / Telegram）的无头（Headless）智能体运行平台。
+基于 `node-chaite` 的多模型协议底座，深度融入 **Pi Agent（渐进式 Tool/Skill 分层）**、**Devin / OpenCode Fusion（主副手双星协同）**、**Hermes & nekocode（4维门禁闭环自进化熔炉）** 与 **进程隔离的多端适配网关**。
 
+---
 
-只包含核心功能，尽可能轻量，不包含数据库和其他存储。
+## ✨ 核心特性
 
-### Claude thinking 兼容
+- **🧠 极致抹平的多模型协议**：
+  - Claude Adaptive Thinking 思考签名无损保留
+  - OpenAI 推理模型兼容与 Token 预算自适应
+  - Gemini 2.5 ~ 3/4 Thinking 预算与等级平滑转换
+- **🚀 Fusion 双星协同模式 (Devin Sidekick Pattern)**：
+  - **Main Agent (Architect)**：顶级推理模型负责需求理解、SOP 计划、严格审查（无直接执行权限）
+  - **Sidekick (Executor)**：极速高性价比模型负责工具执行与产出代码补丁（Unified Diff / JSON Patch），成本降低 ~54%
+- **🧬 Hermes & nekocode Skill-Forge 自进化闭环**：
+  - 自动捕获复杂踩坑与自愈轨迹（Execution Traces）
+  - 经由触发质量、步骤清晰度、安全完整性、区分度 **4 维评估门禁 (≥6.0/8.0)**
+  - 经验自动反思并提炼为标准的 `SKILL.md`，装载入库，越用越聪明！
+- **🌐 进程隔离的 QQBot / 多平台网关**：
+  - 基于 OneBot v11/v12 WebSocket 与 HTTP 协议，与内核故障隔离
+  - 流式转整发聚合缓冲器、防刷屏节流、群表情反应状态反馈
+  - 原生挂载 **SnowLuma MCP** (200+ QQ社交能力) 与 **Open-WebSearch MCP** (全网实时检索)
+- **🛡️ Human-in-the-Loop 实时安全审批门禁**：
+  - 拦截高危 Shell 命令、配置篡改与不可逆副作用
+  - 联动 Web 控制台与 DSH Mobile 远程一键审批
 
-Claude 4.6 及更新的自适应模型会自动使用 `thinking.type=adaptive`，通过已有的
-`reasoningEffort` 设置 `output_config.effort`；Haiku 4.5、Sonnet 4.5 等旧模型仍使用
-`reasoningBudgetTokens`。自适应请求不再发送手动预算或温度参数。手动预算必须至少为
-1024，且小于 `maxToken`。
+---
 
-若网关重命名了模型，无法从名称判断版本，可在 `SendMessageOption` 中显式覆盖：
+## 🏗️ 架构拓扑
 
-```js
-{
-  model: 'my-haiku-alias',
-  enableReasoning: true,
-  claudeThinkingMode: 'adaptive',
-  claudeEffort: 'high', // low / medium / high / xhigh / max
-  maxToken: 8192
-}
+```
+                         ┌───────────────────────────────────────┐
+                         │         外部多端生态接入层            │
+                         │    QQBot / DSH Mobile / Web / TG      │
+                         └───────────────────┬───────────────────┘
+                                             │ 标准 IPC / WebSocket (进程隔离)
+                                             ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        Chaite Agent Core (无头纯净内核)                                  │
+│                                                                                        │
+│   ┌────────────────────┐    Dispatch     ┌─────────────────────────────────────────┐   │
+│   │  Session & Desk    │ ──────────────> │             AgentLoop 状态机            │   │
+│   │ (工作台上下文管理)  │                 │ (单轮对话 / 多步规划 / 熔断拦截器)       │   │
+│   └────────────────────┘                 └────────────────────┬────────────────────┘   │
+│                                                               │                        │
+│             ┌─────────────────────────────────────────────────┼──────────────────┐     │
+│             ▼                                                 ▼                  ▼     │
+│   ┌────────────────────┐                            ┌───────────────────┐ ┌──────────┐ │
+│   │    LLM Adapters    │                            │    Tool Hub       │ │Skill Hub │ │
+│   │ (OpenAI/Claude/    │                            │ (MCP / Sandbox /  │ │(SKILL.md │ │
+│   │  Gemini 协议层)    │                            │  Local / Remote)  │ │按需加载) │ │
+│   └────────────────────┘                            └───────────────────┘ └──────────┘ │
+└───────────────────────────────────────────────┬────────────────────────────────────────┘
+                                                │ Execution Trace (执行轨迹流)
+                                                ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                   Hermes Closed Learning Loop (自进化闭环系统)                          │
+│                                                                                        │
+│  [Trace 收集器] ──> [反思分析器 (Synthesizer)] ──> [AutoMerge / 老师审批门禁] ──> [更新技能]│
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Claude 返回的 thinking 签名、redacted thinking 和工具调用块会随历史原样保留。
-不要删除 `provider_context` 内容或修改其中的签名；它们用于后续工具轮次的协议回传，
-不用于显示。新模型不支持 assistant prefill，请以用户消息或工具结果结束请求。
+---
 
-### OpenAI / Gemini 协议兼容
+## 🚀 快速启动
 
-- OpenAI 推理模型会省略不支持的温度参数；可用 `openaiReasoningEffort` 指定
-  `none/minimal/low/medium/high/xhigh/max`，具体可用值取决于模型。
-- OpenAI 官方请求不发送 `thinking_budget_tokens`。llama-server 等明确支持该扩展的
-  兼容服务，改用 `openaiThinkingBudgetTokens` 显式设置，不再复用所有预设里的通用预算。
-- 未识别为 OpenAI 官方模型的兼容服务默认使用 `max_tokens`。可用
-  `openaiMaxTokenField: 'max_tokens' | 'max_completion_tokens'` 覆盖网关需求。
-- OpenAI 当前适配器使用 Chat Completions。GPT-6 Astra、GPT-6.1 Sol 的工具调用需要
-  Responses API，配置这些模型与工具时会给出明确错误，不能通过换 SDK 参数实现。
-- Gemini 3/4 使用 `thinkingLevel`，2.5 使用 `thinkingBudget`。可用
-  `geminiThinkingLevel: 'minimal' | 'low' | 'medium' | 'high'` 覆盖自动映射；不支持关闭
-  thinking 的模型使用其最低支持等级，2.5 Pro 使用最低预算 128。
-- Gemini 原始 parts、空签名、函数调用顺序和服务端工具上下文会完整保留。
-  两个适配器均规范化图片 MIME/Base64，`toolChoice=none` 会禁用工具。
+### 1. 安装依赖与构建
+```bash
+pnpm install
+pnpm run build
+```
 
-协议回归测试无需真实 API Key：先运行 `pnpm build`，再运行 `pnpm test:adapters`，
-使用本机临时 HTTP 服务验证构建产物与真实 SDK 的两轮工具调用（含 OpenAI 流式并行调用）。
+### 2. 启动进程隔离的 QQ 适配网关
+```bash
+npx tsx src/gateway/qq/onebot-adapter.ts
+```
 
-### 预计功能
+### 3. 打开 Web 控制台
+```bash
+cd frontend && pnpm run dev
+```
+访问 `http://localhost:5173` 查看：
+- 🚀 **Fusion 协同**：查看主副手任务分发与 Diff 审查
+- 🧬 **自进化熔炉**：查看实战执行轨迹与 4 维评估打分试炼场
+- 🛡️ **安全审批门禁**：查看高危操作拦截与 SHA-256 防篡改签名
+- 🌐 **多端网关与 QQBot**：实时监控 OneBot、DSH 与 Web 适配器在线状态与节流统计
 
-- [x] 主要LLM适配器
-  - [x] OpenAI
-    - [x] 对话
-    - [x] 视觉/音频
-    - [x] 工具
-    - [x] 嵌入
-  - [x] Gemini
-    - [x] 对话
-    - [x] 视觉
-    - [x] 工具
-    - [x] 嵌入
-  - [x] Claude
-    - [x] 对话
-    - [x] 视觉
-    - [x] 工具
-  - [ ] 消息转换器 custom hook
-- [x] 处理器
-  - [x] 前处理器
-  - [x] 后处理器
-- [ ] 其他模型接口抽象
-  - [ ] 生图
-  - [ ] 音频    
-- [x] 触发器
-  - [x] Cron触发器
-  - [] Event     
-- [x] 抽象历史管理
-- [x] 知识库
-  - [x] 抽象向量库构建
-  - [x] 抽象检索
-- [x] 辅助工具
-  - [x] 多模态文件解析
-    - [x] 管理器 documentParserManager
-    - [x] txt
-    - [x] word
-    - [x] pdf
-- [x] 预设/工具管理
-  - [x] 本地热插拔
-  - [x] 云端共享
-  - [x] 点对点共享
-  - [x] 云端实现
-- [x] 渠道管理
+---
 
+## 📜 协议与鸣谢
+
+本项目基于 Apache-2.0 协议开源。
+鸣谢开源生态：
+- [ikechan8370/node-chaite](https://github.com/ikechan8370/node-chaite)
+- [nekocode/skill-forge](https://github.com/nekocode)
+- [NousResearch/Hermes-Agent](https://github.com/NousResearch)
+- [SnowLuma OneBot](https://github.com/SnowLuma)

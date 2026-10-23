@@ -42,10 +42,14 @@ import type {
 import { fetchAllPresetList } from '@/service/api/presets'
 import McpServerFormModal from './McpServerFormModal.vue'
 import SkillFormModal from './SkillFormModal.vue'
+import FusionDelegationView from './components/FusionDelegationView.vue'
+import SelfEvolutionView from './components/SelfEvolutionView.vue'
+import HumanApprovalView from './components/HumanApprovalView.vue'
+import GatewayMonitorView from './components/GatewayMonitorView.vue'
 
 const message = useMessage()
 const route = useRoute()
-const activeTab = ref(typeof route.query.tab === 'string' ? route.query.tab : 'skills')
+const activeTab = ref(typeof route.query.tab === 'string' ? route.query.tab : 'fusion')
 
 // ─── Skills ───────────────────────────────────────────────────────────────────
 
@@ -610,6 +614,25 @@ function handleTabChange(tab: string) {
 
     <n-card>
       <n-tabs v-model:value="activeTab" type="line" animated @update:value="handleTabChange">
+        <!-- ── Fusion 双星协同 ── -->
+        <n-tab-pane name="fusion" tab="🚀 Fusion 协同">
+          <FusionDelegationView />
+        </n-tab-pane>
+
+        <!-- ── 自进化熔炉 ── -->
+        <n-tab-pane name="evolution" tab="🧬 自进化熔炉">
+          <SelfEvolutionView />
+        </n-tab-pane>
+
+        <!-- ── 安全审批门禁 ── -->
+        <n-tab-pane name="approvals" tab="🛡️ 安全审批门禁">
+          <HumanApprovalView />
+        </n-tab-pane>
+
+        <!-- ── 多端网关与 QQBot ── -->
+        <n-tab-pane name="gateways" tab="🌐 多端网关与 QQBot">
+          <GatewayMonitorView />
+        </n-tab-pane>
         <!-- ── 技能管理 ── -->
         <n-tab-pane name="skills" tab="技能管理">
           <NSpace vertical size="large">

@@ -1,4 +1,6 @@
 export * from './contracts'
+export * from './gateway-contracts'
+export * from './gateway-validators'
 export * from './skills'
 export * from './tool-executors'
 export * from './workflow'
