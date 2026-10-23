@@ -28,7 +28,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { Segmented, Switch } from "@/components/ui/switch";
 import type { ConsolePreferences, Density } from "@/hooks/use-preferences";
 import { PLATFORM_META, PLATFORM_ORDER } from "@/lib/platform";
-import type { GatewayPlatform, SessionListStats } from "@/lib/types";
+import type { SessionListStats } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 function maskToken(token: string | null): string {

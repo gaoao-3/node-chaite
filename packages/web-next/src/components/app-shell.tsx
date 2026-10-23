@@ -44,7 +44,8 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [newSessionOpen, setNewSessionOpen] = React.useState(false);
 
-  const handleUnauthorized = React.useCallback(() => auth.logout(), [auth.logout]);
+  const { logout } = auth;
+  const handleUnauthorized = React.useCallback(() => logout(), [logout]);
 
   const sessionStore = useSessions({ token: auth.token, onUnauthorized: handleUnauthorized });
   const approvalsFeed = useApprovalsFeed({
