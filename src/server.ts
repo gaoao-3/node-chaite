@@ -79,20 +79,30 @@ const PORT = Number(process.env.CHAITE_PORT || 3200)
 const ADMIN_PASSWORD = process.env.CHAITE_ADMIN_TOKEN || 'admin123456'
 
 async function start() {
-  const storage = new SimpleMemoryStorage<any>()
+  const channelsStorage = new SimpleMemoryStorage<any>()
+  const presetsStorage = new SimpleMemoryStorage<any>()
+  const toolsStorage = new SimpleMemoryStorage<any>()
+  const processorsStorage = new SimpleMemoryStorage<any>()
+  const toolsGroupStorage = new SimpleMemoryStorage<any>()
+  const triggerStorage = new SimpleMemoryStorage<any>()
+  const coreStorage = new SimpleMemoryStorage<any>()
+
   const logger = getLogger()
   const dataDir = path.resolve(process.cwd(), 'data')
 
-  // 1. 初始化各类 Manager 单例
-  const channelsManager = await ChannelsManager.init(storage, new DefaultChannelLoadBalancer())
-  const toolsManager = await ToolManager.init(path.join(dataDir, 'tools'), storage)
-  const processorsManager = await ProcessorsManager.init(path.join(dataDir, 'processors'), storage)
-  const chatPresetManager = await ChatPresetManager.init(storage)
-  const toolsGroupManager = await ToolsGroupManager.init(storage)
-  const triggerManager = new TriggerManager(path.join(dataDir, 'triggers'), storage)
+  // 1. 初始化各类 Manager 单例 (相互隔离的存储域)
+  const channelsManager = await ChannelsManager.init(channelsStorage, new DefaultChannelLoadBalancer())
+  const toolsManager = await ToolManager.init(path.join(dataDir, 'tools'), toolsStorage)
+  const processorsManager = await ProcessorsManager.init(path.join(dataDir, 'processors'), processorsStorage)
+  const chatPresetManager = await ChatPresetManager.init(presetsStorage)
+  const toolsGroupManager = await ToolsGroupManager.init(toolsGroupStorage)
+  const triggerManager = new TriggerManager(path.join(dataDir, 'triggers'), triggerStorage)
   const userModeSelector = {
     getChatPreset: async () => undefined,
   } as any
+  // 自动填充默认 Channel 与 Preset，保证 Web 前端即使未配置也能直接开聊
+  const { ensureDefaultPresetAndChannel } = await import('./server/setup-default-preset')
+  await ensureDefaultPresetAndChannel(chatPresetManager, channelsManager)
 
   // 2. 初始化 Chaite 核心上下文
   const chaite = Chaite.init(
@@ -103,7 +113,7 @@ async function start() {
     toolsGroupManager,
     triggerManager,
     userModeSelector,
-    storage,
+    coreStorage,
     new InMemoryHistoryManager(),
     logger
   )

@@ -6,7 +6,9 @@ export const authenticateToken: RequestHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '')
+  const authHeader = req.header('Authorization')?.replace('Bearer ', '')
+  const queryToken = typeof req.query.token === 'string' ? req.query.token : undefined
+  const token = authHeader || queryToken
 
   if (!token) {
     res.status(401).json({ message: 'Access denied, token missing' })
@@ -15,7 +17,8 @@ export const authenticateToken: RequestHandler = (
 
   try {
     const authKey = Chaite.getInstance().getGlobalConfig()?.getAuthKey()
-    if (FrontEndAuthHandler.validateJWT(authKey as string, token)) {
+    // 支持标准 JWT 校验或管理员静态 Secret 校验
+    if (FrontEndAuthHandler.validateJWT(authKey as string, token) || (authKey && token === authKey)) {
       next()
       return
     }

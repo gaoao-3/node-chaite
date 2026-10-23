@@ -26,7 +26,7 @@ export class ChannelsManager extends NonExecutableShareableManager<Channel> {
   async getAllChannels(name?: string): Promise<Channel[]> {
     const allChannels = await this.storage.listItems()
     if (name) {
-      return allChannels.filter(channel => channel.models.some(m => m.name === name))
+      return allChannels.filter(channel => (channel.models || []).some(m => m.name === name))
     } else {
       return allChannels
     }
@@ -43,8 +43,12 @@ export class ChannelsManager extends NonExecutableShareableManager<Channel> {
   }
 
   async getChannelByModel(model: string): Promise<Channel[]> {
-    let channels = await this.getAllChannels()
-    channels = channels.filter(channel => channel.models.some(m => m.name === model))
+    const allChannels = await this.getAllChannels()
+    let channels = allChannels.filter(channel => (channel.models || []).some(m => m.name === model))
+    // Fallback: 如果未完全匹配特定模型名，回退到所有已启用的渠道，避免直接挂死
+    if (channels.length === 0 && allChannels.length > 0) {
+      channels = allChannels.filter(c => c.status === 'enabled')
+    }
     const chaite = asyncLocalStorage.getStore()?.chaite
     if (chaite?.getGlobalConfig()?.getDebug()) {
       getLogger().debug(`查询所有渠道: ${model} -> ${channels.map(channel => channel.name).join(', ')}`)

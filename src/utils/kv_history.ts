@@ -33,7 +33,7 @@ export class KVHistoryManager implements HistoryManager {
       return []
     }
     if (!messageId) {
-      throw new Error('unspecified message id is not implemented yet')
+      return []
     }
 
     let parentId: string | null = messageId

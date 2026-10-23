@@ -69,7 +69,7 @@ export class DefaultChannelLoadBalancer implements ChannelsLoadBalancer {
    */
   async getChannels(modelName: string, channels: Channel[], totalQuantity: number): Promise<{ channel: Channel; quantity: number }[]> {
     // 筛选出支持该模型的渠道
-    const supportedChannels = channels.filter(channel => channel.models.some(m => m.name === modelName))
+    const supportedChannels = channels.filter(channel => (channel.models || []).some(m => m.name === modelName))
 
     if (supportedChannels.length === 0) {
       throw new Error('No channels support the specified model')
