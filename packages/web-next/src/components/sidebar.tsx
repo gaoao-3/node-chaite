@@ -13,6 +13,7 @@ import {
   Settings2,
   Sparkles,
   Wrench,
+  Puzzle,
   X,
 } from "lucide-react";
 import { BrandLockup, BrandMark } from "@/components/brand";
@@ -43,6 +44,7 @@ export interface SidebarProps {
   onOpenChannels?: () => void;
   onOpenSkills?: () => void;
   onOpenMcp?: () => void;
+  onOpenPlugins?: () => void;
 }
 
 export function Sidebar({
@@ -63,6 +65,7 @@ export function Sidebar({
   onOpenChannels,
   onOpenSkills,
   onOpenMcp,
+  onOpenPlugins,
 }: SidebarProps) {
   const compact = collapsed && !mobileOpen;
   const [query, setQuery] = React.useState("");
@@ -258,6 +261,15 @@ export function Sidebar({
               >
                 <Wrench className="h-3 w-3" />
                 <span>MCP</span>
+              </button>
+              <button
+                type="button"
+                onClick={onOpenPlugins}
+                className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] py-1 text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                title="插件生态与源码管理"
+              >
+                <Puzzle className="h-3 w-3" />
+                <span>插件</span>
               </button>
             </div>
           </>

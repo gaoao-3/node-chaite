@@ -44,7 +44,7 @@ export function AppShell() {
   const [newSessionOpen, setNewSessionOpen] = React.useState(false);
   const [inspectorOpen, setInspectorOpen] = React.useState(false);
   const [inspectorTab, setInspectorTab] = React.useState<InspectorTab>("plugins");
-  const [settingsTab, setSettingsTab] = React.useState<"general" | "channels" | "skills" | "mcp">("general");
+  const [settingsTab, setSettingsTab] = React.useState<"general" | "channels" | "skills" | "mcp" | "plugins">("general");
 
   const openChannels = React.useCallback(() => {
     setSettingsTab("channels");
@@ -60,6 +60,12 @@ export function AppShell() {
 
   const openMcp = React.useCallback(() => {
     setSettingsTab("mcp");
+    setView("settings");
+    setMobileOpen(false);
+  }, []);
+
+  const openPlugins = React.useCallback(() => {
+    setSettingsTab("plugins");
     setView("settings");
     setMobileOpen(false);
   }, []);
@@ -223,6 +229,7 @@ export function AppShell() {
           onOpenChannels={openChannels}
           onOpenSkills={openSkills}
           onOpenMcp={openMcp}
+          onOpenPlugins={openPlugins}
         />
 
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">

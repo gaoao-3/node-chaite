@@ -4,13 +4,17 @@ import * as React from "react";
 import {
   Activity,
   AlertCircle,
+  ArrowLeft,
   Check,
   ChevronDown,
   ChevronRight,
   Code2,
+  Copy,
   Cpu,
+  Download,
   Eye,
   EyeOff,
+  FileCode,
   Flame,
   Globe,
   HardDrive,
@@ -24,6 +28,7 @@ import {
   Puzzle,
   Radio,
   RefreshCw,
+  Save,
   Search,
   Server,
   Settings2,
@@ -59,6 +64,21 @@ import {
   deleteMcpServer,
   testMcpServer,
   type McpServerConfigItem,
+  fetchPlugins,
+  fetchPluginSource,
+  savePluginSource,
+  createPlugin,
+  deletePlugin,
+  type PluginInfo,
+  type PluginSourceInfo,
+  fetchMcpHub,
+  fetchSkillHub,
+  fetchPluginHub,
+  installHubSkill,
+  installHubPlugin,
+  type McpHubItem,
+  type SkillHubItem,
+  type PluginHubItem,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -88,7 +108,7 @@ function SettingRow({
   );
 }
 
-export type SettingsTab = "general" | "channels" | "skills" | "mcp";
+export type SettingsTab = "general" | "channels" | "skills" | "mcp" | "plugins";
 
 export function SettingsBoard({
   preferences,
@@ -120,6 +140,7 @@ export function SettingsBoard({
   React.useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
   }, [initialTab]);
+
   const [reveal, setReveal] = React.useState(false);
   const origin = typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:3300";
 
@@ -138,8 +159,11 @@ export function SettingsBoard({
   const [newChannelModels, setNewChannelModels] = React.useState("gpt-4o, gpt-4o-mini");
 
   // ─── Skills State ──────────────────────────────────────────────────────────
+  const [skillSubTab, setSkillSubTab] = React.useState<"installed" | "hub">("installed");
   const [skills, setSkills] = React.useState<SkillDetailItem[]>([]);
   const [skillsLoading, setSkillsLoading] = React.useState(false);
+  const [skillHubList, setSkillHubList] = React.useState<SkillHubItem[]>([]);
+  const [installingSkillId, setInstallingSkillId] = React.useState<string | null>(null);
   const [expandedSkill, setExpandedSkill] = React.useState<string | null>(null);
 
   // New Skill Form
@@ -149,8 +173,11 @@ export function SettingsBoard({
   const [newSkillPrompt, setNewSkillPrompt] = React.useState("");
 
   // ─── MCP Servers State ─────────────────────────────────────────────────────
+  const [mcpSubTab, setMcpSubTab] = React.useState<"installed" | "hub">("installed");
   const [mcpServers, setMcpServers] = React.useState<McpServerConfigItem[]>([]);
   const [mcpLoading, setMcpLoading] = React.useState(false);
+  const [mcpHubList, setMcpHubList] = React.useState<McpHubItem[]>([]);
+  const [installingMcpId, setInstallingMcpId] = React.useState<string | null>(null);
   const [mcpTestingId, setMcpTestingId] = React.useState<string | null>(null);
   const [mcpTestResult, setMcpTestResult] = React.useState<Record<string, { ok: boolean; toolsCount?: number; msg: string }>>({});
 
@@ -162,6 +189,25 @@ export function SettingsBoard({
   const [newMcpArgs, setNewMcpArgs] = React.useState("-y @modelcontextprotocol/server-filesystem /tmp");
   const [newMcpUrl, setNewMcpUrl] = React.useState("http://localhost:3001/mcp");
   const [newMcpDesc, setNewMcpDesc] = React.useState("");
+
+  // ─── Plugins State ─────────────────────────────────────────────────────────
+  const [pluginSubTab, setPluginSubTab] = React.useState<"installed" | "hub">("installed");
+  const [plugins, setPlugins] = React.useState<PluginInfo[]>([]);
+  const [pluginsLoading, setPluginsLoading] = React.useState(false);
+  const [pluginHubList, setPluginHubList] = React.useState<PluginHubItem[]>([]);
+  const [installingPluginId, setInstallingPluginId] = React.useState<string | null>(null);
+
+  // Plugin Source Editor Modal
+  const [editorPlugin, setEditorPlugin] = React.useState<PluginInfo | null>(null);
+  const [editorSource, setEditorSource] = React.useState("");
+  const [editorLoading, setEditorLoading] = React.useState(false);
+  const [editorSaving, setEditorSaving] = React.useState(false);
+  const [editorNotice, setEditorNotice] = React.useState<string | null>(null);
+
+  // New Plugin Form
+  const [newPluginOpen, setNewPluginOpen] = React.useState(false);
+  const [newPluginName, setNewPluginName] = React.useState("");
+  const [newPluginType, setNewPluginType] = React.useState<"pi" | "dsh">("pi");
 
   // ─── Load Data Handlers ────────────────────────────────────────────────────
 
@@ -182,8 +228,12 @@ export function SettingsBoard({
     if (!token) return;
     setSkillsLoading(true);
     try {
-      const list = await fetchSkillList(token);
+      const [list, hub] = await Promise.all([
+        fetchSkillList(token).catch(() => []),
+        fetchSkillHub(token).catch(() => []),
+      ]);
       setSkills(list);
+      setSkillHubList(hub);
     } catch (err: any) {
       console.warn("Fetch skills failed:", err);
     } finally {
@@ -195,8 +245,12 @@ export function SettingsBoard({
     if (!token) return;
     setMcpLoading(true);
     try {
-      const list = await fetchMcpServers(token);
+      const [list, hub] = await Promise.all([
+        fetchMcpServers(token).catch(() => []),
+        fetchMcpHub(token).catch(() => []),
+      ]);
       setMcpServers(list);
+      setMcpHubList(hub);
     } catch (err: any) {
       console.warn("Fetch MCP failed:", err);
     } finally {
@@ -204,11 +258,29 @@ export function SettingsBoard({
     }
   }, [token]);
 
+  const loadPlugins = React.useCallback(async () => {
+    if (!token) return;
+    setPluginsLoading(true);
+    try {
+      const [list, hub] = await Promise.all([
+        fetchPlugins(token).catch(() => []),
+        fetchPluginHub(token).catch(() => []),
+      ]);
+      setPlugins(list);
+      setPluginHubList(hub);
+    } catch (err: any) {
+      console.warn("Fetch plugins failed:", err);
+    } finally {
+      setPluginsLoading(false);
+    }
+  }, [token]);
+
   React.useEffect(() => {
     if (activeTab === "channels") void loadChannels();
     if (activeTab === "skills") void loadSkills();
     if (activeTab === "mcp") void loadMcp();
-  }, [activeTab, loadChannels, loadSkills, loadMcp]);
+    if (activeTab === "plugins") void loadPlugins();
+  }, [activeTab, loadChannels, loadSkills, loadMcp, loadPlugins]);
 
   // Channel Actions
   const handleAddChannel = async (e: React.FormEvent) => {
@@ -308,6 +380,19 @@ export function SettingsBoard({
     void loadSkills();
   };
 
+  const handleInstallHubSkill = async (hubItem: SkillHubItem) => {
+    if (!token) return;
+    setInstallingSkillId(hubItem.id);
+    try {
+      await installHubSkill(token, hubItem.id);
+      await loadSkills();
+    } catch (err: any) {
+      alert(`安装技能失败: ${err.message}`);
+    } finally {
+      setInstallingSkillId(null);
+    }
+  };
+
   // MCP Actions
   const handleAddMcp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -356,6 +441,91 @@ export function SettingsBoard({
     void loadMcp();
   };
 
+  const handleInstallHubMcp = async (hubItem: McpHubItem) => {
+    if (!token) return;
+    setInstallingMcpId(hubItem.id);
+    try {
+      await createMcpServer(token, {
+        name: hubItem.name.split(" ")[0].toLowerCase(),
+        description: hubItem.description,
+        transport: hubItem.transport,
+        command: hubItem.command,
+        args: hubItem.args,
+      });
+      await loadMcp();
+    } catch (err: any) {
+      alert(`挂载 MCP 服务失败: ${err.message}`);
+    } finally {
+      setInstallingMcpId(null);
+    }
+  };
+
+  // Plugin Actions
+  const handleOpenPluginEditor = async (p: PluginInfo) => {
+    if (!token) return;
+    setEditorPlugin(p);
+    setEditorLoading(true);
+    setEditorNotice(null);
+    try {
+      const res = await fetchPluginSource(token, p.id);
+      setEditorSource(res.source);
+    } catch (err: any) {
+      setEditorSource(`// 加载源码失败: ${err.message}`);
+    } finally {
+      setEditorLoading(false);
+    }
+  };
+
+  const handleSavePluginSource = async () => {
+    if (!token || !editorPlugin) return;
+    setEditorSaving(true);
+    setEditorNotice(null);
+    try {
+      await savePluginSource(token, editorPlugin.id, editorSource);
+      setEditorNotice("✓ 保存成功并已实时热重载！");
+      void loadPlugins();
+    } catch (err: any) {
+      setEditorNotice(`✗ 保存失败: ${err.message}`);
+    } finally {
+      setEditorSaving(false);
+    }
+  };
+
+  const handleCreatePlugin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !newPluginName.trim()) return;
+    try {
+      await createPlugin(token, {
+        name: newPluginName.trim(),
+        type: newPluginType,
+      });
+      setNewPluginOpen(false);
+      setNewPluginName("");
+      void loadPlugins();
+    } catch (err: any) {
+      alert(`创建插件失败: ${err.message}`);
+    }
+  };
+
+  const handleDeletePlugin = async (p: PluginInfo) => {
+    if (!token || !confirm(`确定要删除插件 "${p.name}" 及其文件吗？`)) return;
+    await deletePlugin(token, p.id);
+    void loadPlugins();
+  };
+
+  const handleInstallHubPlugin = async (hubItem: PluginHubItem) => {
+    if (!token) return;
+    setInstallingPluginId(hubItem.id);
+    try {
+      await installHubPlugin(token, hubItem.id);
+      await loadPlugins();
+    } catch (err: any) {
+      alert(`安装插件失败: ${err.message}`);
+    } finally {
+      setInstallingPluginId(null);
+    }
+  };
+
   return (
     <BoardPage
       onMenu={onMenu}
@@ -363,7 +533,7 @@ export function SettingsBoard({
       icon={<Settings2 className="h-4 w-4" />}
       eyebrow="Console"
       title="控制中心"
-      description="管理外观主题、模型渠道、技能标准 SOP 与 MCP 服务"
+      description="管理外观主题、模型渠道、技能标准 SOP、MCP 服务与扩展插件"
       actions={
         <button
           type="button"
@@ -376,7 +546,7 @@ export function SettingsBoard({
         </button>
       }
     >
-      {/* ── 4 Main Section Tabs (Pi Web Style) ── */}
+      {/* ── 5 Main Section Tabs (Pi Web Style) ── */}
       <div className="flex items-center gap-1 border-b border-[var(--border)] pb-2 overflow-x-auto">
         <button
           type="button"
@@ -445,6 +615,25 @@ export function SettingsBoard({
           {mcpServers.length > 0 ? (
             <span className="font-mono text-[9px] rounded px-1 bg-[var(--bg-panel)] border border-[var(--border)]">
               {mcpServers.length}
+            </span>
+          ) : null}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("plugins")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors shrink-0",
+            activeTab === "plugins"
+              ? "bg-[var(--bg-selected)] text-[var(--accent)] shadow-xs"
+              : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
+          )}
+        >
+          <Puzzle className="h-3.5 w-3.5" />
+          <span>插件生态 (Pi/DSH)</span>
+          {plugins.length > 0 ? (
+            <span className="font-mono text-[9px] rounded px-1 bg-[var(--bg-panel)] border border-[var(--border)]">
+              {plugins.length}
             </span>
           ) : null}
         </button>
@@ -661,7 +850,7 @@ export function SettingsBoard({
             </Button>
           </div>
 
-          {/* New Channel Modal / Inline Drawer */}
+          {/* New Channel Form */}
           {newChannelOpen ? (
             <form onSubmit={handleAddChannel} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-4 space-y-3 animate-scale-in">
               <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
@@ -809,7 +998,7 @@ export function SettingsBoard({
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          TAB 3: SKILLS (SOP)
+          TAB 3: SKILLS (SOP) & COMMUNITY HUB
           ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "skills" ? (
         <div className="space-y-4">
@@ -817,7 +1006,7 @@ export function SettingsBoard({
             <div>
               <h2 className="text-[14px] font-semibold text-[var(--text)]">技能标准作业程序 (Skills SOP)</h2>
               <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                管理 skills/active/ 目录下的 SKILL.md 领域标准执行流程，支持关键词自动匹配与按需渐进加载。
+                管理已激活的 SKILL.md 领域标准执行流程，或从 skills.sh 社区库一键安装。
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -830,6 +1019,35 @@ export function SettingsBoard({
                 <span>新建技能</span>
               </Button>
             </div>
+          </div>
+
+          {/* Subtabs: Installed vs Community Hub */}
+          <div className="flex items-center gap-1 border-b border-[var(--border)] pb-1.5">
+            <button
+              type="button"
+              onClick={() => setSkillSubTab("installed")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors",
+                skillSubTab === "installed"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              已激活技能 ({skills.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setSkillSubTab("hub")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors flex items-center gap-1",
+                skillSubTab === "hub"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              <Globe className="h-3 w-3" />
+              <span>技能生态库 (skills.sh)</span>
+            </button>
           </div>
 
           {/* New Skill Form */}
@@ -889,72 +1107,124 @@ export function SettingsBoard({
             </form>
           ) : null}
 
-          {/* Skills List */}
-          <div className="grid gap-2 sm:grid-cols-2">
-            {skillsLoading && skills.length === 0 ? (
-              <div className="text-center py-8 text-[12px] text-[var(--text-muted)] col-span-2">加载技能中…</div>
-            ) : skills.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-[12px] text-[var(--text-muted)] col-span-2">
-                当前暂无已激活技能。点击上方【热重载技能】从 skills/ 目录加载，或点击【新建技能】编写。
-              </div>
-            ) : (
-              skills.map((sk) => {
-                const expanded = expandedSkill === sk.name;
-                return (
-                  <div key={sk.name} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 space-y-2">
-                    <div className="flex items-start justify-between gap-1.5">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <Sparkles className="h-3 w-3 text-[var(--accent)] shrink-0" />
-                          <span className="text-[12px] font-semibold text-[var(--text)] truncate">{sk.name}</span>
+          {/* SubTab 1: Installed Skills */}
+          {skillSubTab === "installed" ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {skillsLoading && skills.length === 0 ? (
+                <div className="text-center py-8 text-[12px] text-[var(--text-muted)] col-span-2">加载技能中…</div>
+              ) : skills.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-[12px] text-[var(--text-muted)] col-span-2">
+                  当前暂无已激活技能。点击上方【热重载技能】从 skills/ 目录加载，或切到【技能生态库】一键安装。
+                </div>
+              ) : (
+                skills.map((sk) => {
+                  const expanded = expandedSkill === sk.name;
+                  return (
+                    <div key={sk.name} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-1.5">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3 text-[var(--accent)] shrink-0" />
+                            <span className="text-[12px] font-semibold text-[var(--text)] truncate">{sk.name}</span>
+                          </div>
+                          <div className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-2 leading-relaxed">
+                            {sk.description || "暂无描述"}
+                          </div>
                         </div>
-                        <div className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-2 leading-relaxed">
-                          {sk.description || "暂无描述"}
-                        </div>
-                      </div>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSkill(sk.name)}
-                        className="text-[var(--text-muted)] hover:text-rose-400 p-1"
-                        title="删除技能"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-[var(--border)]">
-                      <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase">
-                        {sk.executionMode || "direct"} mode
-                      </span>
-
-                      {sk.systemPrompt ? (
                         <button
                           type="button"
-                          onClick={() => setExpandedSkill(expanded ? null : sk.name)}
-                          className="flex items-center gap-0.5 text-[10px] text-[var(--accent)] hover:underline font-mono"
+                          onClick={() => handleDeleteSkill(sk.name)}
+                          className="text-[var(--text-muted)] hover:text-rose-400 p-1"
+                          title="删除技能"
                         >
-                          <span>{expanded ? "收起 SOP" : "查看 SOP"}</span>
-                          <ChevronRight className={cn("h-3 w-3 transition-transform", expanded && "rotate-90")} />
+                          <Trash2 className="h-3 w-3" />
                         </button>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-[var(--border)]">
+                        <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase">
+                          {sk.executionMode || "direct"} mode
+                        </span>
+
+                        {sk.systemPrompt ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedSkill(expanded ? null : sk.name)}
+                            className="flex items-center gap-0.5 text-[10px] text-[var(--accent)] hover:underline font-mono"
+                          >
+                            <span>{expanded ? "收起 SOP" : "查看 SOP"}</span>
+                            <ChevronRight className={cn("h-3 w-3 transition-transform", expanded && "rotate-90")} />
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {expanded && sk.systemPrompt ? (
+                        <pre className="rounded bg-[var(--bg-hover)] p-2 font-mono text-[9.5px] text-[var(--text)] whitespace-pre-wrap max-h-48 overflow-y-auto">
+                          {sk.systemPrompt}
+                        </pre>
                       ) : null}
                     </div>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            /* SubTab 2: Community Skill Hub (skills.sh) */
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {skillHubList.map((item) => {
+                const installed = skills.some((s) => s.name === item.name);
+                const isInstalling = installingSkillId === item.id;
+                return (
+                  <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12.5px] font-semibold text-[var(--text)]">{item.name}</span>
+                        <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)]">
+                          {item.category}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {item.keywords.map((k) => (
+                          <span key={k} className="rounded bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--text-dim)]">
+                            #{k}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-                    {expanded && sk.systemPrompt ? (
-                      <pre className="rounded bg-[var(--bg-hover)] p-2 font-mono text-[9.5px] text-[var(--text)] whitespace-pre-wrap max-h-48 overflow-y-auto">
-                        {sk.systemPrompt}
-                      </pre>
-                    ) : null}
+                    <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                      <span className="text-[9.5px] text-[var(--text-dim)] font-mono">by {item.author}</span>
+                      <Button
+                        size="xs"
+                        variant={installed ? "ghost" : "primary"}
+                        disabled={installed || isInstalling}
+                        onClick={() => handleInstallHubSkill(item)}
+                      >
+                        {installed ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-400" />
+                            <span>已激活 ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-3 w-3" />
+                            <span>{isInstalling ? "安装中…" : "一键安装"}</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
         </div>
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          TAB 4: MCP SERVERS
+          TAB 4: MCP SERVERS & COMMUNITY STORE
           ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "mcp" ? (
         <div className="space-y-4">
@@ -962,13 +1232,42 @@ export function SettingsBoard({
             <div>
               <h2 className="text-[14px] font-semibold text-[var(--text)]">MCP 外部驱动服务 (Model Context Protocol)</h2>
               <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
-                挂载标准 MCP 协议服务 (Stdio 命令行进程 / SSE 远程端点)，为 Agent 扩充外部工具能力。
+                挂载标准 MCP 协议服务 (Stdio 命令行进程 / SSE 远程端点)，或从 MCP 社区应用库一键安装。
               </p>
             </div>
             <Button size="sm" variant="primary" onClick={() => setNewMcpOpen(true)}>
               <Plus className="h-3.5 w-3.5" />
               <span>添加 MCP 服务</span>
             </Button>
+          </div>
+
+          {/* Subtabs: Installed vs MCP Hub */}
+          <div className="flex items-center gap-1 border-b border-[var(--border)] pb-1.5">
+            <button
+              type="button"
+              onClick={() => setMcpSubTab("installed")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors",
+                mcpSubTab === "installed"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              已配置服务 ({mcpServers.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMcpSubTab("hub")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors flex items-center gap-1",
+                mcpSubTab === "hub"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              <Globe className="h-3 w-3" />
+              <span>MCP 社区应用库</span>
+            </button>
           </div>
 
           {/* New MCP Form */}
@@ -1069,85 +1368,402 @@ export function SettingsBoard({
             </form>
           ) : null}
 
-          {/* MCP Server List */}
-          <div className="space-y-2">
-            {mcpLoading && mcpServers.length === 0 ? (
-              <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">加载 MCP 服务列表中…</div>
-            ) : mcpServers.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-[12px] text-[var(--text-muted)]">
-                当前暂无已挂载的 MCP 服务。点击上方【添加 MCP 服务】挂载外部工具。
-              </div>
-            ) : (
-              mcpServers.map((srv) => {
-                const isTesting = mcpTestingId === srv.id;
-                const result = mcpTestResult[srv.id];
-                return (
-                  <div key={srv.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2.5">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                        <span className="text-[13px] font-semibold text-[var(--text)]">{srv.name}</span>
-                        <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[9px] uppercase text-[var(--text-muted)]">
-                          {srv.transport || "stdio"}
-                        </span>
+          {/* SubTab 1: Configured MCP Servers */}
+          {mcpSubTab === "installed" ? (
+            <div className="space-y-2">
+              {mcpLoading && mcpServers.length === 0 ? (
+                <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">加载 MCP 服务列表中…</div>
+              ) : mcpServers.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-[12px] text-[var(--text-muted)]">
+                  当前暂无已挂载的 MCP 服务。点击上方【添加 MCP 服务】或切换到【MCP 社区应用库】一键挂载。
+                </div>
+              ) : (
+                mcpServers.map((srv) => {
+                  const isTesting = mcpTestingId === srv.id;
+                  const result = mcpTestResult[srv.id];
+                  return (
+                    <div key={srv.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                          <span className="text-[13px] font-semibold text-[var(--text)]">{srv.name}</span>
+                          <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[9px] uppercase text-[var(--text-muted)]">
+                            {srv.transport || "stdio"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            size="xs"
+                            variant="subtle"
+                            disabled={isTesting}
+                            onClick={() => handleTestMcp(srv.id)}
+                          >
+                            <Play className={cn("h-3 w-3", isTesting && "animate-spin")} />
+                            <span>{isTesting ? "探测中…" : "测试连通与工具"}</span>
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMcp(srv.id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            title="删除 MCP 服务"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      {srv.description ? (
+                        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">{srv.description}</p>
+                      ) : null}
+
+                      {srv.tools && srv.tools.length > 0 ? (
+                        <div className="pt-1">
+                          <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
+                            已注册工具 ({srv.tools.length})
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {srv.tools.map((t) => (
+                              <span
+                                key={t.name}
+                                className="inline-flex items-center gap-1 rounded bg-[var(--bg-hover)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[9.5px] text-[var(--text)]"
+                                title={t.description}
+                              >
+                                <Wrench className="h-2.5 w-2.5 text-[var(--accent)]" />
+                                <span>{t.name}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {result ? (
+                        <div className={cn("rounded-md px-2.5 py-1 text-[10.5px] font-mono", result.ok ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border border-rose-500/20")}>
+                          {result.ok ? `✓ ${result.msg}` : `✗ ${result.msg}`}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            /* SubTab 2: MCP Community Hub */
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {mcpHubList.map((item) => {
+                const installed = mcpServers.some((s) => s.name.toLowerCase() === item.name.split(" ")[0].toLowerCase());
+                const isInstalling = installingMcpId === item.id;
+                return (
+                  <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12.5px] font-semibold text-[var(--text)]">{item.name}</span>
+                        <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)]">
+                          {item.category}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</p>
+                      
+                      <div className="mt-2 text-[10px] text-[var(--text-dim)] font-mono">
+                        <div>包含工具：{item.toolsSample.join(", ")}</div>
+                        {item.command ? <div className="mt-0.5 truncate text-[9px] text-[var(--text-muted)]">执行命令：{item.command} {item.args?.join(" ")}</div> : null}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                      <span className="text-[9.5px] text-[var(--text-dim)] font-mono">by {item.author}</span>
+                      <Button
+                        size="xs"
+                        variant={installed ? "ghost" : "primary"}
+                        disabled={installed || isInstalling}
+                        onClick={() => handleInstallHubMcp(item)}
+                      >
+                        {installed ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-400" />
+                            <span>已挂载 ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-3 w-3" />
+                            <span>{isInstalling ? "挂载中…" : "一键挂载"}</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {/* ═══════════════════════════════════════════════════════════════════════
+          TAB 5: PLUGINS (Pi & DSH EXTENSIONS) & IN-BROWSER CODE EDITOR
+          ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === "plugins" ? (
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-[14px] font-semibold text-[var(--text)]">插件生态与源码管理 (Plugins Hub)</h2>
+              <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                支持在线查看与编辑 Pi / DSH 扩展插件源码，实时热重载，或从社区插件市场一键安装。
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="primary" onClick={() => setNewPluginOpen(true)}>
+                <Plus className="h-3.5 w-3.5" />
+                <span>新建插件</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Subtabs: Installed vs Plugin Hub */}
+          <div className="flex items-center gap-1 border-b border-[var(--border)] pb-1.5">
+            <button
+              type="button"
+              onClick={() => setPluginSubTab("installed")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors",
+                pluginSubTab === "installed"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              已挂载插件 ({plugins.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setPluginSubTab("hub")}
+              className={cn(
+                "rounded-md px-3 py-1 text-[11.5px] font-medium transition-colors flex items-center gap-1",
+                pluginSubTab === "hub"
+                  ? "bg-[var(--bg-selected)] text-[var(--accent)] font-semibold"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]",
+              )}
+            >
+              <Globe className="h-3 w-3" />
+              <span>插件生态市场</span>
+            </button>
+          </div>
+
+          {/* New Plugin Form */}
+          {newPluginOpen ? (
+            <form onSubmit={handleCreatePlugin} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-4 space-y-3 animate-scale-in">
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+                <span className="text-[13px] font-semibold text-[var(--text)]">新建插件 (Plugin)</span>
+                <button type="button" onClick={() => setNewPluginOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text)]">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="text-[11px] font-medium text-[var(--text-muted)]">插件名称 (kebab-case)</label>
+                  <input
+                    type="text"
+                    required
+                    value={newPluginName}
+                    onChange={(e) => setNewPluginName(e.target.value)}
+                    placeholder="如：pi-my-helper 或 dsh-notifier"
+                    className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2.5 py-1.5 font-mono text-[12px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-medium text-[var(--text-muted)]">插件架构规范</label>
+                  <select
+                    value={newPluginType}
+                    onChange={(e) => setNewPluginType(e.target.value as any)}
+                    className="mt-1 w-full rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2.5 py-1.5 text-[12px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                  >
+                    <option value="pi">Pi Agent 风格扩展 (export default function(pi))</option>
+                    <option value="dsh">DSH / Cordis 风格插件 (export function apply(ctx))</option>
+                  </select>
+                </div>
+              </div>
+
+              <p className="text-[10.5px] text-[var(--text-dim)] leading-relaxed">
+                创建后将在 <code>plugins/{newPluginName || "my-plugin"}.ts</code> 自动生成规范模板，并支持直接在线编辑与热重载。
+              </p>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border)]">
+                <Button size="xs" variant="ghost" onClick={() => setNewPluginOpen(false)}>
+                  取消
+                </Button>
+                <Button size="xs" variant="primary" type="submit">
+                  创建并编辑
+                </Button>
+              </div>
+            </form>
+          ) : null}
+
+          {/* SubTab 1: Installed Plugins & Code Editor */}
+          {pluginSubTab === "installed" ? (
+            <div className="space-y-3">
+              {pluginsLoading && plugins.length === 0 ? (
+                <div className="text-center py-8 text-[12px] text-[var(--text-muted)]">加载插件列表中…</div>
+              ) : plugins.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[var(--border)] p-8 text-center text-[12px] text-[var(--text-muted)]">
+                  当前暂无已挂载的插件。点击上方【新建插件】编写，或切换到【插件生态市场】一键安装。
+                </div>
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {plugins.map((pl) => (
+                    <div key={pl.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2.5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Puzzle className="h-3.5 w-3.5 text-[var(--accent)]" />
+                            <span className="text-[13px] font-semibold text-[var(--text)]">{pl.name}</span>
+                          </div>
+                          <span className="rounded border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)]">
+                            {pl.type}
+                          </span>
+                        </div>
+
+                        {pl.description ? (
+                          <p className="text-[11px] text-[var(--text-muted)] mt-1">{pl.description}</p>
+                        ) : null}
+
+                        <div className="mt-2 text-[10px] text-[var(--text-dim)] font-mono truncate">
+                          路径: {pl.path || `plugins/${pl.name}.ts`}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {pl.tools.map((t) => (
+                            <span key={t} className="inline-flex items-center gap-1 rounded bg-[var(--bg-hover)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--text)]">
+                              <Wrench className="h-2 w-2 text-[var(--accent)]" />
+                              <span>{t}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
                         <Button
                           size="xs"
                           variant="subtle"
-                          disabled={isTesting}
-                          onClick={() => handleTestMcp(srv.id)}
+                          onClick={() => handleOpenPluginEditor(pl)}
+                          className="flex items-center gap-1"
                         >
-                          <Play className={cn("h-3 w-3", isTesting && "animate-spin")} />
-                          <span>{isTesting ? "探测中…" : "测试连通与工具"}</span>
+                          <Code2 className="h-3 w-3" />
+                          <span>源码编辑 / 查看</span>
                         </Button>
+
                         <button
                           type="button"
-                          onClick={() => handleDeleteMcp(srv.id)}
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                          title="删除 MCP 服务"
+                          onClick={() => handleDeletePlugin(pl)}
+                          className="text-[var(--text-muted)] hover:text-rose-400 p-1"
+                          title="删除插件"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
 
-                    {srv.description ? (
-                      <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">{srv.description}</p>
-                    ) : null}
+              {/* ── Inline Code Editor Drawer/Modal ── */}
+              {editorPlugin ? (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-4 space-y-3 animate-scale-in">
+                  <div className="flex items-center justify-between border-b border-[var(--border)] pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <Code2 className="h-4 w-4 text-[var(--accent)]" />
+                      <span className="text-[13px] font-semibold text-[var(--text)]">
+                        源码编辑: {editorPlugin.name}
+                      </span>
+                      <span className="font-mono text-[9px] text-[var(--text-dim)]">({editorPlugin.type})</span>
+                    </div>
 
-                    {/* Tools list */}
-                    {srv.tools && srv.tools.length > 0 ? (
-                      <div className="pt-1">
-                        <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-1">
-                          已注册工具 ({srv.tools.length})
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {srv.tools.map((t) => (
-                            <span
-                              key={t.name}
-                              className="inline-flex items-center gap-1 rounded bg-[var(--bg-hover)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[9.5px] text-[var(--text)]"
-                              title={t.description}
-                            >
-                              <Wrench className="h-2.5 w-2.5 text-[var(--accent)]" />
-                              <span>{t.name}</span>
-                            </span>
-                          ))}
-                        </div>
+                    <div className="flex items-center gap-2">
+                      {editorNotice ? (
+                        <span className="text-[10.5px] font-mono text-[var(--accent)] animate-fade-in">{editorNotice}</span>
+                      ) : null}
+                      <Button
+                        size="xs"
+                        variant="primary"
+                        disabled={editorLoading || editorSaving}
+                        onClick={handleSavePluginSource}
+                      >
+                        <Save className={cn("h-3 w-3", editorSaving && "animate-spin")} />
+                        <span>{editorSaving ? "保存中…" : "保存并热重载"}</span>
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => setEditorPlugin(null)}
+                        className="text-[var(--text-muted)] hover:text-[var(--text)]"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {editorLoading ? (
+                    <div className="py-12 text-center text-[12px] text-[var(--text-muted)]">加载插件源码中…</div>
+                  ) : (
+                    <textarea
+                      rows={14}
+                      value={editorSource}
+                      onChange={(e) => setEditorSource(e.target.value)}
+                      spellCheck={false}
+                      className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] p-3 font-mono text-[11.5px] leading-relaxed text-[var(--text)] outline-none focus:border-[var(--accent)] resize-y"
+                    />
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            /* SubTab 2: Community Plugin Hub */
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {pluginHubList.map((item) => {
+                const installed = plugins.some((p) => p.name === item.name || p.name === item.fileName.replace(/\.ts$/, ""));
+                const isInstalling = installingPluginId === item.id;
+                return (
+                  <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12.5px] font-semibold text-[var(--text)]">{item.name}</span>
+                        <span className="rounded border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)]">
+                          {item.type}
+                        </span>
                       </div>
-                    ) : null}
-
-                    {result ? (
-                      <div className={cn("rounded-md px-2.5 py-1 text-[10.5px] font-mono", result.ok ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border border-rose-500/20")}>
-                        {result.ok ? `✓ ${result.msg}` : `✗ ${result.msg}`}
+                      <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</p>
+                      
+                      <div className="mt-2 text-[10px] text-[var(--text-dim)] font-mono">
+                        <div>注入工具：{item.tools.join(", ")}</div>
+                        <div className="mt-0.5 text-[9px] text-[var(--text-muted)]">目标文件：plugins/{item.fileName}</div>
                       </div>
-                    ) : null}
+                    </div>
+
+                    <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+                      <span className="text-[9.5px] text-[var(--text-dim)] font-mono">by {item.author}</span>
+                      <Button
+                        size="xs"
+                        variant={installed ? "ghost" : "primary"}
+                        disabled={installed || isInstalling}
+                        onClick={() => handleInstallHubPlugin(item)}
+                      >
+                        {installed ? (
+                          <>
+                            <Check className="h-3 w-3 text-emerald-400" />
+                            <span>已安装 ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-3 w-3" />
+                            <span>{isInstalling ? "安装中…" : "一键安装"}</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 );
-              })
-            )}
-          </div>
+              })}
+            </div>
+          )}
         </div>
       ) : null}
     </BoardPage>

@@ -29,7 +29,7 @@ export interface ChatWorkspaceProps {
   onToggleInspector?: () => void;
   inspectorTab?: InspectorTab;
   onInspectorTabChange?: (tab: InspectorTab) => void;
-  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp") => void;
+  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp" | "plugins") => void;
 }
 
 export function ChatWorkspace({

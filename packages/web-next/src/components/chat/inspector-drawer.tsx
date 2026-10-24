@@ -43,7 +43,7 @@ export interface InspectorDrawerProps {
   evolutionData: EvolutionData;
   approvalsFeed?: UseApprovalsFeedResult;
   skillCount: number;
-  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp") => void;
+  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp" | "plugins") => void;
 }
 
 export function InspectorDrawer({
@@ -599,6 +599,18 @@ export function InspectorDrawer({
             >
               <Wrench className="h-3 w-3" />
               <span>MCP 服务</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenSettingsTab("plugins");
+              }}
+              className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] py-1.5 text-[10.5px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <Puzzle className="h-3 w-3" />
+              <span>插件管理</span>
             </button>
           </div>
         </div>

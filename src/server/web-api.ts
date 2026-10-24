@@ -18,6 +18,12 @@ import { createAgentEventStream, type AgentEventStreamOptions } from './sse-stre
 import type { AgentSessionStatus, SessionCreateInput } from './types'
 import type { GatewayManager } from '../gateway/gateway-manager'
 import type { PluginLoader } from '../agent/plugins/plugin-loader'
+import {
+  COMMUNITY_MCP_CATALOG,
+  COMMUNITY_SKILL_CATALOG,
+  COMMUNITY_PLUGIN_CATALOG,
+  CommunityHubManager,
+} from '../agent/hub/community-hub'
 
 export interface AgentWebApiDependencies {
   sessions: SessionRegistry
@@ -511,6 +517,61 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
 
   router.get('/plugins', route((_req, res) => {
     sendOk(res, dependencies.plugins ? dependencies.plugins.listPlugins() : [])
+  }))
+
+  router.get('/plugins/:id/source', route(async (req, res) => {
+    if (!dependencies.plugins) throw new BadRequestError('PluginLoader not configured')
+    sendOk(res, await dependencies.plugins.getPluginSource(req.params.id as string))
+  }))
+
+  router.put('/plugins/:id/source', route(async (req, res) => {
+    if (!dependencies.plugins) throw new BadRequestError('PluginLoader not configured')
+    const source = typeof req.body?.source === 'string' ? req.body.source : ''
+    sendOk(res, await dependencies.plugins.savePluginSource(req.params.id as string, source))
+  }))
+
+  router.post('/plugins', route(async (req, res) => {
+    if (!dependencies.plugins) throw new BadRequestError('PluginLoader not configured')
+    const name = String(req.body?.name || '')
+    const type = (req.body?.type === 'dsh' ? 'dsh' : 'pi') as 'pi' | 'dsh'
+    const source = typeof req.body?.source === 'string' ? req.body.source : undefined
+    sendOk(res, await dependencies.plugins.createPlugin(name, type, source))
+  }))
+
+  router.delete('/plugins/:id', route(async (req, res) => {
+    if (!dependencies.plugins) throw new BadRequestError('PluginLoader not configured')
+    sendOk(res, { success: await dependencies.plugins.deletePlugin(req.params.id as string) })
+  }))
+
+  // ─── Community Marketplace Hub (MCP, Skills, Plugins) ───────────────────────
+
+  const hubManager = new CommunityHubManager(
+    process.cwd(),
+    undefined,
+    dependencies.plugins,
+    async () => {
+      await dependencies.skills?.reload()
+    },
+  )
+
+  router.get('/hub/mcp', route((_req, res) => {
+    sendOk(res, COMMUNITY_MCP_CATALOG)
+  }))
+
+  router.get('/hub/skills', route((_req, res) => {
+    sendOk(res, COMMUNITY_SKILL_CATALOG)
+  }))
+
+  router.get('/hub/plugins', route((_req, res) => {
+    sendOk(res, COMMUNITY_PLUGIN_CATALOG)
+  }))
+
+  router.post('/hub/skills/:id/install', route(async (req, res) => {
+    sendOk(res, await hubManager.installSkill(req.params.id as string))
+  }))
+
+  router.post('/hub/plugins/:id/install', route(async (req, res) => {
+    sendOk(res, await hubManager.installPlugin(req.params.id as string))
   }))
 
   return router

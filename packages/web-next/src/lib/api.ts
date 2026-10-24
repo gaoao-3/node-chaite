@@ -358,6 +358,7 @@ export interface PluginInfo {
   description?: string
   status: "active" | "error" | "disabled"
   tools: string[]
+  path?: string;
   error?: string
 }
 
@@ -498,4 +499,109 @@ export function createSkillItem(
 
 export function deleteSkillItem(token: string, name: string): Promise<any> {
   return request(`/api/agent/skills/${encodeURIComponent(name)}`, { token, method: "DELETE" });
+}
+
+
+// ─── Plugin Source Code & Management ──────────────────────────────────────────
+
+export interface PluginSourceInfo {
+  id: string;
+  name: string;
+  path: string;
+  source: string;
+}
+
+export function fetchPluginSource(token: string, id: string): Promise<PluginSourceInfo> {
+  return request<PluginSourceInfo>(`/api/agent/plugins/${encodeURIComponent(id)}/source`, { token });
+}
+
+export function savePluginSource(token: string, id: string, source: string): Promise<PluginInfo> {
+  return request<PluginInfo>(`/api/agent/plugins/${encodeURIComponent(id)}/source`, {
+    token,
+    method: "PUT",
+    body: { source },
+  });
+}
+
+export function createPlugin(token: string, payload: { name: string; type: "pi" | "dsh"; source?: string }): Promise<PluginInfo> {
+  return request<PluginInfo>("/api/agent/plugins", {
+    token,
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function deletePlugin(token: string, id: string): Promise<{ success: boolean }> {
+  return request<{ success: boolean }>(`/api/agent/plugins/${encodeURIComponent(id)}`, {
+    token,
+    method: "DELETE",
+  });
+}
+
+// ─── Community Hub Marketplace ───────────────────────────────────────────────
+
+export interface McpHubItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  author: string;
+  transport: "stdio" | "sse";
+  command?: string;
+  args?: string[];
+  envGuide?: Record<string, string>;
+  toolsSample: string[];
+  recommended?: boolean;
+}
+
+export interface SkillHubItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  author: string;
+  keywords: string[];
+  recommended?: boolean;
+  skillMdContent: string;
+}
+
+export interface PluginHubItem {
+  id: string;
+  name: string;
+  type: "pi" | "dsh";
+  category: string;
+  description: string;
+  author: string;
+  tools: string[];
+  fileName: string;
+  recommended?: boolean;
+  sourceCode: string;
+}
+
+export function fetchMcpHub(token: string): Promise<McpHubItem[]> {
+  return request<McpHubItem[]>("/api/agent/hub/mcp", { token });
+}
+
+export function fetchSkillHub(token: string): Promise<SkillHubItem[]> {
+  return request<SkillHubItem[]>("/api/agent/hub/skills", { token });
+}
+
+export function fetchPluginHub(token: string): Promise<PluginHubItem[]> {
+  return request<PluginHubItem[]>("/api/agent/hub/plugins", { token });
+}
+
+export function installHubSkill(token: string, id: string): Promise<{ success: boolean; name: string }> {
+  return request<{ success: boolean; name: string }>(`/api/agent/hub/skills/${encodeURIComponent(id)}/install`, {
+    token,
+    method: "POST",
+    body: {},
+  });
+}
+
+export function installHubPlugin(token: string, id: string): Promise<{ success: boolean; name: string }> {
+  return request<{ success: boolean; name: string }>(`/api/agent/hub/plugins/${encodeURIComponent(id)}/install`, {
+    token,
+    method: "POST",
+    body: {},
+  });
 }

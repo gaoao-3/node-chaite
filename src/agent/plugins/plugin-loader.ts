@@ -104,6 +104,79 @@ export class PluginLoader {
       return pluginInfo
     }
   }
+  /**
+   * 读取指定插件的源码
+   */
+  async getPluginSource(pluginId: string): Promise<{ id: string; name: string; path: string; source: string }> {
+    const info = this.plugins.get(pluginId)
+    if (!info) throw new Error(`Plugin "${pluginId}" not found`)
+    if (!fs.existsSync(info.path)) throw new Error(`Plugin file not found at ${info.path}`)
+    const source = await fs.promises.readFile(info.path, 'utf8')
+    return { id: info.id, name: info.name, path: info.path, source }
+  }
+
+  /**
+   * 保存并热重载指定插件的源码
+   */
+  async savePluginSource(pluginId: string, source: string): Promise<LoadedPluginInfo> {
+    const info = this.plugins.get(pluginId)
+    if (!info) throw new Error(`Plugin "${pluginId}" not found`)
+
+    // 清理旧注册的工具
+    for (const toolName of info.tools) {
+      this.registeredTools.delete(toolName)
+    }
+
+    await fs.promises.writeFile(info.path, source, 'utf8')
+    // 重新加载插件
+    return await this.loadPlugin(info.path)
+  }
+
+  /**
+   * 新建插件并写入 plugins/ 目录
+   */
+  async createPlugin(name: string, type: 'pi' | 'dsh', source?: string): Promise<LoadedPluginInfo> {
+    const safeName = name.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-')
+    const targetFile = path.join(this.pluginsDir, `${safeName}.ts`)
+    if (fs.existsSync(targetFile)) {
+      throw new Error(`Plugin file "${safeName}.ts" already exists`)
+    }
+
+    let defaultSource = source
+    if (!defaultSource) {
+      if (type === 'pi') {
+        defaultSource = `/**\n * Pi Agent 扩展插件：${safeName}\n */\nexport default function(pi: any) {\n  pi.registerTool({\n    name: "${safeName.replace(/-/g, '_')}",\n    description: "自定义工具描述",\n    parameters: {\n      type: "object",\n      properties: {\n        input: { type: "string", description: "输入参数" },\n      },\n      required: ["input"],\n    },\n    execute: async (args: { input: string }) => {\n      return { result: "处理完成: " + args.input, status: "success" };\n    },\n  });\n}\n`
+      } else {
+        defaultSource = `/**\n * DSH / Cordis 插件：${safeName}\n */\nexport function apply(ctx: any) {\n  ctx.tools.register({\n    name: "${safeName.replace(/-/g, '_')}",\n    description: "自定义 DSH 工具描述",\n    parameters: { type: "object", properties: {} },\n    run: async () => {\n      return { message: "Hello from DSH plugin ${safeName}" };\n    },\n  });\n}\n`
+      }
+    }
+
+    await fs.promises.writeFile(targetFile, defaultSource, 'utf8')
+    return await this.loadPlugin(targetFile)
+  }
+
+  /**
+   * 删除插件文件及已注册的工具
+   */
+  async deletePlugin(pluginId: string): Promise<boolean> {
+    const info = this.plugins.get(pluginId)
+    if (!info) return false
+
+    for (const toolName of info.tools) {
+      this.registeredTools.delete(toolName)
+    }
+
+    if (fs.existsSync(info.path)) {
+      try {
+        await fs.promises.unlink(info.path)
+      } catch (err) {
+        console.warn(`Failed to unlink plugin file ${info.path}:`, err)
+      }
+    }
+
+    this.plugins.delete(pluginId)
+    return true
+  }
 
   /**
    * 自动扫描 plugins/ 目录加载所有有效插件
