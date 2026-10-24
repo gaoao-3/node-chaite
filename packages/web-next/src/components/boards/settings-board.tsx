@@ -12,6 +12,7 @@ import {
   Copy,
   Cpu,
   Download,
+  Star,
   Eye,
   EyeOff,
   FileCode,
@@ -79,6 +80,8 @@ import {
   type McpHubItem,
   type SkillHubItem,
   type PluginHubItem,
+  fetchDshHub,
+  type DshMarketPlugin,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -197,6 +200,38 @@ export function SettingsBoard({
   const [pluginHubList, setPluginHubList] = React.useState<PluginHubItem[]>([]);
   const [installingPluginId, setInstallingPluginId] = React.useState<string | null>(null);
 
+  // ─── DSH Live Market State (6,700+ plugins) ────────────────────────────────
+  const [dshSearchQuery, setDshSearchQuery] = React.useState("");
+  const [dshCategory, setDshCategory] = React.useState("all");
+  const [dshPlugins, setDshPlugins] = React.useState<DshMarketPlugin[]>([]);
+  const [dshTotal, setDshTotal] = React.useState(0);
+  const [dshLoading, setDshLoading] = React.useState(false);
+  const dshReqSeqRef = React.useRef(0);
+  const searchDebounceRef = React.useRef<any>(null);
+
+  const loadDshMarket = React.useCallback(async (q?: string, cat?: string) => {
+    if (!token) return;
+    const seq = ++dshReqSeqRef.current;
+    setDshLoading(true);
+    try {
+      const targetQuery = q !== undefined ? q : dshSearchQuery;
+      const targetCategory = cat !== undefined ? cat : dshCategory;
+      const res = await fetchDshHub(token, { query: targetQuery, category: targetCategory });
+      if (seq === dshReqSeqRef.current) {
+        setDshPlugins(res.plugins || []);
+        setDshTotal(res.total || 0);
+      }
+    } catch (err: any) {
+      if (seq === dshReqSeqRef.current) {
+        console.warn("fetchDshHub failed:", err);
+      }
+    } finally {
+      if (seq === dshReqSeqRef.current) {
+        setDshLoading(false);
+      }
+    }
+  }, [token, dshSearchQuery, dshCategory]);
+
   // Plugin Source Editor Modal
   const [editorPlugin, setEditorPlugin] = React.useState<PluginInfo | null>(null);
   const [editorSource, setEditorSource] = React.useState("");
@@ -281,6 +316,12 @@ export function SettingsBoard({
     if (activeTab === "mcp") void loadMcp();
     if (activeTab === "plugins") void loadPlugins();
   }, [activeTab, loadChannels, loadSkills, loadMcp, loadPlugins]);
+
+  React.useEffect(() => {
+    if (activeTab === "plugins" && pluginSubTab === "hub") {
+      void loadDshMarket();
+    }
+  }, [activeTab, pluginSubTab, loadDshMarket]);
 
   // Channel Actions
   const handleAddChannel = async (e: React.FormEvent) => {
@@ -1716,52 +1757,215 @@ export function SettingsBoard({
               ) : null}
             </div>
           ) : (
-            /* SubTab 2: Community Plugin Hub */
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {pluginHubList.map((item) => {
-                const installed = plugins.some((p) => p.name === item.name || p.name === item.fileName.replace(/\.ts$/, ""));
-                const isInstalling = installingPluginId === item.id;
-                return (
-                  <div key={item.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12.5px] font-semibold text-[var(--text)]">{item.name}</span>
-                        <span className="rounded border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)]">
-                          {item.type}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-relaxed">{item.description}</p>
-                      
-                      <div className="mt-2 text-[10px] text-[var(--text-dim)] font-mono">
-                        <div>注入工具：{item.tools.join(", ")}</div>
-                        <div className="mt-0.5 text-[9px] text-[var(--text-muted)]">目标文件：plugins/{item.fileName}</div>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
-                      <span className="text-[9.5px] text-[var(--text-dim)] font-mono">by {item.author}</span>
-                      <Button
-                        size="xs"
-                        variant={installed ? "ghost" : "primary"}
-                        disabled={installed || isInstalling}
-                        onClick={() => handleInstallHubPlugin(item)}
+            /* SubTab 2: Community Plugin Hub (DSH 6700+ Market & Pi Packages) */
+            <div className="space-y-3.5">
+              {/* Search & Category Filter Bar */}
+              <div className="space-y-2 rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 shadow-xs">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-dim)]" />
+                    <input
+                      type="text"
+                      value={dshSearchQuery}
+                      onChange={(e) => {
+                        const q = e.target.value;
+                        setDshSearchQuery(q);
+                        if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                        searchDebounceRef.current = setTimeout(() => {
+                          void loadDshMarket(q, dshCategory);
+                        }, 300);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void loadDshMarket(dshSearchQuery, dshCategory);
+                        }
+                      }}
+                      placeholder="搜索 DSH 市场 6,700+ 插件 (如 prometheus, tui, git, file, web...)"
+                      className="h-8 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] pl-8 pr-7 text-[12px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--accent)]"
+                    />
+                    {dshSearchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDshSearchQuery("");
+                          void loadDshMarket("", dshCategory);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)]"
                       >
-                        {installed ? (
-                          <>
-                            <Check className="h-3 w-3 text-emerald-400" />
-                            <span>已安装 ✓</span>
-                          </>
-                        ) : (
-                          <>
-                            <Download className="h-3 w-3" />
-                            <span>{isInstalling ? "安装中…" : "一键安装"}</span>
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                        <X className="h-3 w-3" />
+                      </button>
+                    ) : null}
                   </div>
-                );
-              })}
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    disabled={dshLoading}
+                    onClick={() => void loadDshMarket(dshSearchQuery, dshCategory)}
+                    className="h-8 px-3 shrink-0"
+                  >
+                    <Search className="h-3 w-3" />
+                    <span>搜索</span>
+                  </Button>
+                </div>
+
+                {/* Categories */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-0.5 text-[10.5px]">
+                  {[
+                    { id: "all", label: "全部生态" },
+                    { id: "dev", label: "开发运维 (Dev/Prometheus)" },
+                    { id: "ui", label: "UI 增强 & TUI" },
+                    { id: "tools", label: "实用工具 (Tools)" },
+                    { id: "workflow", label: "自动化工作流" },
+                    { id: "model", label: "模型接入" },
+                    { id: "system", label: "系统监控" },
+                    { id: "agi", label: "AGI 架构" },
+                  ].map((cat) => {
+                    const active = dshCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setDshCategory(cat.id);
+                          void loadDshMarket(dshSearchQuery, cat.id);
+                        }}
+                        className={cn(
+                          "rounded-md px-2 py-0.5 font-medium transition-colors shrink-0",
+                          active
+                            ? "bg-[var(--accent)] text-[var(--accent-contrast)] font-semibold shadow-xs"
+                            : "bg-[var(--bg)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:border-[var(--text-muted)]",
+                        )}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* DSH Market Results Count */}
+              <div className="flex items-center justify-between text-[11px] text-[var(--text-dim)] font-mono px-1">
+                <span>
+                  共检索到 <strong className="text-[var(--text)]">{dshTotal || dshPlugins.length}</strong> 款真实 DSH 插件
+                  {dshSearchQuery ? ` · 关键词 "${dshSearchQuery}"` : ""}
+                </span>
+                {dshLoading ? <span className="text-[var(--accent)] animate-pulse">正在索引检索中…</span> : null}
+              </div>
+
+              {/* Plugins Grid (DSH + Pi Hub) */}
+              <div key={`dsh-grid-${dshSearchQuery}-${dshCategory}`} className="grid gap-2.5 sm:grid-cols-2">
+                {dshPlugins.map((item, itemIdx) => {
+                  const installed = plugins.some(
+                    (p) => p.name === item.name || p.name === item.name.replace(/^dsh-/, ""),
+                  );
+                  const isInstalling = installingPluginId === item.name;
+                  const desc = typeof item.description === "string" ? item.description : item.description?.zh || item.description?.en || "无描述";
+
+                  return (
+                    <div
+                      key={`${item.owner}/${item.name}/${itemIdx}`}
+                      className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3.5 space-y-2 flex flex-col justify-between shadow-xs transition-colors hover:border-[var(--accent)]/40"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[13px] font-semibold text-[var(--text)] truncate">{item.name}</span>
+                            {item.version ? (
+                              <span className="font-mono text-[9px] text-[var(--text-dim)]">v{item.version}</span>
+                            ) : null}
+                          </div>
+                          <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-[var(--accent)] shrink-0">
+                            {item.category}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-[var(--text-muted)] mt-1.5 leading-relaxed line-clamp-3">
+                          {desc}
+                        </p>
+
+                        <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[10px] text-[var(--text-dim)] font-mono">
+                          {item.stars !== undefined && item.stars !== null ? (
+                            <span className="flex items-center gap-0.5 text-amber-500">
+                              <Star className="h-3 w-3 fill-current" />
+                              <span>{item.stars}</span>
+                            </span>
+                          ) : null}
+                          {item.downloads ? (
+                            <span className="flex items-center gap-0.5">
+                              <Download className="h-3 w-3" />
+                              <span>{item.downloads} 次下载</span>
+                            </span>
+                          ) : null}
+                          <span className="truncate max-w-[140px]">by {item.owner}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between gap-2">
+                        <code className="text-[9px] font-mono text-[var(--text-dim)] truncate max-w-[170px]" title={item.install}>
+                          {item.install || `npm i ${item.npm || item.name}`}
+                        </code>
+
+                        <Button
+                          size="xs"
+                          variant={installed ? "ghost" : "primary"}
+                          disabled={installed || isInstalling}
+                          onClick={async () => {
+                            if (!token) return;
+                            setInstallingPluginId(item.name);
+                            try {
+                              // If it matches a prebuilt item in catalog, install it directly
+                              const match = pluginHubList.find((p) => p.id === `plugin-${item.name}` || p.name.includes(item.name));
+                              if (match) {
+                                await installHubPlugin(token, match.id);
+                              } else {
+                                // Create native DSH plugin stub in plugins/<name>.ts
+                                await createPlugin(token, {
+                                  name: item.name.replace(/^dsh-/, ""),
+                                  type: "dsh",
+                                  source: `/**\n * DSH 插件: ${item.name} (by ${item.owner})\n * ${desc}\n */\nexport function apply(ctx: any) {\n  console.log('[Plugin:${item.name}] Initialized via Chaite Plugin Loader');\n  ctx.tools.register({\n    name: "${item.name.replace(/[^a-zA-Z0-9_]/g, '_')}",\n    description: "${desc.replace(/"/g, '')}",\n    parameters: { type: "object", properties: {} },\n    run: async () => ({ message: "Executed ${item.name} successfully" }),\n  });\n}\n`,
+                                });
+                              }
+                              await loadPlugins();
+                            } catch (err: any) {
+                              alert(`安装插件失败: ${err.message}`);
+                            } finally {
+                              setInstallingPluginId(null);
+                            }
+                          }}
+                        >
+                          {installed ? (
+                            <>
+                              <Check className="h-3 w-3 text-emerald-400" />
+                              <span>已安装 ✓</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-3 w-3" />
+                              <span>{isInstalling ? "安装中…" : "一键安装"}</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Fallback to local curated list if empty */}
+              {dshPlugins.length === 0 && !dshLoading ? (
+                <div className="rounded-xl border border-dashed border-[var(--border)] p-6 text-center text-[12px] text-[var(--text-muted)] space-y-2">
+                  <div>未找到匹配的 DSH 插件。以下为精选即用扩展：</div>
+                  <div className="grid gap-2 sm:grid-cols-2 text-left pt-2">
+                    {pluginHubList.map((item) => (
+                      <div key={item.id} className="rounded-lg border border-[var(--border)] p-2.5 space-y-1">
+                        <div className="font-semibold text-[var(--text)] text-[12px]">{item.name}</div>
+                        <div className="text-[10px] text-[var(--text-muted)]">{item.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
         </div>

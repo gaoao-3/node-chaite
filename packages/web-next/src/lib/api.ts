@@ -605,3 +605,30 @@ export function installHubPlugin(token: string, id: string): Promise<{ success: 
     body: {},
   });
 }
+
+
+export interface DshMarketPlugin {
+  name: string;
+  owner: string;
+  url: string;
+  page?: string;
+  category: string;
+  description: { en?: string; zh?: string } | string;
+  npm?: string | null;
+  version?: string;
+  stars?: number | null;
+  downloads?: number | null;
+  install: string;
+  added?: string;
+}
+
+export function fetchDshHub(
+  token: string,
+  options?: { query?: string; category?: string },
+): Promise<{ total: number; plugins: DshMarketPlugin[] }> {
+  const params = new URLSearchParams();
+  if (options?.query) params.set("query", options.query);
+  if (options?.category) params.set("category", options.category);
+  const q = params.toString() ? `?${params.toString()}` : "";
+  return request<{ total: number; plugins: DshMarketPlugin[] }>(`/api/agent/hub/dsh${q}`, { token });
+}

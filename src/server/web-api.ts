@@ -23,6 +23,7 @@ import {
   COMMUNITY_SKILL_CATALOG,
   COMMUNITY_PLUGIN_CATALOG,
   CommunityHubManager,
+  getDshMarketPlugins,
 } from '../agent/hub/community-hub'
 
 export interface AgentWebApiDependencies {
@@ -564,6 +565,12 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
 
   router.get('/hub/plugins', route((_req, res) => {
     sendOk(res, COMMUNITY_PLUGIN_CATALOG)
+  }))
+
+  router.get('/hub/dsh', route(async (req, res) => {
+    const query = queryString(req, 'query')
+    const category = queryString(req, 'category')
+    sendOk(res, await getDshMarketPlugins(query, category))
   }))
 
   router.post('/hub/skills/:id/install', route(async (req, res) => {

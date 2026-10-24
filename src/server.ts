@@ -25,6 +25,8 @@ import {
   getAgentWebApiDependencies,
 } from './server/index'
 import path from 'node:path'
+import * as fs from 'node:fs'
+import { FileJsonStorage } from './storage/file_json_storage'
 
 // 简易内存存储驱动实现
 class SimpleMemoryStorage<T> extends ChaiteStorage<T> {
@@ -79,8 +81,8 @@ const PORT = Number(process.env.CHAITE_PORT || 3200)
 const ADMIN_PASSWORD = process.env.CHAITE_ADMIN_TOKEN || 'admin123456'
 
 async function start() {
-  const channelsStorage = new SimpleMemoryStorage<any>()
-  const presetsStorage = new SimpleMemoryStorage<any>()
+  const channelsStorage = new FileJsonStorage<any>('channels')
+  const presetsStorage = new FileJsonStorage<any>('presets')
   const toolsStorage = new SimpleMemoryStorage<any>()
   const processorsStorage = new SimpleMemoryStorage<any>()
   const toolsGroupStorage = new SimpleMemoryStorage<any>()
@@ -126,15 +128,41 @@ async function start() {
   chaite.setGlobalConfig(globalConfig)
 
   // 初始化技能注册表
+  // 初始化技能注册表并持久加载磁盘技能
   const skillsDir = path.resolve(process.cwd(), 'skills/active')
   const skillRegistry = new SkillRegistry(skillsDir)
+  await skillRegistry.load()
   chaite.setSkillRegistry(skillRegistry)
 
-  // 初始化 MCP 服务管理器
+  // 初始化 MCP 服务管理器并持久化至 data/storage/mcp_servers.json
   const { McpServerManager } = await import('./agent/mcp/McpServerConfig')
-  const mcpStorage = new SimpleMemoryStorage<any>()
+  const mcpStorage = new FileJsonStorage<any>('mcp_servers')
   const mcpServerManager = new McpServerManager(mcpStorage)
   chaite.setMcpServerManager(mcpServerManager)
+
+  // 保证默认预置核心 MCP 服务持久存在
+  const existingMcp = await mcpServerManager.list()
+  if (existingMcp.length === 0) {
+    const snowLumaPath = '/home/hina/数据盘/persona/node_modules/@snowluma/mcp/dist/server.js'
+    if (fs.existsSync(snowLumaPath)) {
+      await mcpServerManager.add({
+        name: 'SnowLuma-MCP',
+        description: 'SnowLuma QQ 200+ 社交管理与群聊交互能力',
+        transport: 'stdio',
+        command: 'node',
+        args: [snowLumaPath],
+        enabled: true,
+      })
+    }
+    await mcpServerManager.add({
+      name: 'mcp-filesystem',
+      description: '本地工作区安全文件读写与检索服务',
+      transport: 'stdio',
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-filesystem', process.cwd()],
+      enabled: true,
+    })
+  }
 
   // 配置持久 Token 认证
   const authHandler = new PersistentAuthHandler(ADMIN_PASSWORD)

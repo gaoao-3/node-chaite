@@ -645,3 +645,76 @@ export class CommunityHubManager {
     return { success: true, name: item.name }
   }
 }
+
+
+// ─── 5. DSH 官方大市场 (6,700+ 真实插件库) ───────────────────────────────────
+
+export interface DshRegistryPlugin {
+  name: string
+  owner: string
+  url: string
+  page?: string
+  category: string
+  description: { en?: string; zh?: string } | string
+  npm?: string | null
+  version?: string
+  stars?: number | null
+  downloads?: number | null
+  install: string
+  added?: string
+}
+
+let dshRegistryCache: { at: number; plugins: DshRegistryPlugin[] } | null = null
+
+export async function getDshMarketPlugins(query?: string, category?: string): Promise<{
+  total: number
+  plugins: DshRegistryPlugin[]
+}> {
+  if (!dshRegistryCache) {
+    const localSnapshot = path.resolve(process.cwd(), 'data/dsh-registry.json')
+    if (fs.existsSync(localSnapshot)) {
+      try {
+        const raw = await fs.promises.readFile(localSnapshot, 'utf8')
+        const data = JSON.parse(raw)
+        if (Array.isArray(data.plugins)) {
+          dshRegistryCache = { at: Date.now(), plugins: data.plugins }
+        }
+      } catch (e: any) {
+        console.warn('[DshMarket] Local snapshot read failed:', e.message)
+      }
+    }
+  }
+
+  if (!dshRegistryCache || Date.now() - dshRegistryCache.at > 24 * 60 * 60 * 1000) {
+    try {
+      const res = await fetch('https://awesome-dsh-plugin.com/plugins.json', { signal: AbortSignal.timeout(15000) })
+      if (res.ok) {
+        const data = (await res.json()) as any
+        if (Array.isArray(data.plugins)) {
+          dshRegistryCache = { at: Date.now(), plugins: data.plugins }
+          const localSnapshot = path.resolve(process.cwd(), 'data/dsh-registry.json')
+          fs.promises.writeFile(localSnapshot, JSON.stringify(data), 'utf8').catch(() => {})
+        }
+      }
+    } catch (err: any) {
+      console.warn('[DshMarket] Online fetch failed, fallback to local snapshot:', err.message)
+    }
+  }
+
+  let list = dshRegistryCache ? dshRegistryCache.plugins : []
+  if (category && category !== 'all') {
+    list = list.filter(p => p.category === category)
+  }
+  if (query && query.trim()) {
+    const q = query.trim().toLowerCase()
+    list = list.filter(p => {
+      const desc = typeof p.description === 'string' ? p.description : `${p.description?.zh || ''} ${p.description?.en || ''}`
+      return p.name.toLowerCase().includes(q) || p.owner.toLowerCase().includes(q) || desc.toLowerCase().includes(q)
+    })
+  }
+
+  return {
+    total: list.length,
+    plugins: list.slice(0, 100),
+  }
+}
