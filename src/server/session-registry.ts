@@ -24,6 +24,7 @@ import type {
   SessionListFilter,
   SessionPromptDriver,
 } from './types'
+import type { SessionPersistence, SessionRecord } from './session-persistence'
 
 const DEFAULT_MAX_EVENTS = 800
 const DEFAULT_MAX_EVENT_BYTES = 2 * 1024 * 1024
@@ -37,6 +38,8 @@ export interface SessionRegistryOptions {
   maxEventBytes?: number
   now?: () => number
   idFactory?: () => string
+  /** Durable store so sessions, timelines and titles survive a restart. */
+  persistence?: SessionPersistence
 }
 
 export interface ApprovalResponseInput {
@@ -116,7 +119,7 @@ export class AgentSession {
   readonly id: string
   readonly platform: GatewayPlatform
   readonly botId: string
-  readonly createdAt: number
+  createdAt: number
 
   private title: string
   private status: AgentSessionStatus = 'idle'
@@ -205,6 +208,51 @@ export class AgentSession {
     }
   }
 
+  /** Serialise into a persistable record (events included, transient state dropped). */
+  toRecord(): SessionRecord {
+    return {
+      version: 1,
+      id: this.id,
+      platform: this.platform,
+      botId: this.botId,
+      title: this.title,
+      status: this.status,
+      createdAt: this.createdAt,
+      lastActiveAt: this.lastActiveAt,
+      turnCount: this.turnCount,
+      skills: [...this.skills],
+      model: this.model,
+      metadata: { ...this.metadata },
+      lastSeq: this.lastSeq,
+      events: this.eventLog,
+    }
+  }
+
+  /** Rehydrate a session from a persisted record. Interrupted turns come back as idle. */
+  static restore(record: SessionRecord, options: SessionRegistryOptions = {}): AgentSession {
+    const session = new AgentSession(
+      {
+        id: record.id,
+        platform: record.platform as SessionCreateInput['platform'],
+        botId: record.botId,
+        title: record.title,
+        skills: record.skills,
+        model: record.model,
+        metadata: record.metadata,
+      },
+      options,
+    )
+    session.createdAt = record.createdAt ?? session.createdAt
+    session.turnCount = Math.max(0, record.turnCount ?? 0)
+    session.lastActiveAt = record.lastActiveAt ?? session.createdAt
+    session.status = record.status === 'closed' ? 'closed' : 'idle'
+    const events = Array.isArray(record.events) ? record.events : []
+    session.eventLog = events
+    session.eventBytes = events.reduce((total, event) => total + estimateEventBytes(event), 0)
+    session.lastSeq = Math.max(record.lastSeq ?? 0, events[events.length - 1]?.seq ?? 0)
+    session.trimLog()
+    return session
+  }
   snapshot(options: { since?: number; limit?: number } = {}): AgentSessionSnapshot {
     const { since, limit = 500 } = options
     let events: AgentWebEvent[]
@@ -466,10 +514,75 @@ export class SessionRegistry {
   private readonly sessions = new Map<string, AgentSession>()
   private driver?: SessionPromptDriver
   private readonly options: SessionRegistryOptions
+  private readonly persistence?: SessionPersistence
+  private persistTimer: NodeJS.Timeout | null = null
+  private persistChain: Promise<void> = Promise.resolve()
+  private hydrated = false
 
   constructor(options: SessionRegistryOptions = {}) {
     this.options = options
     this.driver = options.driver
+    this.persistence = options.persistence
+  }
+
+  /** True when a durable store is attached and sessions have been replayed. */
+  get isPersistent(): boolean {
+    return Boolean(this.persistence)
+  }
+
+  /**
+   * Replay persisted sessions (metadata + full event timeline) into memory.
+   * Safe to call once at boot; a no-op when no store is attached.
+   */
+  async hydrate(): Promise<number> {
+    if (!this.persistence || this.hydrated) return this.sessions.size
+    this.hydrated = true
+    const records = await this.persistence.load()
+    let restored = 0
+    for (const record of records) {
+      if (!record?.id || this.sessions.has(record.id)) continue
+      try {
+        const session = AgentSession.restore(record, this.options)
+        this.attachPersistence(session)
+        this.sessions.set(session.id, session)
+        restored += 1
+      } catch (error) {
+        console.warn(`[session-registry] Failed to restore session ${record.id}:`, (error as Error).message)
+      }
+    }
+    return restored
+  }
+
+  /** Coalesce writes: state changes land on disk at most once per 400ms. */
+  schedulePersist(): void {
+    if (!this.persistence) return
+    if (this.persistTimer) return
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null
+      void this.flushPersist()
+    }, 400)
+    this.persistTimer.unref?.()
+  }
+
+  /** Immediately write the current snapshot to the durable store. */
+  flushPersist(): Promise<void> {
+    if (!this.persistence) return Promise.resolve()
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer)
+      this.persistTimer = null
+    }
+    const records = [...this.sessions.values()].map(session => session.toRecord())
+    this.persistChain = this.persistChain
+      .then(() => this.persistence!.save(records))
+      .catch(error => {
+        console.warn('[session-registry] Failed to persist sessions:', (error as Error).message)
+      })
+    return this.persistChain
+  }
+
+  private attachPersistence(session: AgentSession): void {
+    if (!this.persistence) return
+    session.onEvent(() => this.schedulePersist())
   }
 
   setDriver(driver: SessionPromptDriver | undefined): void {
@@ -486,7 +599,9 @@ export class SessionRegistry {
       throw new ConflictError(`Session "${id}" already exists`, { code: 'SESSION_EXISTS' })
     }
     const session = new AgentSession({ ...input, id }, this.options)
+    this.attachPersistence(session)
     this.sessions.set(id, session)
+    this.schedulePersist()
     return session
   }
 
@@ -541,7 +656,9 @@ export class SessionRegistry {
     const session = this.sessions.get(id)
     if (!session) return false
     session.close('session deleted')
-    return this.sessions.delete(id)
+    const removed = this.sessions.delete(id)
+    if (removed) void this.flushPersist()
+    return removed
   }
 
   closeAll(reason = 'server shutting down'): void {

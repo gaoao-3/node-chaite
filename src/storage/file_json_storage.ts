@@ -17,7 +17,12 @@ export class FileJsonStorage<T extends { id?: string | number }> extends ChaiteS
   private loaded = false
   private readonly filePath: string
 
-  constructor(private readonly storageName: string, baseDir?: string) {
+  constructor(
+    private readonly storageName: string,
+    baseDir?: string,
+    /** Rebuilds rich class instances (Channel, ChatPreset, ...) from plain JSON. */
+    private readonly reviver?: (raw: any) => T,
+  ) {
     super()
     const dir = baseDir || path.resolve(process.cwd(), 'data/storage')
     this.filePath = path.join(dir, `${storageName}.json`)
@@ -39,7 +44,20 @@ export class FileJsonStorage<T extends { id?: string | number }> extends ChaiteS
         if (Array.isArray(items)) {
           for (const item of items) {
             const key = item.id !== undefined ? String(item.id) : randomUUID()
-            this.cache.set(key, item)
+            let value: T = item
+            if (this.reviver) {
+              try {
+                value = this.reviver(item)
+                if (!(value as any).id) (value as any).id = item.id ?? key
+              } catch (reviveError: any) {
+                console.warn(
+                  `[FileJsonStorage:${this.storageName}] Failed to revive ${key}, keeping raw record:`,
+                  reviveError?.message,
+                )
+                value = item
+              }
+            }
+            this.cache.set(key, value)
           }
         }
       }

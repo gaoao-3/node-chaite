@@ -11,15 +11,17 @@ import {
   ToolsGroupManager,
   TriggerManager,
 } from './share'
-import { DefaultChannelLoadBalancer } from './channels/channels'
+import { Channel, DefaultChannelLoadBalancer } from './channels/channels'
+import { ChatPreset } from './channels/preset'
 import {
   FrontEndAuthHandler,
   GlobalConfig,
-  InMemoryHistoryManager,
   getLogger,
 } from './utils'
 import { ChaiteStorage } from './types/storage'
 import { SkillRegistry } from './agent/skills/SkillRegistry'
+import { KVHistoryManager } from './utils/kv_history'
+import { FileKVStore } from './utils/file_kv_store'
 import {
   closeAllAgentEventStreams,
   getAgentWebApiDependencies,
@@ -81,8 +83,9 @@ const PORT = Number(process.env.CHAITE_PORT || 3200)
 const ADMIN_PASSWORD = process.env.CHAITE_ADMIN_TOKEN || 'admin123456'
 
 async function start() {
-  const channelsStorage = new FileJsonStorage<any>('channels')
-  const presetsStorage = new FileJsonStorage<any>('presets')
+  // 渠道与预设必须复水为真实类实例，否则持久化后会丢失 getOptionsForModel/ready 等方法
+  const channelsStorage = new FileJsonStorage<any>('channels', undefined, raw => new Channel(raw))
+  const presetsStorage = new FileJsonStorage<any>('presets', undefined, raw => new ChatPreset(raw))
   const toolsStorage = new SimpleMemoryStorage<any>()
   const processorsStorage = new SimpleMemoryStorage<any>()
   const toolsGroupStorage = new SimpleMemoryStorage<any>()
@@ -118,7 +121,7 @@ async function start() {
     triggerManager,
     userModeSelector,
     coreStorage,
-    new InMemoryHistoryManager(),
+    new KVHistoryManager(new FileKVStore(path.join(dataDir, 'storage/conversation-history.json')), 'FileKVHistoryManager'),
     logger
   )
 

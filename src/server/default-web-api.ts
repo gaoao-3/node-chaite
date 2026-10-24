@@ -6,6 +6,7 @@ import { EvolutionService } from './evolution-service'
 import { FusionTaskService } from './fusion-service'
 import { JsonFilePersistence } from './persistence'
 import { SessionRegistry } from './session-registry'
+import { FileSessionPersistence } from './session-persistence'
 import { SkillsService } from './skills-service'
 import type { AgentWebApiDependencies } from './web-api'
 import { createAgentWebApiRouter } from './web-api'
@@ -50,6 +51,7 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
       defaultUserId: 'web-console',
       evolutionService: evolution,
     }),
+    persistence: new FileSessionPersistence(path.join(stateDirectory(), 'storage/sessions.json')),
   })
   const fusion = new FusionTaskService({
     persistence: new JsonFilePersistence(path.join(stateDirectory(), 'web-fusion-tasks.json')),
@@ -68,6 +70,7 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
 function ensureHydrated(deps: AgentWebApiDependencies): void {
   if (hydration || process.env.NODE_ENV === 'test') return
   hydration = Promise.all([
+    deps.sessions?.hydrate(),
     deps.fusion?.hydrate(),
     deps.evolution?.hydrate(),
     deps.plugins?.scanAndLoadAll(),
@@ -76,6 +79,11 @@ function ensureHydrated(deps: AgentWebApiDependencies): void {
     .catch((error: unknown) => {
       console.warn('[chaite-web] Failed to hydrate persisted web state:', error)
     })
+}
+
+/** Await pending hydration (used by tests and graceful shutdown). */
+export function whenHydrated(): Promise<void> {
+  return hydration ?? Promise.resolve()
 }
 
 /**
