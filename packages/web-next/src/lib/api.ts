@@ -211,6 +211,7 @@ export function sendPrompt(
     model?: string;
     skillName?: string;
     images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+    thinkingLevel?: "none" | "low" | "medium" | "high" | "max";
   },
 ): Promise<{ accepted: boolean; sessionId: string; turnId: string; startedAt: number }> {
   return request(`/api/agent/sessions/${encodeURIComponent(sessionId)}/prompt`, {

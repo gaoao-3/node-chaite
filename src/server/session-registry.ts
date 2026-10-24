@@ -304,7 +304,16 @@ export class AgentSession {
     return this.lastFinalTurnId === turnId
   }
 
-  beginTurn(turnId: string, prompt: string, options: { model?: string; skillName?: string } = {}): AgentSessionTurnInfo {
+  beginTurn(
+    turnId: string,
+    prompt: string,
+    options: {
+      model?: string
+      skillName?: string
+      thinkingLevel?: 'none' | 'low' | 'medium' | 'high' | 'max'
+      reasoningEffort?: string
+    } = {},
+  ): AgentSessionTurnInfo {
     if (this.activeTurn) {
       throw new ConflictError('Session already has an active turn', { code: 'SESSION_BUSY' })
     }
@@ -315,6 +324,8 @@ export class AgentSession {
       startedAt: this.now(),
       model: options.model ?? this.model,
       skillName: options.skillName,
+      thinkingLevel: options.thinkingLevel,
+      reasoningEffort: options.reasoningEffort,
     }
     if (this.turnCount === 1 && (this.title === 'New session' || this.title.trim() === '')) {
       this.title = normaliseTitle(prompt)
@@ -559,6 +570,8 @@ export class SessionRegistry {
     session.beginTurn(turnId, normalized.prompt, {
       model: normalized.model,
       skillName: normalized.skillName,
+      thinkingLevel: normalized.thinkingLevel,
+      reasoningEffort: normalized.reasoningEffort,
     })
     const controller = new AbortController()
     session.attachAbortController(controller)
@@ -737,6 +750,8 @@ interface NormalisedPromptInput {
   skillName?: string
   metadata?: Record<string, unknown>
   images?: Array<{ url?: string; base64?: string; mimeType?: string }>
+  thinkingLevel?: 'none' | 'low' | 'medium' | 'high' | 'max'
+  reasoningEffort?: string
 }
 
 function normalizePromptInput(input: unknown): NormalisedPromptInput {
@@ -755,6 +770,9 @@ function normalizePromptInput(input: unknown): NormalisedPromptInput {
   if (typeof input.model === 'string' && input.model.trim()) normalized.model = input.model.trim()
   if (typeof input.skillName === 'string' && input.skillName.trim()) normalized.skillName = input.skillName.trim()
   if (isRecord(input.metadata)) normalized.metadata = input.metadata
+  if (typeof input.thinkingLevel === 'string') normalized.thinkingLevel = input.thinkingLevel as any
+  if (typeof input.reasoningEffort === 'string') normalized.reasoningEffort = input.reasoningEffort
+  if (typeof input.thinkingBudget === 'string') normalized.thinkingLevel = input.thinkingBudget as any
   if (Array.isArray(input.images)) {
     normalized.images = input.images
       .filter(isRecord)

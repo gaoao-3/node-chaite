@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
+import { ThinkingLevelSelector, type ThinkingLevel } from "@/components/chat/thinking-level-selector";
 
 export interface AttachmentItem {
   id: string;
@@ -35,6 +36,7 @@ export interface ComposerSendOptions {
   model?: string;
   webSearch?: boolean;
   deepThinking?: boolean;
+  thinkingLevel?: ThinkingLevel;
   attachments?: AttachmentItem[];
 }
 
@@ -98,6 +100,7 @@ export function Composer({
 
   const [webSearchActive, setWebSearchActive] = React.useState(false);
   const [deepThinkingActive, setDeepThinkingActive] = React.useState(false);
+  const [thinkingLevel, setThinkingLevel] = React.useState<ThinkingLevel>("medium");
   const [snippetsOpen, setSnippetsOpen] = React.useState(false);
 
   const [attachments, setAttachments] = React.useState<AttachmentItem[]>([]);
@@ -153,7 +156,8 @@ export function Composer({
     await onSend(text, {
       model: selectedModel,
       webSearch: webSearchActive,
-      deepThinking: deepThinkingActive,
+      deepThinking: thinkingLevel !== "none",
+      thinkingLevel,
       attachments: currentAttachments,
     });
   };
@@ -443,20 +447,10 @@ export function Composer({
               </button>
 
               {/* 4. Deep Thinking Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setDeepThinkingActive((v) => !v)}
-                title="开启/关闭深度推理思考链"
-                className={cn(
-                  "flex h-7 items-center gap-1 rounded-lg border px-2 text-[11px] transition-colors",
-                  deepThinkingActive
-                    ? "border-purple-400/40 bg-purple-500/15 text-purple-300"
-                    : "border-white/[0.08] bg-white/[0.03] text-mist-400 hover:text-mist-200",
-                )}
-              >
-                <Brain className="h-3 w-3" />
-                <span className="hidden sm:inline">思考</span>
-              </button>
+              <ThinkingLevelSelector
+                value={thinkingLevel}
+                onChange={setThinkingLevel}
+              />
 
               {/* 5. Prompt Snippets Dropdown */}
               <div className="relative" ref={snippetsMenuRef}>

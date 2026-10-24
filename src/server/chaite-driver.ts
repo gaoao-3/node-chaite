@@ -227,12 +227,24 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
         ? metadata.conversationId
         : context.session.id
       const presetOptions = preset.sendMessageOption
+      const activeTurn = context.session.activeTurn
+      const turnThinkingLevel = activeTurn?.thinkingLevel || activeTurn?.reasoningEffort
+      const enableReasoning = turnThinkingLevel ? turnThinkingLevel !== 'none' : true
+      const reasoningEffort = turnThinkingLevel === 'max'
+        ? 'high'
+        : (turnThinkingLevel === 'none' ? undefined : (turnThinkingLevel || 'medium'))
+
       const sendOptions = {
         ...presetOptions,
         chatPreset: preset,
         conversationId,
-        model: context.session.activeTurn?.model ?? context.session.model ?? presetOptions?.model,
+        model: activeTurn?.model ?? context.session.model ?? presetOptions?.model,
         skillName,
+        enableReasoning,
+        isThinkingModel: enableReasoning,
+        reasoningEffort,
+        geminiThinkingLevel: reasoningEffort,
+        openaiReasoningEffort: reasoningEffort,
         stream: true,
         onChunk,
         onToolCallResult,

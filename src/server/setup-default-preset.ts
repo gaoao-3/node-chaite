@@ -5,6 +5,7 @@ import { Channel } from '../channels'
 import { BaseClientOptions } from '../types/common'
 import { createSelfTools } from '../agent/tools/self-tools'
 import { createCodingTools } from '../agent/tools/coding-tools'
+import { createHashlineTools } from '../agent/tools/hashline-tools'
 import type { FusionTaskService } from './fusion-service'
 import { PluginLoader } from '../agent/plugins/plugin-loader'
 
@@ -20,6 +21,7 @@ export async function ensureDefaultPresetAndChannel(
   const builtinTools = [
     ...createSelfTools(),
     ...createCodingTools({ fusionService: options?.fusionService }),
+    ...createHashlineTools(),
     ...pluginTools,
   ]
 
@@ -59,6 +61,7 @@ export async function ensureDefaultPresetAndChannel(
 # 核心工程与系统能力 (Built-in Capabilities)
 你拥有完整的专业开发与执行工具：
 - 文件操作：\`read_file\` (精准按行阅读)、\`write_file\` (安全写入/创建)、\`edit_file\` (唯一子串定位替换)
+- 哈希精准代码编辑 (Hashline)：\`hash_read\` (生成带 4 字符哈希锚点的代码行)、\`hash_replace\` (锚点范围替换)、\`hash_replace_match\` (局部子串微调)、\`hash_insert\` (锚点前后插入)、\`hash_undo\` (单步撤销)。用于精准代码修改，绝对杜绝行号漂移！
 - 终端执行：\`exec_bash\` (安全执行 shell 命令并返回 stdout/stderr，严防破坏性破坏操作)
 - 联网搜索：\`web_search\` (遇到最新新闻、开源动态、未知库报错时自主搜索)
 - Fusion 双星协同：\`delegate_fusion_task\` (遇到重构、多文件生成或复杂排错，可主动下发子任务给 Sidekick 副手模型生成补丁)

@@ -62,6 +62,7 @@ export interface UseAgentSessionResult {
       model?: string;
       skillName?: string;
       images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+      thinkingLevel?: "none" | "low" | "medium" | "high" | "max";
     },
   ) => Promise<boolean>;
   cancel: () => Promise<void>;
@@ -394,6 +395,7 @@ export function useAgentSession({
         model?: string;
         skillName?: string;
         images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
+        thinkingLevel?: "none" | "low" | "medium" | "high" | "max";
       } = {},
     ) => {
       const text = prompt.trim();
@@ -410,6 +412,7 @@ export function useAgentSession({
           model: options.model,
           skillName: options.skillName,
           images: options.images,
+          thinkingLevel: options.thinkingLevel,
         });
         return true;
       } catch (caught) {

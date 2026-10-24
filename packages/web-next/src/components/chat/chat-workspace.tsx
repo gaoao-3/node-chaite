@@ -104,6 +104,7 @@ export function ChatWorkspace({
                 prompt: finalPrompt,
                 model: targetModel,
                 images: imageAttachments,
+                thinkingLevel: options?.thinkingLevel,
               });
               onSessionsChanged();
               return true;
@@ -118,6 +119,7 @@ export function ChatWorkspace({
       const ok = await agent.sendPrompt(finalPrompt, {
         model: targetModel,
         images: imageAttachments,
+        thinkingLevel: options?.thinkingLevel,
       });
       if (ok) onSessionsChanged();
       return ok;

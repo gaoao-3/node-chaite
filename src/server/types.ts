@@ -49,6 +49,8 @@ export interface AgentSessionTurnInfo {
   /** Optional model/skill selected for this turn. */
   model?: string
   skillName?: string
+  thinkingLevel?: 'none' | 'low' | 'medium' | 'high' | 'max'
+  reasoningEffort?: string
 }
 
 /** Public, serialisable view of one multi-platform session. */
