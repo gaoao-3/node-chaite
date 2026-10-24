@@ -102,7 +102,9 @@ async function start() {
   } as any
   // 自动填充默认 Channel 与 Preset，保证 Web 前端即使未配置也能直接开聊
   const { ensureDefaultPresetAndChannel } = await import('./server/setup-default-preset')
-  await ensureDefaultPresetAndChannel(chatPresetManager, channelsManager)
+  const { getAgentWebApiDependencies } = await import('./server/default-web-api')
+  const webDeps = getAgentWebApiDependencies()
+  await ensureDefaultPresetAndChannel(chatPresetManager, channelsManager, { fusionService: webDeps.fusion })
 
   // 2. 初始化 Chaite 核心上下文
   const chaite = Chaite.init(

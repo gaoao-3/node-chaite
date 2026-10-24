@@ -6,6 +6,8 @@ import { Composer, type ComposerSendOptions } from "@/components/chat/composer";
 import { MessageStream } from "@/components/chat/message-stream";
 import { useAgentSession } from "@/hooks/use-agent-session";
 import type { AgentSessionInfo } from "@/lib/types";
+import { InspectorDrawer, type InspectorTab } from "@/components/chat/inspector-drawer";
+import type { EvolutionData, FusionData } from "@/hooks/use-boards";
 
 export interface ChatWorkspaceProps {
   token: string | null;
@@ -19,6 +21,8 @@ export interface ChatWorkspaceProps {
   onExitPreview: () => void;
   autoScroll: boolean;
   onCreateSession?: (input?: { platform: "qq" | "dsh" | "web"; title: string; model?: string }) => Promise<AgentSessionInfo | null>;
+  fusionData: FusionData;
+  evolutionData: EvolutionData;
 }
 
 export function ChatWorkspace({
@@ -33,6 +37,8 @@ export function ChatWorkspace({
   onExitPreview,
   autoScroll,
   onCreateSession,
+  fusionData,
+  evolutionData,
 }: ChatWorkspaceProps) {
   const agent = useAgentSession({
     token,
@@ -41,6 +47,8 @@ export function ChatWorkspace({
     onUnauthorized,
   });
   const [draft, setDraft] = React.useState("");
+  const [inspectorOpen, setInspectorOpen] = React.useState(false);
+  const [inspectorTab, setInspectorTab] = React.useState<InspectorTab>("plugins");
 
   React.useEffect(() => {
     setDraft("");
@@ -130,51 +138,66 @@ export function ChatWorkspace({
   );
 
   return (
-    <main className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 grid-fade opacity-[0.22]" />
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[240px] w-[560px] -translate-x-1/2 rounded-full bg-violet-500/[0.035] blur-[80px]" />
+    <div className="relative z-10 flex min-w-0 flex-1 overflow-hidden">
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 grid-fade opacity-[0.22]" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-[240px] w-[560px] -translate-x-1/2 rounded-full bg-violet-500/[0.035] blur-[80px]" />
 
-      <ChatHeader
-        session={liveSession}
-        connection={agent.connection}
-        pendingCount={agent.pendingApprovals.length}
+        <ChatHeader
+          session={liveSession}
+          connection={agent.connection}
+          pendingCount={agent.pendingApprovals.length}
+          skillCount={liveSession?.skills.length ?? 0}
+          model={liveSession?.model}
+          onMenu={onMenu}
+          onRename={rename}
+          onRefresh={agent.refresh}
+          onOpenApprovals={onOpenApprovals}
+          onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
+          onToggleInspector={() => setInspectorOpen((v) => !v)}
+          inspectorOpen={inspectorOpen}
+        />
+
+        <MessageStream
+          view={agent.view}
+          connection={agent.connection}
+          loading={agent.loading}
+          preview={preview}
+          hasSession={Boolean(session) || preview}
+          onSuggestion={suggestion}
+          onRespond={agent.respond}
+          onExitPreview={onExitPreview}
+          autoScroll={autoScroll}
+          onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
+        />
+
+        <Composer
+          value={draft}
+          onChange={setDraft}
+          onSend={send}
+          onCancel={() => void agent.cancel()}
+          disabled={preview}
+          streaming={agent.view.isStreaming}
+          promptPending={agent.promptPending}
+          preview={preview}
+          model={activeModel}
+          onModelChange={(newModel) => setOverrideModel(newModel)}
+          skillCount={liveSession?.skills.length ?? 0}
+          error={agent.error}
+          onDismissError={agent.clearError}
+        />
+      </main>
+
+      <InspectorDrawer
+        open={inspectorOpen}
+        tab={inspectorTab}
+        onTabChange={setInspectorTab}
+        onClose={() => setInspectorOpen(false)}
+        token={token}
+        fusionData={fusionData}
+        evolutionData={evolutionData}
         skillCount={liveSession?.skills.length ?? 0}
-        model={liveSession?.model}
-        onMenu={onMenu}
-        onRename={rename}
-        onRefresh={agent.refresh}
-        onOpenApprovals={onOpenApprovals}
-        onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
       />
-
-      <MessageStream
-        view={agent.view}
-        connection={agent.connection}
-        loading={agent.loading}
-        preview={preview}
-        hasSession={Boolean(session) || preview}
-        onSuggestion={suggestion}
-        onRespond={agent.respond}
-        onExitPreview={onExitPreview}
-        autoScroll={autoScroll}
-        onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
-      />
-
-      <Composer
-        value={draft}
-        onChange={setDraft}
-        onSend={send}
-        onCancel={() => void agent.cancel()}
-        disabled={preview}
-        streaming={agent.view.isStreaming}
-        promptPending={agent.promptPending}
-        preview={preview}
-        model={activeModel}
-        onModelChange={(newModel) => setOverrideModel(newModel)}
-        skillCount={liveSession?.skills.length ?? 0}
-        error={agent.error}
-        onDismissError={agent.clearError}
-      />
-    </main>
+    </div>
   );
 }

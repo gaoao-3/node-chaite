@@ -338,3 +338,40 @@ export function fetchSkills(token: string, signal?: AbortSignal): Promise<SkillL
 export function reloadSkills(token: string): Promise<{ count: number }> {
   return request<{ count: number }>("/api/agent/skills/reload", { token, method: "POST", body: {} });
 }
+
+export interface GatewayInfo {
+  id: string
+  name: string
+  platform: "qq" | "dsh" | "web" | "discord" | "telegram"
+  status: "running" | "stopped" | "error" | "starting"
+  messageCount: number
+  endpoint?: string
+  error?: string
+  connectedAt?: number
+}
+
+export interface PluginInfo {
+  id: string
+  name: string
+  type: "pi" | "dsh" | "native"
+  description?: string
+  status: "active" | "error" | "disabled"
+  tools: string[]
+  error?: string
+}
+
+export function fetchGateways(token: string, signal?: AbortSignal): Promise<GatewayInfo[]> {
+  return request<GatewayInfo[]>("/api/agent/gateways", { token, signal });
+}
+
+export function startGateway(token: string, id: string): Promise<GatewayInfo> {
+  return request<GatewayInfo>(`/api/agent/gateways/${encodeURIComponent(id)}/start`, { token, method: "POST", body: {} });
+}
+
+export function stopGateway(token: string, id: string): Promise<GatewayInfo> {
+  return request<GatewayInfo>(`/api/agent/gateways/${encodeURIComponent(id)}/stop`, { token, method: "POST", body: {} });
+}
+
+export function fetchPlugins(token: string, signal?: AbortSignal): Promise<PluginInfo[]> {
+  return request<PluginInfo[]>("/api/agent/plugins", { token, signal });
+}

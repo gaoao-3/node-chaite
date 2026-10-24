@@ -208,6 +208,8 @@ export function AppShell() {
               onOpenApprovals={() => changeView("approvals")}
               onExitPreview={exitPreview}
               autoScroll={preferences.preferences.autoScroll}
+              fusionData={fusion}
+              evolutionData={evolution}
             />
           ) : null}
 

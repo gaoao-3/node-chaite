@@ -9,6 +9,10 @@ import { SessionRegistry } from './session-registry'
 import { SkillsService } from './skills-service'
 import type { AgentWebApiDependencies } from './web-api'
 import { createAgentWebApiRouter } from './web-api'
+import { GatewayManager } from '../gateway/gateway-manager'
+import { QqOnebotPlugin } from '../gateway/plugins/qq-onebot'
+import { DshMobilePlugin } from '../gateway/plugins/dsh-mobile'
+import { PluginLoader } from '../agent/plugins/plugin-loader'
 
 let override: AgentWebApiDependencies | null = null
 let dependencies: AgentWebApiDependencies | null = null
@@ -52,14 +56,21 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
     onPersistError: error => console.warn('[chaite-web] Failed to persist Fusion tasks:', error),
   })
   const skills = new SkillsService(() => resolveChaiteSync()?.getSkillRegistry())
-  return { sessions, fusion, evolution, skills }
+  const gateways = new GatewayManager(sessions)
+  gateways.registerAdapter(new QqOnebotPlugin())
+  gateways.registerAdapter(new DshMobilePlugin())
+
+  const plugins = new PluginLoader()
+
+  return { sessions, fusion, evolution, skills, gateways, plugins }
 }
 
 function ensureHydrated(deps: AgentWebApiDependencies): void {
-  if (hydration) return
+  if (hydration || process.env.NODE_ENV === 'test') return
   hydration = Promise.all([
     deps.fusion?.hydrate(),
     deps.evolution?.hydrate(),
+    deps.plugins?.scanAndLoadAll(),
   ])
     .then(() => undefined)
     .catch((error: unknown) => {

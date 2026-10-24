@@ -16,12 +16,16 @@ import type { SessionRegistry } from './session-registry'
 import type { SkillListFilter, SkillsService } from './skills-service'
 import { createAgentEventStream, type AgentEventStreamOptions } from './sse-stream'
 import type { AgentSessionStatus, SessionCreateInput } from './types'
+import type { GatewayManager } from '../gateway/gateway-manager'
+import type { PluginLoader } from '../agent/plugins/plugin-loader'
 
 export interface AgentWebApiDependencies {
   sessions: SessionRegistry
   fusion?: FusionTaskService
   evolution?: EvolutionService
   skills?: SkillsService
+  gateways?: GatewayManager
+  plugins?: PluginLoader
   /** Extra middleware (auth, rate limiting) applied to every new route. */
   auth?: RequestHandler[]
   /** SSE tuning; tests use short heartbeats and small backlog limits. */
@@ -479,6 +483,34 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
   router.post('/skills/reload', route(async (_req, res) => {
     const service = requireService(dependencies.skills, 'SkillsService')
     sendOk(res, { count: await service.reload() })
+  }))
+
+  // ─── Gateways (Adapters) ──────────────────────────────────────────────────
+
+  router.get('/gateways', route((_req, res) => {
+    sendOk(res, dependencies.gateways ? dependencies.gateways.listAdapters() : [])
+  }))
+
+  router.post('/gateways/:id/start', route(async (req, res) => {
+    if (!dependencies.gateways) {
+      sendOk(res, { id: req.params.id, status: 'stopped', message: 'No GatewayManager configured' })
+      return
+    }
+    sendOk(res, await dependencies.gateways.startAdapter(req.params.id as string))
+  }))
+
+  router.post('/gateways/:id/stop', route(async (req, res) => {
+    if (!dependencies.gateways) {
+      sendOk(res, { id: req.params.id, status: 'stopped' })
+      return
+    }
+    sendOk(res, await dependencies.gateways.stopAdapter(req.params.id as string))
+  }))
+
+  // ─── Plugins (Pi & DSH Extension Ecosystem) ────────────────────────────────
+
+  router.get('/plugins', route((_req, res) => {
+    sendOk(res, dependencies.plugins ? dependencies.plugins.listPlugins() : [])
   }))
 
   return router

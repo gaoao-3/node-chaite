@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   Cpu,
+  Layers,
   Menu,
   Pencil,
   Plus,
@@ -43,6 +44,8 @@ export interface ChatHeaderProps {
   onRefresh: () => void;
   onOpenApprovals: () => void;
   onCreateSession?: () => void;
+  onToggleInspector?: () => void;
+  inspectorOpen?: boolean;
 }
 
 export function ChatHeader({
@@ -52,6 +55,8 @@ export function ChatHeader({
   skillCount,
   model,
   onMenu,
+  onToggleInspector,
+  inspectorOpen,
   onRename,
   onRefresh,
   onOpenApprovals,
@@ -247,6 +252,24 @@ export function ChatHeader({
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </button>
+
+        {onToggleInspector ? (
+          <button
+            type="button"
+            onClick={onToggleInspector}
+            aria-label="资产与协同抽屉"
+            title="打开资产与协同抽屉 (插件、网关、Fusion、自进化)"
+            className={cn(
+              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-medium transition-colors",
+              inspectorOpen
+                ? "border-accent bg-accent/15 text-accent shadow-sm"
+                : "border-white/[0.08] bg-white/[0.03] text-mist-400 hover:border-white/[0.16] hover:text-mist-100"
+            )}
+          >
+            <Layers className="h-3.5 w-3.5 text-accent" />
+            <span className="hidden sm:inline">协同抽屉</span>
+          </button>
+        ) : null}
       </div>
     </header>
   );
