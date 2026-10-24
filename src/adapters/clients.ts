@@ -300,7 +300,7 @@ export class AbstractClient implements IClient {
         const userMsgId = crypto.randomUUID()
         thisRequestMsg = {
           id: userMsgId,
-          parentId: options.parentMessageId,
+          parentId: options.parentMessageId || histories[histories.length - 1]?.id,
           ...message,
         } as HistoryMessage
         if (!this.isEffectivelyEmptyMessage(thisRequestMsg)) {

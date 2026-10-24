@@ -21,11 +21,15 @@ export class InMemoryHistoryManager extends AbstractHistoryManager {
       return []
     }
     if (!messageId) {
-      return []
+      const messages = this.cache.get(conversationId)
+      if (!messages) return []
+      return Array.from(messages.values())
     }
     let parentId: string | null = messageId
     const histories: HistoryMessage[] = []
-    while (parentId) {
+    const visited = new Set<string>()
+    while (parentId && !visited.has(parentId)) {
+      visited.add(parentId)
       const history = await this.getOneHistory(parentId, conversationId)
       if (history) {
         histories.push(history)

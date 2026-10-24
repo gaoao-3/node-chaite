@@ -33,7 +33,16 @@ export class KVHistoryManager implements HistoryManager {
       return []
     }
     if (!messageId) {
-      return []
+      const conversationKey = this.getConversationKey(conversationId)
+      const raw = await this.kvStore.get(conversationKey)
+      if (!raw) return []
+      const messageList = JSON.parse(raw) as string[]
+      const histories: HistoryMessage[] = []
+      for (const id of messageList) {
+        const msg = await this.getOneHistory(id, conversationId)
+        if (msg) histories.push(msg)
+      }
+      return histories
     }
 
     let parentId: string | null = messageId
