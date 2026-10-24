@@ -7,10 +7,9 @@ import {
   Cpu,
   FileCode,
   Globe,
-  Lightbulb,
+  ImageIcon,
   Paperclip,
   SendHorizontal,
-  Sparkles,
   Square,
   Trash2,
   X,
@@ -57,14 +56,7 @@ const PRESET_MODELS = [
   { id: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash", desc: "本地高速 · 默认首选", badge: "⚡" },
   { id: "claude-3.7-sonnet", label: "Claude 3.7 Sonnet", desc: "架构师 · 深度推理", badge: "🧠" },
   { id: "deepseek-v4.1-flash", label: "DeepSeek V4.1", desc: "极速副手 · 工具执行", badge: "🚀" },
-  { id: "gpt-4o", label: "GPT-4o", desc: "OpenAI 旗舰多模态", badge: "🌐" },
-];
-
-const PROMPT_SNIPPETS = [
-  { title: "🔍 审查代码质量", prompt: "请全面审查以下代码的安全隐患、性能瓶颈与潜在 Bug，并给出重构方案：" },
-  { title: "🐛 排查报错异常", prompt: "请分析以下报错日志或异常堆栈，诊断根本原因并给出修复步骤：" },
-  { title: "⚡ 重构并补齐类型", prompt: "请将以下代码按照现代 Clean Code 规范重构，补齐 TypeScript 类型：" },
-  { title: "📝 提炼核心要点", prompt: "请将上述讨论的内容与任务提炼为结构清晰的 Summary 与待办清单：" },
+  { id: "gpt-4o", label: "GPT-4o", desc: "OpenAI 旗舰全能多模态", badge: "🌐" },
 ];
 
 function formatFileSize(bytes: number): string {
@@ -94,22 +86,32 @@ export function Composer({
   const [selectedModel, setSelectedModel] = React.useState(model || "gemini-3.8-flash-high");
   const [modelMenuOpen, setModelMenuOpen] = React.useState(false);
   const [customModelInput, setCustomModelInput] = React.useState("");
+  const modelMenuRef = React.useRef<HTMLDivElement>(null);
 
   const [webSearchActive, setWebSearchActive] = React.useState(false);
+  const [deepThinkingActive, setDeepThinkingActive] = React.useState(false);
   const [thinkingLevel, setThinkingLevel] = React.useState<ThinkingLevel>("medium");
-  const [snippetsOpen, setSnippetsOpen] = React.useState(false);
 
   const [attachments, setAttachments] = React.useState<AttachmentItem[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
-
-  const modelMenuRef = React.useRef<HTMLDivElement>(null);
-  const snippetsMenuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (model && model !== "auto") {
       setSelectedModel(model);
     }
   }, [model]);
+
+  // Outside click handler for model popover
+  React.useEffect(() => {
+    if (!modelMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(e.target as Node)) {
+        setModelMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [modelMenuOpen]);
 
   const busy = streaming || promptPending;
   const canSend = (value.trim().length > 0 || attachments.length > 0) && !busy && !disabled && !preview;
@@ -119,23 +121,9 @@ export function Composer({
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
-    const next = Math.min(textarea.scrollHeight, 220);
+    const next = Math.min(textarea.scrollHeight, 200);
     textarea.style.height = `${Math.max(44, next)}px`;
   }, [value]);
-
-  // Close menus on outside click
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target as Node)) {
-        setModelMenuOpen(false);
-      }
-      if (snippetsMenuRef.current && !snippetsMenuRef.current.contains(event.target as Node)) {
-        setSnippetsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleSelectModel = (m: string) => {
     setSelectedModel(m);
@@ -152,7 +140,7 @@ export function Composer({
     await onSend(text, {
       model: selectedModel,
       webSearch: webSearchActive,
-      deepThinking: thinkingLevel !== "none",
+      deepThinking: deepThinkingActive,
       thinkingLevel,
       attachments: currentAttachments,
     });
@@ -187,6 +175,7 @@ export function Composer({
           dataUrl,
         });
       } else {
+        // Text / code file
         try {
           const text = await file.text();
           newItems.push({
@@ -213,7 +202,7 @@ export function Composer({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  // Clipboard paste support
+  // Clipboard paste support (supports pasting images or screenshots)
   const onPaste = (event: React.ClipboardEvent) => {
     const items = event.clipboardData.items;
     const files: File[] = [];
@@ -249,7 +238,7 @@ export function Composer({
       <div className="mx-auto w-full max-w-[780px]">
         {/* Error notice */}
         {error ? (
-          <div className="mb-2 flex items-start gap-2 rounded-xl border border-rose-400/20 bg-rose-400/[0.08] px-3 py-2 text-[11px] leading-relaxed text-rose-200 animate-fade-in">
+          <div className="mb-2 flex items-start gap-2 rounded-lg border border-rose-400/20 bg-rose-400/[0.08] px-3 py-2 text-[11px] leading-relaxed text-rose-200 animate-fade-in">
             <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span className="min-w-0 flex-1">{error}</span>
             <button
@@ -273,19 +262,13 @@ export function Composer({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "group relative rounded-[18px] border bg-[var(--bg-panel)] shadow-lg backdrop-blur-xl transition-all duration-200",
-            isDragging ? "border-accent bg-accent/10" : "border-white/[0.09] focus-within:border-accent/50",
-            streaming ? "border-cyan-400/30" : "",
+            "group relative rounded-xl border bg-[var(--bg-panel)] transition-all duration-150",
+            isDragging ? "border-accent" : "border-white/[0.1] focus-within:border-accent/50",
           )}
         >
-          {/* Active indicator top bar (clipped inside rounded corner via own wrapper) */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]">
-            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
-          </div>
-
           {/* Attachments preview strip */}
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-t-[17px] border-b border-white/[0.06] bg-black/15 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-black/10 px-3 py-2">
               {attachments.map((att) => (
                 <div
                   key={att.id}
@@ -296,19 +279,19 @@ export function Composer({
                     <img
                       src={att.dataUrl}
                       alt={att.name}
-                      className="h-7 w-7 rounded object-cover border border-white/10"
+                      className="h-6 w-6 rounded object-cover border border-white/10"
                     />
                   ) : (
-                    <FileCode className="h-4 w-4 text-accent ml-1" />
+                    <FileCode className="h-3.5 w-3.5 text-accent ml-1" />
                   )}
-                  <span className="max-w-[130px] truncate font-medium">{att.name}</span>
-                  <span className="font-mono text-[9px] text-mist-500">({formatFileSize(att.size)})</span>
+                  <span className="max-w-[110px] truncate font-medium">{att.name}</span>
+                  <span className="font-mono text-[8.5px] text-mist-500">({formatFileSize(att.size)})</span>
                   <button
                     type="button"
                     onClick={() => removeAttachment(att.id)}
                     className="ml-1 flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/15 text-mist-400 hover:text-white"
                   >
-                    <X className="h-2.5 w-2.5" />
+                    <X className="h-2 w-2" />
                   </button>
                 </div>
               ))}
@@ -334,12 +317,12 @@ export function Composer({
             rows={1}
             spellCheck={false}
             aria-label="消息输入框"
-            className="max-h-[220px] min-h-[46px] w-full resize-none bg-transparent px-3.5 pb-1.5 pt-3 text-[13.5px] leading-[1.65] text-mist-100 outline-none placeholder:text-mist-600 disabled:cursor-not-allowed sm:px-4"
+            className="max-h-[200px] min-h-[42px] w-full resize-none bg-transparent px-3.5 pb-1.5 pt-2.5 text-[13.5px] leading-[1.65] text-mist-100 outline-none placeholder:text-mist-500 disabled:cursor-not-allowed sm:px-4"
           />
 
           {/* Bottom control bar */}
-          <div className="flex flex-col gap-1.5 border-t border-white/[0.045] px-2.5 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:px-3">
-            {/* Left controls: Attachments, Models, Web, Reasoning, Snippets */}
+          <div className="flex flex-wrap items-center justify-between gap-1.5 border-t border-white/[0.05] px-2.5 py-1.5 sm:px-3">
+            {/* Left controls: Attachments, Models, Web, Reasoning */}
             <div className="flex flex-wrap items-center gap-1">
               {/* 1. Attachment Button */}
               <input
@@ -357,7 +340,7 @@ export function Composer({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 title="上传附件 (图片、代码或文档，也支持直接粘贴)"
-                className="flex h-7 items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 text-[11px] text-mist-400 hover:border-white/[0.16] hover:bg-white/[0.07] hover:text-mist-100 transition-colors"
+                className="flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
               >
                 <Paperclip className="h-3 w-3" />
                 <span className="hidden sm:inline">附件</span>
@@ -370,19 +353,19 @@ export function Composer({
                   onClick={() => setModelMenuOpen((v) => !v)}
                   title="切换当前会话驱动模型"
                   className={cn(
-                    "flex h-7 items-center gap-1.5 rounded-lg border px-2 text-[11px] font-mono transition-colors",
+                    "flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] font-mono transition-colors",
                     modelMenuOpen
-                      ? "border-accent bg-accent/15 text-accent"
-                      : "border-white/[0.08] bg-white/[0.03] text-mist-300 hover:border-white/[0.16] hover:text-white",
+                      ? "bg-white/[0.08] text-accent"
+                      : "text-mist-400 hover:bg-white/[0.06] hover:text-mist-100",
                   )}
                 >
-                  <Cpu className="h-3 w-3 text-accent" />
-                  <span className="max-w-[100px] truncate font-medium sm:max-w-[130px]">{selectedModel}</span>
+                  <Cpu className="h-3 w-3" />
+                  <span className="max-w-[90px] truncate font-medium sm:max-w-[120px]">{selectedModel}</span>
                   <ChevronDown className="h-2.5 w-2.5 opacity-60" />
                 </button>
 
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
+                  <div className="absolute bottom-8 left-0 z-50 max-h-[60vh] overflow-y-auto w-56 max-w-[calc(100vw-24px)] rounded-lg border border-white/[0.12] bg-[var(--bg-panel)] p-1 shadow-xl animate-scale-in">
                     <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
                       选择驱动模型
                     </div>
@@ -393,7 +376,7 @@ export function Composer({
                           type="button"
                           onClick={() => handleSelectModel(item.id)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors",
+                            "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
                             selectedModel === item.id
                               ? "bg-accent/15 text-accent"
                               : "text-mist-200 hover:bg-white/[0.06]",
@@ -403,7 +386,7 @@ export function Composer({
                             <div className="font-medium truncate">{item.label}</div>
                             <div className="text-[9px] text-mist-500 truncate">{item.desc}</div>
                           </div>
-                          <span className="ml-2 shrink-0 text-[9px] font-mono opacity-80">{item.badge}</span>
+                          <span className="text-[9px]">{item.badge}</span>
                         </button>
                       ))}
                     </div>
@@ -419,7 +402,7 @@ export function Composer({
                           }
                         }}
                         placeholder="输入自定义模型后回车…"
-                        className="w-full rounded-md border border-white/[0.1] bg-black/30 px-2 py-1 text-[10.5px] font-mono text-mist-100 outline-none focus:border-accent"
+                        className="w-full rounded-md border border-white/[0.1] bg-black/20 px-2 py-1 text-[10.5px] font-mono text-mist-100 outline-none focus:border-accent"
                       />
                     </div>
                   </div>
@@ -432,59 +415,24 @@ export function Composer({
                 onClick={() => setWebSearchActive((v) => !v)}
                 title="开启/关闭全网实时搜索"
                 className={cn(
-                  "flex h-7 items-center gap-1 rounded-lg border px-2 text-[11px] transition-colors",
+                  "flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] transition-colors",
                   webSearchActive
-                    ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
-                    : "border-white/[0.08] bg-white/[0.03] text-mist-400 hover:text-mist-200",
+                    ? "bg-emerald-500/15 text-emerald-300"
+                    : "text-mist-400 hover:bg-white/[0.06] hover:text-mist-100",
                 )}
               >
                 <Globe className="h-3 w-3" />
                 <span className="hidden sm:inline">联网</span>
               </button>
 
-              {/* 4. Deep Thinking Toggle Button */}
+              {/* 4. Thinking Level Selector */}
               <ThinkingLevelSelector
                 value={thinkingLevel}
-                onChange={setThinkingLevel}
+                onChange={(level) => {
+                  setThinkingLevel(level);
+                  setDeepThinkingActive(level !== "none");
+                }}
               />
-
-              {/* 5. Prompt Snippets Dropdown */}
-              <div className="relative" ref={snippetsMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setSnippetsOpen((v) => !v)}
-                  title="常用提示词模板"
-                  className="flex h-7 items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 text-[11px] text-mist-400 hover:text-mist-200 transition-colors"
-                >
-                  <Lightbulb className="h-3 w-3" />
-                  <span className="hidden md:inline">快捷</span>
-                </button>
-
-                {snippetsOpen ? (
-                  <div className="absolute bottom-9 right-0 z-50 max-h-[60vh] overflow-y-auto w-64 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
-                    <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
-                      快捷指令模板
-                    </div>
-                    <div className="space-y-0.5">
-                      {PROMPT_SNIPPETS.map((snip) => (
-                        <button
-                          key={snip.title}
-                          type="button"
-                          onClick={() => {
-                            onChange(snip.prompt);
-                            setSnippetsOpen(false);
-                            textareaRef.current?.focus();
-                          }}
-                          className="flex w-full flex-col rounded-lg px-2 py-1.5 text-left text-[11px] text-mist-200 hover:bg-white/[0.06] transition-colors"
-                        >
-                          <span className="font-medium text-accent">{snip.title}</span>
-                          <span className="truncate text-[9.5px] text-mist-500">{snip.prompt}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
 
               {/* Clear draft */}
               {value.trim().length > 0 || attachments.length > 0 ? (
@@ -495,22 +443,15 @@ export function Composer({
                     setAttachments([]);
                   }}
                   title="清空当前输入与附件"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.06] text-mist-500 hover:text-rose-300 transition-colors"
+                  className="flex h-6.5 w-6.5 items-center justify-center rounded-md text-mist-500 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
               ) : null}
-
-              {skillCount > 0 ? (
-                <span className="hidden items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[9.5px] font-mono text-mist-500 xl:inline-flex">
-                  <Sparkles className="h-2.5 w-2.5 text-accent" />
-                  {skillCount}
-                </span>
-              ) : null}
             </div>
 
             {/* Right controls: Submit / Stop */}
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="hidden items-center gap-1 text-[9px] text-mist-500 lg:inline-flex">
                 <Kbd>Enter</Kbd> 发送 · <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> 换行
               </span>
@@ -520,7 +461,7 @@ export function Composer({
                   variant="danger"
                   size="sm"
                   onClick={onCancel}
-                  className="h-7.5 gap-1.5 px-3 text-[11px]"
+                  className="h-7 gap-1 px-3 text-[11px] rounded-md"
                   title="终止当前生成"
                 >
                   <Square className="h-3 w-3 fill-current" />
@@ -535,9 +476,9 @@ export function Composer({
                   loading={promptPending}
                   aria-label="发送消息"
                   title="发送消息 (Enter)"
-                  className="h-7.5 gap-1.5 rounded-lg px-3.5 text-[11px] font-semibold"
+                  className="h-7 gap-1 rounded-md px-3 text-[11px] font-semibold"
                 >
-                  {!promptPending ? <SendHorizontal className="h-3.5 w-3.5" /> : null}
+                  {!promptPending ? <SendHorizontal className="h-3 w-3" /> : null}
                   <span>发送</span>
                 </Button>
               )}
@@ -546,7 +487,7 @@ export function Composer({
         </form>
 
         {/* Footer tiny info */}
-        <div className="mt-1.5 flex items-center justify-center gap-2 text-[9px] text-mist-600">
+        <div className="mt-1 flex items-center justify-center gap-2 text-[8.5px] text-mist-600">
           <span className="h-1 w-1 rounded-full bg-emerald-400" />
           <span>Chaite SSE 双星通道</span>
           <span>·</span>
