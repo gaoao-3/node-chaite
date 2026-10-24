@@ -39,71 +39,65 @@
   --color-aqua-400: var(--accent);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME PALETTES (Complete Pi Web & Custom Ecosystem)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Default: Slate (石板冷灰) ────────────────────────────────────────── */
 :root,
+html[data-theme="slate"],
 [data-theme="slate"] {
   color-scheme: dark;
-  --sidebar-width: 268px;
-  --sidebar-collapsed: 68px;
-  --radius-card: 16px;
-  --bg: #09090b;
-  --bg-panel: #101012;
-  --bg-hover: #18181b;
-  --bg-selected: #27272a;
-  --border: rgba(255, 255, 255, 0.065);
-  --text: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --text-dim: #71717a;
+  --sidebar-width: 256px;
+  --sidebar-collapsed: 60px;
+  --radius-card: 14px;
+  --bg: #161b26;
+  --bg-panel: #1d2331;
+  --bg-hover: #262d3d;
+  --bg-selected: #2f3749;
+  --border: #435069;
+  --text: #e3e8f2;
+  --text-muted: #bcc5d6;
+  --text-dim: #a7b1c5;
   --accent: #38bdf8;
   --accent-hover: #7dd3fc;
-  --accent-contrast: #081018;
-  --user-bg: #141417;
-  --assistant-bg: #0c0c0e;
+  --accent-contrast: #0f2229;
+  --user-bg: #232c3f;
+  --assistant-bg: #161b26;
 }
 
+/* ── 2. Dark (暗黑经典) ──────────────────────────────────────────────────── */
+html.dark,
+html[data-theme="dark"],
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #09090b;
-  --bg-panel: #121215;
-  --bg-hover: #18181b;
-  --bg-selected: #27272a;
-  --border: rgba(255, 255, 255, 0.07);
+  --bg: #18181b;
+  --bg-panel: #202024;
+  --bg-hover: #27272a;
+  --bg-selected: #34343a;
+  --border: #3f3f46;
   --text: #f4f4f5;
   --text-muted: #a1a1aa;
   --text-dim: #71717a;
   --accent: #60a5fa;
   --accent-hover: #93c5fd;
   --accent-contrast: #0f172a;
-  --user-bg: #18181b;
-  --assistant-bg: #0e0e11;
+  --user-bg: #27272a;
+  --assistant-bg: #18181b;
 }
 
-[data-theme="midnight"] {
-  color-scheme: dark;
-  --bg: #000000;
-  --bg-panel: #0c0c0f;
-  --bg-hover: #16161a;
-  --bg-selected: #24242a;
-  --border: rgba(255, 255, 255, 0.07);
-  --text: #e2e4ef;
-  --text-muted: #9499ad;
-  --text-dim: #686e82;
-  --accent: #818cf8;
-  --accent-hover: #a5b4fc;
-  --accent-contrast: #0f111a;
-  --user-bg: #141724;
-  --assistant-bg: #060608;
-}
-
+/* ── 3. Light (纯白明亮) ─────────────────────────────────────────────────── */
+html[data-theme="light"],
 [data-theme="light"] {
   color-scheme: light;
   --bg: #ffffff;
-  --bg-panel: #fafafa;
-  --bg-hover: #f4f4f5;
-  --bg-selected: #e4e4e7;
-  --border: rgba(0, 0, 0, 0.08);
+  --bg-panel: #f4f4f5;
+  --bg-hover: #e4e4e7;
+  --bg-selected: #d4d4d8;
+  --border: #e4e4e7;
   --text: #18181b;
   --text-muted: #52525b;
-  --text-dim: #a1a1aa;
+  --text-dim: #71717a;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
   --accent-contrast: #ffffff;
@@ -111,39 +105,218 @@
   --assistant-bg: #ffffff;
 }
 
+/* ── 4. Mist (薄雾冷灰) ─────────────────────────────────────────────────── */
+html[data-theme="mist"],
 [data-theme="mist"] {
   color-scheme: light;
-  --bg: #f8fafc;
-  --bg-panel: #ffffff;
-  --bg-hover: #f1f5f9;
-  --bg-selected: #e2e8f0;
-  --border: rgba(0, 0, 0, 0.08);
-  --text: #1e293b;
-  --text-muted: #475569;
-  --text-dim: #94a3b8;
+  --bg: #f4f8f7;
+  --bg-panel: #e9f0ee;
+  --bg-hover: #e0eae7;
+  --bg-selected: #d7e4df;
+  --border: #afc4ba;
+  --text: #202e2b;
+  --text-muted: #455f56;
+  --text-dim: #52685f;
   --accent: #0d9488;
   --accent-hover: #0f766e;
   --accent-contrast: #ffffff;
-  --user-bg: #e6f4f2;
-  --assistant-bg: #ffffff;
+  --user-bg: #e0efeb;
+  --assistant-bg: #f4f8f7;
 }
 
+/* ── 5. Lilac (丁香淡紫) ─────────────────────────────────────────────────── */
+html[data-theme="lilac"],
+[data-theme="lilac"] {
+  color-scheme: light;
+  --bg: #f8f6fb;
+  --bg-panel: #ede9f4;
+  --bg-hover: #e5e0ee;
+  --bg-selected: #ddd6e8;
+  --border: #bcafd3;
+  --text: #2a2235;
+  --text-muted: #5a4e6e;
+  --text-dim: #675b7c;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-contrast: #ffffff;
+  --user-bg: #eee8f8;
+  --assistant-bg: #f8f6fb;
+}
+
+/* ── 6. Sand (暖调素纸) ─────────────────────────────────────────────────── */
+html[data-theme="sand"],
 [data-theme="sand"] {
   color-scheme: light;
-  --bg: #fafaf9;
-  --bg-panel: #ffffff;
-  --bg-hover: #f5f5f4;
-  --bg-selected: #e7e5e4;
-  --border: rgba(120, 100, 70, 0.12);
-  --text: #292524;
-  --text-muted: #57534e;
-  --text-dim: #a8a29e;
+  --bg: #faf6ee;
+  --bg-panel: #f1ebdf;
+  --bg-hover: #ebe3d4;
+  --bg-selected: #e4dac8;
+  --border: #cdbfa6;
+  --text: #2e2a22;
+  --text-muted: #5c5243;
+  --text-dim: #665b4b;
   --accent: #d97706;
   --accent-hover: #b45309;
   --accent-contrast: #ffffff;
-  --user-bg: #f5f5f4;
-  --assistant-bg: #ffffff;
+  --user-bg: #f2e8d5;
+  --assistant-bg: #faf6ee;
 }
+
+/* ── 7. Rose (薄粉淡樱) ─────────────────────────────────────────────────── */
+html[data-theme="rose"],
+[data-theme="rose"] {
+  color-scheme: light;
+  --bg: #fcf7f8;
+  --bg-panel: #f3edef;
+  --bg-hover: #eee3e7;
+  --bg-selected: #e8dce1;
+  --border: #cdb5bf;
+  --text: #34282e;
+  --text-muted: #65505a;
+  --text-dim: #705b65;
+  --accent: #e11d48;
+  --accent-hover: #be123c;
+  --accent-contrast: #ffffff;
+  --user-bg: #f3e4eb;
+  --assistant-bg: #fcf7f8;
+}
+
+/* ── 8. Pine (北欧冷杉) ─────────────────────────────────────────────────── */
+html[data-theme="pine"],
+[data-theme="pine"] {
+  color-scheme: dark;
+  --bg: #19201f;
+  --bg-panel: #212b28;
+  --bg-hover: #2b3632;
+  --bg-selected: #35433c;
+  --border: #4a5f52;
+  --text: #e6ede8;
+  --text-muted: #c3d0c6;
+  --text-dim: #afc2b5;
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-contrast: #182b20;
+  --user-bg: #25382f;
+  --assistant-bg: #19201f;
+}
+
+/* ── 9. Dusk (暮色霞光) ─────────────────────────────────────────────────── */
+html[data-theme="dusk"],
+[data-theme="dusk"] {
+  color-scheme: dark;
+  --bg: #1e1a24;
+  --bg-panel: #26212e;
+  --bg-hover: #302a39;
+  --bg-selected: #3a3345;
+  --border: #54496a;
+  --text: #ebe6f0;
+  --text-muted: #c7bed4;
+  --text-dim: #b3a9c3;
+  --accent: #cdb4f0;
+  --accent-hover: #e0d0f7;
+  --accent-contrast: #241935;
+  --user-bg: #2c2536;
+  --assistant-bg: #1e1a24;
+}
+
+/* ── 10. Ember (炽热余烬) ───────────────────────────────────────────────── */
+html[data-theme="ember"],
+[data-theme="ember"] {
+  color-scheme: dark;
+  --bg: #211c19;
+  --bg-panel: #2b2420;
+  --bg-hover: #372e29;
+  --bg-selected: #433832;
+  --border: #5f4e44;
+  --text: #f0eae5;
+  --text-muted: #d4c8bf;
+  --text-dim: #c1b2a7;
+  --accent: #fb923c;
+  --accent-hover: #fdba74;
+  --accent-contrast: #2d1e13;
+  --user-bg: #3b2f28;
+  --assistant-bg: #211c19;
+}
+
+/* ── 11. Midnight (纯黑极客) ────────────────────────────────────────────── */
+html[data-theme="midnight"],
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg: #090a0f;
+  --bg-panel: #11131c;
+  --bg-hover: #191c28;
+  --bg-selected: #222636;
+  --border: #2c3144;
+  --text: #e2e4ef;
+  --text-muted: #9499ad;
+  --text-dim: #686e82;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-contrast: #0f111a;
+  --user-bg: #141724;
+  --assistant-bg: #090a0f;
+}
+
+/* ── 12. Cyber (赛博翠绿) ───────────────────────────────────────────────── */
+html[data-theme="cyber"],
+[data-theme="cyber"] {
+  color-scheme: dark;
+  --bg: #080c10;
+  --bg-panel: #0d131a;
+  --bg-hover: #141c26;
+  --bg-selected: #1b2633;
+  --border: #1f3040;
+  --text: #d4e8ec;
+  --text-muted: #7ca3ab;
+  --text-dim: #557780;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-contrast: #022c22;
+  --user-bg: #0d1a20;
+  --assistant-bg: #080c10;
+}
+
+/* ── 13. Kaiyi (天童凯伊专属) ───────────────────────────────────────────── */
+html[data-theme="kaiyi"],
+[data-theme="kaiyi"] {
+  color-scheme: dark;
+  --bg: #0b0f19;
+  --bg-panel: #131926;
+  --bg-hover: #1b2335;
+  --bg-selected: #242e44;
+  --border: #352642;
+  --text: #eaf0fa;
+  --text-muted: #9bb0cf;
+  --text-dim: #6c82a3;
+  --accent: #f472b6;
+  --accent-hover: #f9a8d4;
+  --accent-contrast: #4c0519;
+  --user-bg: #162033;
+  --assistant-bg: #0b0f19;
+}
+
+/* ── 14. Ink (水墨素黑) ─────────────────────────────────────────────────── */
+html[data-theme="ink"],
+[data-theme="ink"] {
+  color-scheme: dark;
+  --bg: #0d0d0d;
+  --bg-panel: #141414;
+  --bg-hover: #1c1c1c;
+  --bg-selected: #262626;
+  --border: #2a2a2a;
+  --text: #ededed;
+  --text-muted: #a3a3a3;
+  --text-dim: #737373;
+  --accent: #e5e5e5;
+  --accent-hover: #ffffff;
+  --accent-contrast: #0a0a0a;
+  --user-bg: #171717;
+  --assistant-bg: #0d0d0d;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 * {
   border-color: var(--border);
@@ -166,7 +339,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow: hidden;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 ::selection {
@@ -215,53 +388,114 @@ body {
     outline: none;
     box-shadow:
       0 0 0 1px var(--bg),
-      0 0 0 3px var(--accent);
+      0 0 0 2px var(--accent);
   }
 }
 
-@layer utilities {
-  .glass {
-    background: var(--bg-panel);
-    backdrop-filter: blur(20px) saturate(120%);
-    -webkit-backdrop-filter: blur(20px) saturate(120%);
-  }
+/* ═══════════════════════════════════════════════════════════════════════════
+   PI WEB THEME SWATCH GRID STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-  .panel {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-  }
-
-  .panel-raised {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.2);
-  }
+.settings-theme-options {
+  display: grid;
+  grid-template-columns: repeat(15, minmax(0, 1fr));
+  grid-auto-rows: 38px;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
 }
 
-[data-density="compact"] .chat-stream {
-  gap: 0.65rem;
+.settings-theme-option {
+  position: relative;
+  display: flex;
+  grid-column: span 3;
+  min-width: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
 }
 
-[data-density="compact"] .chat-stream .md-body {
-  font-size: 13.5px;
-  line-height: 1.62;
+.settings-theme-option:hover {
+  transform: translateY(-1px);
 }
 
-.reduce-motion *,
-.reduce-motion *::before,
-.reduce-motion *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-  scroll-behavior: auto !important;
+.settings-theme-option[data-system] {
+  grid-column: 1 / -1;
 }
 
-/* ── Markdown ─────────────────────────────────────────────────────────────── */
+.settings-theme-option[data-wide] {
+  grid-column: span 5;
+}
+
+.settings-theme-swatch {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.settings-theme-fill {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.settings-theme-name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.settings-theme-option:has(input:checked) .settings-theme-swatch {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.settings-theme-system {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.settings-theme-chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.settings-theme-system-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MARKDOWN & UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 .md-body {
   color: var(--text);
-  font-size: 14.5px;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.7;
   letter-spacing: 0.005em;
   word-break: break-word;
 }
@@ -275,7 +509,7 @@ body {
 }
 
 .md-body p {
-  margin: 0 0 0.85em;
+  margin: 0 0 0.8em;
 }
 
 .md-body h1,
@@ -286,7 +520,7 @@ body {
   font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.35;
-  margin: 1.35em 0 0.55em;
+  margin: 1.2em 0 0.5em;
 }
 
 .md-body a {
@@ -301,12 +535,12 @@ body {
 }
 
 .md-body blockquote {
-  margin: 0.9em 0;
-  padding: 0.55em 0 0.55em 1em;
+  margin: 0.8em 0;
+  padding: 0.4em 0 0.4em 0.9em;
   border-left: 3px solid var(--accent);
   color: var(--text-muted);
   background: var(--bg-hover);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 6px 6px 0;
 }
 
 .md-body code {
@@ -315,8 +549,8 @@ body {
   color: var(--accent);
   background: var(--bg-hover);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.12em 0.38em;
+  border-radius: 5px;
+  padding: 0.1em 0.35em;
   white-space: break-spaces;
 }
 
@@ -329,7 +563,7 @@ body {
 }
 
 .md-body hr {
-  margin: 1.4em 0;
+  margin: 1.2em 0;
   border: 0;
   height: 1px;
   background: var(--border);
@@ -339,28 +573,22 @@ body {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: 0.9em 0;
-  font-size: 0.92em;
+  margin: 0.8em 0;
+  font-size: 0.9em;
 }
 
 .md-body th {
   text-align: left;
   color: var(--text);
   font-weight: 600;
-  font-size: 0.86em;
-  padding: 0.6em 0.8em;
+  font-size: 0.85em;
+  padding: 0.5em 0.7em;
   background: var(--bg-hover);
   border-bottom: 1px solid var(--border);
 }
 
 .md-body td {
-  padding: 0.6em 0.8em;
+  padding: 0.5em 0.7em;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
-}
-
-.md-body img {
-  max-width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border);
 }

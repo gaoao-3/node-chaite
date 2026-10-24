@@ -90,12 +90,6 @@ export function SettingsBoard({
     { id: "gpt-4o", label: "GPT-4o" },
   ];
 
-  const PRIMARY_THEMES = [
-    { id: "slate", label: "石板冷灰", dot: "#38bdf8" },
-    { id: "dark", label: "暗黑经典", dot: "#60a5fa" },
-    { id: "midnight", label: "纯黑极客", dot: "#818cf8" },
-    { id: "light", label: "纯净浅白", dot: "#2563eb" },
-  ];
 
   return (
     <BoardPage
@@ -120,47 +114,50 @@ export function SettingsBoard({
       <div className="space-y-4">
         {/* ── 1. 外观与主题 ── */}
         <SectionCard title="外观与显示" hint="Appearance">
-          <SettingRow
-            title="色彩主题"
-            description="切换界面的全局配色与光暗模式。"
-          >
-            <div className="flex flex-wrap items-center gap-1.5">
-              {PRIMARY_THEMES.map((t) => {
-                const active = preferences.theme === t.id;
+          <div className="py-1">
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[13px] font-medium text-mist-100">主题调色板 (Theme Palettes)</span>
+              <span className="font-mono text-[10px] text-accent">
+                {THEME_OPTIONS.find((t) => t.id === preferences.theme)?.description || "个性化色彩"}
+              </span>
+            </div>
+
+            <div role="radiogroup" aria-label="外观主题调色板" className="settings-theme-options">
+              {THEME_OPTIONS.map((option) => {
+                const selected = preferences.theme === option.id;
                 return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => update({ theme: t.id })}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                      active
-                        ? "border-accent bg-accent/15 text-accent"
-                        : "border-white/[0.07] bg-white/[0.02] text-mist-400 hover:border-white/[0.14] hover:text-mist-200",
-                    )}
+                  <label
+                    key={option.id}
+                    className="settings-theme-option"
+                    data-system={option.id === "auto" || undefined}
+                    data-wide={option.wide || undefined}
                   >
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.dot }} />
-                    <span>{t.label}</span>
-                  </button>
+                    <input
+                      type="radio"
+                      name="theme"
+                      value={option.id}
+                      checked={selected}
+                      onChange={() => update({ theme: option.id })}
+                      className="sr-only"
+                    />
+                    {option.id === "auto" ? (
+                      <span className="settings-theme-swatch settings-theme-system">
+                        <span data-theme="light" className="settings-theme-chip" />
+                        <span data-theme="slate" className="settings-theme-chip" />
+                        <span className="settings-theme-system-name">{option.label}</span>
+                      </span>
+                    ) : (
+                      <span className="settings-theme-swatch">
+                        <span data-theme={option.id} className="settings-theme-fill">
+                          <span className="settings-theme-name">{option.label}</span>
+                        </span>
+                      </span>
+                    )}
+                  </label>
                 );
               })}
-
-              {/* Extra Themes Dropdown */}
-              <select
-                value={preferences.theme}
-                onChange={(e) => update({ theme: e.target.value })}
-                aria-label="更多主题选项"
-                className="h-7 rounded-md border border-white/[0.07] bg-black/20 px-2 text-[11px] font-mono text-mist-400 outline-none hover:border-white/[0.14]"
-              >
-                <option value="" disabled>更多主题…</option>
-                {THEME_OPTIONS.map((theme) => (
-                  <option key={theme.id} value={theme.id} className="bg-zinc-900 text-mist-200">
-                    {theme.label} ({theme.scheme})
-                  </option>
-                ))}
-              </select>
             </div>
-          </SettingRow>
+          </div>
 
           <SettingRow
             title="界面密度"

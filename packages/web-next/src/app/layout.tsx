@@ -38,7 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=JSON.parse(localStorage.getItem("chaite.console.preferences")||"{}");var t=p.theme||"slate";document.documentElement.dataset.theme=t;if(["light","mist","sand","rose"].indexOf(t)>=0){document.documentElement.classList.remove("dark")}else{document.documentElement.classList.add("dark")}}catch(e){}})()`,
+            __html: `(function(){try{var p=JSON.parse(localStorage.getItem("chaite.console.preferences")||"{}");var t=p.theme||"slate";if(t==="auto")t=window.matchMedia("(prefers-color-scheme: dark)").matches?"slate":"light";document.documentElement.dataset.theme=t;if(["light","mist","lilac","sand","rose"].indexOf(t)>=0){document.documentElement.classList.remove("dark")}else{document.documentElement.classList.add("dark")}}catch(e){}})()`,
           }}
         />
       </head>
