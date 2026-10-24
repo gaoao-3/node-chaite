@@ -96,7 +96,7 @@ export function MessageStream({
 
   const scrollToBottom = React.useCallback((smooth = false) => {
     const container = scrollRef.current;
-    if (!container) return;
+    if (!container || view.timeline.length === 0) return;
     stickRef.current = true;
     setShowJump(false);
     if (smooth) {
@@ -104,7 +104,7 @@ export function MessageStream({
     } else {
       container.scrollTop = container.scrollHeight;
     }
-  }, []);
+  }, [view.timeline.length]);
 
   const onScroll = React.useCallback(() => {
     const container = scrollRef.current;
@@ -116,12 +116,19 @@ export function MessageStream({
   }, []);
 
   React.useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    if (view.timeline.length === 0) {
+      container.scrollTop = 0;
+      stickRef.current = false;
+      return;
+    }
     stickRef.current = true;
     scrollToBottom();
-  }, [scrollToBottom, view.session?.id]);
+  }, [scrollToBottom, view.session?.id, view.timeline.length]);
 
   React.useEffect(() => {
-    if (!autoScroll || !stickRef.current) return;
+    if (!autoScroll || !stickRef.current || view.timeline.length === 0) return;
     const frame = window.requestAnimationFrame(() => scrollToBottom());
     return () => window.cancelAnimationFrame(frame);
   }, [autoScroll, scrollToBottom, view.timeline, view.typing]);

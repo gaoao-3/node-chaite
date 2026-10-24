@@ -163,7 +163,7 @@ export function ChatHeader({
                   if (session) setEditing(true);
                 }}
                 className={cn(
-                  "truncate max-w-[160px] sm:max-w-[320px] text-[13px] font-semibold text-mist-100",
+                  "truncate max-w-[200px] sm:max-w-[480px] text-[13px] font-semibold text-mist-100",
                   session && "cursor-pointer hover:text-accent transition-colors",
                 )}
                 title={session ? "点击编辑标题" : undefined}
@@ -217,7 +217,7 @@ export function ChatHeader({
         </div>
 
         {/* Current Model */}
-        <div className="hidden md:flex items-center gap-1 rounded-lg border border-white/[0.06] bg-black/20 px-2 py-0.5 text-[10px] font-mono text-mist-400">
+        <div className="hidden xl:flex items-center gap-1 rounded-lg border border-white/[0.06] bg-black/20 px-2 py-0.5 text-[10px] font-mono text-mist-400">
           <Cpu className="h-2.5 w-2.5 text-accent" />
           <span className="max-w-[120px] truncate">{model || session?.model || "auto"}</span>
         </div>
