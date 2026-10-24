@@ -573,6 +573,12 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
   router.post('/hub/plugins/:id/install', route(async (req, res) => {
     sendOk(res, await hubManager.installPlugin(req.params.id as string))
   }))
+  router.get('/metrics', route(async (_req, res) => {
+    const { getPrometheusService } = await import('../agent/monitoring/prometheus')
+    const prom = getPrometheusService()
+    res.setHeader('Content-Type', prom.getContentType())
+    res.send(await prom.getMetrics())
+  }))
 
   return router
 }

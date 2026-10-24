@@ -6,6 +6,7 @@ import { ServiceUnavailableError } from './errors'
 import type { PromptDriverContext, PromptDriverResult, SessionPromptDriver } from './types'
 import type { EvolutionService } from './evolution-service'
 import { synthesizeAndRecordEvolution } from './evolution-synthesizer'
+import { getPrometheusService } from '../agent/monitoring/prometheus'
 
 export interface ChaitePromptDriverOptions {
   /** Use an already-initialised Chaite instance. */
@@ -220,6 +221,7 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
           resultPreview: preview(result.content),
           completedAt: Date.now(),
         })
+        getPrometheusService().recordToolCall(call.name, result.error ? 'failed' : 'succeeded', result.durationMs || 0)
       }
 
       const metadata = context.session.metadata
@@ -279,6 +281,11 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
           console.warn('[chaite-driver] Evolution synthesis error:', err)
         })
       }
+      const finalUsage = usageOf(response)
+      if (finalUsage) {
+        getPrometheusService().recordTokens(String(sendOptions.model || 'default'), finalUsage)
+      }
+      getPrometheusService().recordTurn(context.session.platform, 'success', Date.now() - startedAt)
 
       return {
         finishReason: 'stop',

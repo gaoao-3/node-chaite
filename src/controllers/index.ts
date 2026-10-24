@@ -46,6 +46,17 @@ export function createApp (configure?: (app: Application) => void, options: ApiS
   app.use('/api/agent', authenticateToken, AgentRouter)
   app.use('/api/logs', authenticateToken, LogsRouter)
   app.use('/v1', authenticateToken, OpenAIRouter)
+  // 暴露标准 Prometheus / OpenMetrics 监控端点 (兼容 dsh-prometheus / Grafana)
+  app.get('/metrics', async (_req, res) => {
+    try {
+      const { getPrometheusService } = await import('../agent/monitoring/prometheus')
+      const prom = getPrometheusService()
+      res.setHeader('Content-Type', prom.getContentType())
+      res.send(await prom.getMetrics())
+    } catch (err: any) {
+      res.status(500).send(`Prometheus metrics error: ${err.message}`)
+    }
+  })
   configure?.(app)
   // The legacy NaiveUI management panel is intentionally not served by
   // default. A new frontend can opt in explicitly with options.frontendDir or
