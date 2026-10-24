@@ -2,20 +2,17 @@
 
 import * as React from "react";
 import {
+  ArrowUp,
   ChevronDown,
   CircleAlert,
   Cpu,
   FileCode,
   Globe,
-  ImageIcon,
   Paperclip,
-  SendHorizontal,
+  Plus,
   Square,
-  Trash2,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 import { ThinkingLevelSelector, type ThinkingLevel } from "@/components/chat/thinking-level-selector";
 
@@ -76,7 +73,6 @@ export function Composer({
   preview,
   model,
   onModelChange,
-  skillCount,
   error,
   onDismissError,
 }: ComposerProps) {
@@ -101,7 +97,7 @@ export function Composer({
     }
   }, [model]);
 
-  // Outside click handler for model popover
+  // Outside click for model selector
   React.useEffect(() => {
     if (!modelMenuOpen) return;
     const handleClick = (e: MouseEvent) => {
@@ -153,8 +149,6 @@ export function Composer({
     }
   };
 
-  // ─── File Attachment Handlers ───────────────────────────────────────────────
-
   const handleFiles = async (files: FileList | File[]) => {
     const newItems: AttachmentItem[] = [];
     for (const file of Array.from(files)) {
@@ -167,31 +161,13 @@ export function Composer({
           reader.onload = () => resolve(reader.result as string);
           reader.readAsDataURL(file);
         });
-        newItems.push({
-          id,
-          name: file.name,
-          size: file.size,
-          type: "image",
-          dataUrl,
-        });
+        newItems.push({ id, name: file.name, size: file.size, type: "image", dataUrl });
       } else {
-        // Text / code file
         try {
           const text = await file.text();
-          newItems.push({
-            id,
-            name: file.name,
-            size: file.size,
-            type: "file",
-            textContent: text,
-          });
+          newItems.push({ id, name: file.name, size: file.size, type: "file", textContent: text });
         } catch {
-          newItems.push({
-            id,
-            name: file.name,
-            size: file.size,
-            type: "file",
-          });
+          newItems.push({ id, name: file.name, size: file.size, type: "file" });
         }
       }
     }
@@ -202,129 +178,90 @@ export function Composer({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  // Clipboard paste support (supports pasting images or screenshots)
-  const onPaste = (event: React.ClipboardEvent) => {
-    const items = event.clipboardData.items;
-    const files: File[] = [];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].kind === "file") {
-        const file = items[i].getAsFile();
-        if (file) files.push(file);
-      }
-    }
-    if (files.length > 0) {
-      event.preventDefault();
-      void handleFiles(files);
-    }
-  };
-
-  // Drag and drop support
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-  const onDragLeave = () => setIsDragging(false);
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      void handleFiles(e.dataTransfer.files);
-    }
-  };
-
   return (
-    <div className="relative shrink-0 px-3 pb-3 pt-1.5 sm:px-6 sm:pb-5">
-      <div className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-[var(--bg)] to-transparent" />
-      <div className="mx-auto w-full max-w-[780px]">
+    <div className="relative shrink-0 px-3 pb-3 pt-1 sm:px-6 sm:pb-4">
+      <div className="mx-auto w-full max-w-[760px]">
         {/* Error notice */}
         {error ? (
-          <div className="mb-2 flex items-start gap-2 rounded-lg border border-rose-400/20 bg-rose-400/[0.08] px-3 py-2 text-[11px] leading-relaxed text-rose-200 animate-fade-in">
-            <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <span className="min-w-0 flex-1">{error}</span>
-            <button
-              type="button"
-              onClick={onDismissError}
-              aria-label="忽略错误"
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-rose-300 hover:bg-rose-400/20"
-            >
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-rose-400/20 bg-rose-500/[0.08] px-3 py-1.5 text-[11px] text-rose-200">
+            <span className="truncate">{error}</span>
+            <button type="button" onClick={onDismissError} className="text-rose-400 hover:text-rose-200">
               <X className="h-3 w-3" />
             </button>
           </div>
         ) : null}
 
-        {/* Form container */}
+        {/* Claude-style Minimal Floating Card */}
         <form
-          onSubmit={(event) => {
-            event.preventDefault();
+          onSubmit={(e) => {
+            e.preventDefault();
             void submit();
           }}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            if (e.dataTransfer.files) void handleFiles(e.dataTransfer.files);
+          }}
           className={cn(
-            "group relative rounded-xl border bg-[var(--bg-panel)] transition-all duration-150",
-            isDragging ? "border-accent" : "border-white/[0.1] focus-within:border-accent/50",
+            "group relative rounded-2xl border bg-[var(--bg-panel)] shadow-sm transition-all duration-150",
+            isDragging ? "border-accent ring-1 ring-accent" : "border-white/[0.1] focus-within:border-white/[0.2]",
           )}
         >
-          {/* Attachments preview strip */}
+          {/* Attachments preview */}
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-black/10 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] p-2.5">
               {attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.05] p-1 pr-2 text-[10.5px] text-mist-200 animate-scale-in"
+                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1 pr-2 text-[10.5px] text-mist-200"
                 >
                   {att.type === "image" && att.dataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={att.dataUrl}
-                      alt={att.name}
-                      className="h-6 w-6 rounded object-cover border border-white/10"
-                    />
+                    <img src={att.dataUrl} alt={att.name} className="h-6 w-6 rounded object-cover border border-white/10" />
                   ) : (
                     <FileCode className="h-3.5 w-3.5 text-accent ml-1" />
                   )}
-                  <span className="max-w-[110px] truncate font-medium">{att.name}</span>
+                  <span className="max-w-[100px] truncate font-medium">{att.name}</span>
                   <span className="font-mono text-[8.5px] text-mist-500">({formatFileSize(att.size)})</span>
                   <button
                     type="button"
                     onClick={() => removeAttachment(att.id)}
-                    className="ml-1 flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/15 text-mist-400 hover:text-white"
+                    className="ml-0.5 text-mist-500 hover:text-white"
                   >
-                    <X className="h-2 w-2" />
+                    <X className="h-2.5 w-2.5" />
                   </button>
                 </div>
               ))}
             </div>
           ) : null}
 
-          {/* Text input area */}
+          {/* Clean Textarea */}
           <textarea
             ref={textareaRef}
             value={value}
-            onChange={(event) => onChange(event.target.value)}
+            onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
-            onPaste={onPaste}
             placeholder={
-              preview
-                ? "设计预览模式 · 退出预览后可发送指令"
-                : streaming
-                  ? "Agent 正在执行任务，你可以直接输入下一条指令…"
-                  : disabled
-                    ? "请先创建或选择一个会话"
-                    : "向 Agent 下达指令… (Enter 发送)"
+              streaming
+                ? "Agent 正在生成中…"
+                : disabled
+                  ? "请选择或新建会话"
+                  : "输入你的需求或问题…"
             }
             rows={1}
             spellCheck={false}
-            aria-label="消息输入框"
-            className="max-h-[200px] min-h-[42px] w-full resize-none bg-transparent px-3.5 pb-1.5 pt-2.5 text-[13.5px] leading-[1.65] text-mist-100 outline-none placeholder:text-mist-500 disabled:cursor-not-allowed sm:px-4"
+            className="w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-[14px] leading-relaxed text-mist-100 outline-none placeholder:text-mist-500 disabled:cursor-not-allowed"
           />
 
-          {/* Bottom control bar */}
-          <div className="flex flex-wrap items-center justify-between gap-1.5 border-t border-white/[0.05] px-2.5 py-1.5 sm:px-3">
-            {/* Left controls: Attachments, Models, Web, Reasoning */}
-            <div className="flex flex-wrap items-center gap-1">
-              {/* 1. Attachment Button */}
+          {/* Claude Toolbar (Left pills + Right circular Send button) */}
+          <div className="flex items-center justify-between px-2.5 pb-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {/* Attach button (+) */}
               <input
                 type="file"
                 multiple
@@ -339,36 +276,31 @@ export function Composer({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                title="上传附件 (图片、代码或文档，也支持直接粘贴)"
-                className="flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
+                title="添加附件"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
               >
-                <Paperclip className="h-3 w-3" />
-                <span className="hidden sm:inline">附件</span>
+                <Plus className="h-4 w-4" />
               </button>
 
-              {/* 2. Model Selector Pill & Popover */}
+              {/* Model Pill */}
               <div className="relative" ref={modelMenuRef}>
                 <button
                   type="button"
                   onClick={() => setModelMenuOpen((v) => !v)}
-                  title="切换当前会话驱动模型"
                   className={cn(
-                    "flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] font-mono transition-colors",
+                    "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border",
                     modelMenuOpen
-                      ? "bg-white/[0.08] text-accent"
-                      : "text-mist-400 hover:bg-white/[0.06] hover:text-mist-100",
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-white/[0.07] bg-white/[0.02] text-mist-400 hover:border-white/[0.14] hover:text-mist-200",
                   )}
                 >
                   <Cpu className="h-3 w-3" />
-                  <span className="max-w-[90px] truncate font-medium sm:max-w-[120px]">{selectedModel}</span>
+                  <span className="max-w-[100px] truncate sm:max-w-[140px]">{selectedModel}</span>
                   <ChevronDown className="h-2.5 w-2.5 opacity-60" />
                 </button>
 
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-8 left-0 z-50 max-h-[60vh] overflow-y-auto w-56 max-w-[calc(100vw-24px)] rounded-lg border border-white/[0.12] bg-[var(--bg-panel)] p-1 shadow-xl animate-scale-in">
-                    <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
-                      选择驱动模型
-                    </div>
+                  <div className="absolute bottom-8 left-0 z-50 w-56 max-h-[60vh] overflow-y-auto rounded-xl border border-white/[0.1] bg-[var(--bg-panel)] p-1 shadow-2xl animate-scale-in">
                     <div className="space-y-0.5">
                       {PRESET_MODELS.map((item) => (
                         <button
@@ -376,56 +308,23 @@ export function Composer({
                           type="button"
                           onClick={() => handleSelectModel(item.id)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
-                            selectedModel === item.id
-                              ? "bg-accent/15 text-accent"
-                              : "text-mist-200 hover:bg-white/[0.06]",
+                            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors",
+                            selectedModel === item.id ? "bg-accent/15 text-accent font-medium" : "text-mist-300 hover:bg-white/[0.05]",
                           )}
                         >
-                          <div className="min-w-0">
-                            <div className="font-medium truncate">{item.label}</div>
-                            <div className="text-[9px] text-mist-500 truncate">{item.desc}</div>
+                          <div>
+                            <div>{item.label}</div>
+                            <div className="text-[9px] text-mist-500">{item.desc}</div>
                           </div>
-                          <span className="text-[9px]">{item.badge}</span>
+                          <span>{item.badge}</span>
                         </button>
                       ))}
-                    </div>
-                    <div className="mt-1 border-t border-white/[0.06] pt-1.5">
-                      <input
-                        type="text"
-                        value={customModelInput}
-                        onChange={(e) => setCustomModelInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && customModelInput.trim()) {
-                            e.preventDefault();
-                            handleSelectModel(customModelInput.trim());
-                          }
-                        }}
-                        placeholder="输入自定义模型后回车…"
-                        className="w-full rounded-md border border-white/[0.1] bg-black/20 px-2 py-1 text-[10.5px] font-mono text-mist-100 outline-none focus:border-accent"
-                      />
                     </div>
                   </div>
                 ) : null}
               </div>
 
-              {/* 3. Web Search Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setWebSearchActive((v) => !v)}
-                title="开启/关闭全网实时搜索"
-                className={cn(
-                  "flex h-6.5 items-center gap-1 rounded-md px-1.5 text-[11px] transition-colors",
-                  webSearchActive
-                    ? "bg-emerald-500/15 text-emerald-300"
-                    : "text-mist-400 hover:bg-white/[0.06] hover:text-mist-100",
-                )}
-              >
-                <Globe className="h-3 w-3" />
-                <span className="hidden sm:inline">联网</span>
-              </button>
-
-              {/* 4. Thinking Level Selector */}
+              {/* Thinking Level Pill */}
               <ThinkingLevelSelector
                 value={thinkingLevel}
                 onChange={(level) => {
@@ -434,65 +333,52 @@ export function Composer({
                 }}
               />
 
-              {/* Clear draft */}
-              {value.trim().length > 0 || attachments.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange("");
-                    setAttachments([]);
-                  }}
-                  title="清空当前输入与附件"
-                  className="flex h-6.5 w-6.5 items-center justify-center rounded-md text-mist-500 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              ) : null}
+              {/* Web search toggle pill */}
+              <button
+                type="button"
+                onClick={() => setWebSearchActive((v) => !v)}
+                title="联网检索"
+                className={cn(
+                  "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border",
+                  webSearchActive
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                    : "border-white/[0.07] bg-white/[0.02] text-mist-400 hover:border-white/[0.14] hover:text-mist-200",
+                )}
+              >
+                <Globe className="h-3 w-3" />
+                <span>联网</span>
+              </button>
             </div>
 
-            {/* Right controls: Submit / Stop */}
-            <div className="flex items-center gap-1.5">
-              <span className="hidden items-center gap-1 text-[9px] text-mist-500 lg:inline-flex">
-                <Kbd>Enter</Kbd> 发送 · <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> 换行
-              </span>
+            {/* Right: Circular Send or Stop Button (Claude/ChatGPT style) */}
+            <div>
               {streaming ? (
-                <Button
+                <button
                   type="button"
-                  variant="danger"
-                  size="sm"
                   onClick={onCancel}
-                  className="h-7 gap-1 px-3 text-[11px] rounded-md"
-                  title="终止当前生成"
+                  title="停止生成"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
                 >
                   <Square className="h-3 w-3 fill-current" />
-                  停止
-                </Button>
+                </button>
               ) : (
-                <Button
+                <button
                   type="submit"
-                  variant="primary"
-                  size="sm"
                   disabled={!canSend}
-                  loading={promptPending}
-                  aria-label="发送消息"
-                  title="发送消息 (Enter)"
-                  className="h-7 gap-1 rounded-md px-3 text-[11px] font-semibold"
+                  title="发送"
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full transition-all duration-150",
+                    canSend
+                      ? "bg-white text-zinc-950 shadow-sm hover:scale-105 active:scale-95"
+                      : "bg-white/[0.08] text-mist-600 cursor-not-allowed",
+                  )}
                 >
-                  {!promptPending ? <SendHorizontal className="h-3 w-3" /> : null}
-                  <span>发送</span>
-                </Button>
+                  <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+                </button>
               )}
             </div>
           </div>
         </form>
-
-        {/* Footer tiny info */}
-        <div className="mt-1 flex items-center justify-center gap-2 text-[8.5px] text-mist-600">
-          <span className="h-1 w-1 rounded-full bg-emerald-400" />
-          <span>Chaite SSE 双星通道</span>
-          <span>·</span>
-          <span>支持多模态附件与全网检索</span>
-        </div>
       </div>
     </div>
   );

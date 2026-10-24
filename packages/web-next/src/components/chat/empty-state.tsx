@@ -1,36 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Plus, ArrowUpRight, Sparkles, TerminalSquare, WandSparkles } from "lucide-react";
 import { BrandMark } from "@/components/brand";
-import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "lucide-react";
 
-const SUGGESTIONS = [
-  {
-    icon: TerminalSquare,
-    title: "检查系统运行状态",
-    text: "检查 SSE 事件流、工具与外部网关连接健康度。",
-    prompt: "请调用相关工具体检当前系统状态，重点检查网关连接与工具健康度。",
-  },
-  {
-    icon: WandSparkles,
-    title: "审查并重构代码",
-    text: "使用 hashline 精准代码工具定位并优化目标文件。",
-    prompt: "请使用 hash_read 工具查看当前工程核心代码，并给出针对性重构建议。",
-  },
-  {
-    icon: Sparkles,
-    title: "自进化提炼技能",
-    text: "从过往执行轨迹中提炼可复用的 SKILL.md SOP。",
-    prompt: "请从最近的执行轨迹中提炼一个可复用的标准技能，并执行四维自评估。",
-  },
+const QUICK_CHIPS = [
+  { label: "体检系统状态", prompt: "请调用相关工具体检当前系统状态，重点检查网关连接与工具健康度。" },
+  { label: "审查工程代码", prompt: "请使用 hash_read 工具查看当前工程核心代码，并给出针对性重构建议。" },
+  { label: "提炼技能 SOP", prompt: "请从最近的执行轨迹中提炼一个可复用的标准技能，并执行四维自评估。" },
 ];
 
 export function ChatEmptyState({
   onSuggestion,
   hasSession,
-  preview,
-  onCreateSession,
 }: {
   onSuggestion: (prompt: string) => void;
   hasSession: boolean;
@@ -38,69 +20,33 @@ export function ChatEmptyState({
   onCreateSession?: () => void;
 }) {
   return (
-    <div className="relative mx-auto flex w-full max-w-[720px] flex-col items-center px-4 pt-16 pb-8 text-center sm:pt-24">
-      {/* Sleek Minimal Logo */}
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02]">
-        <BrandMark size={26} />
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center select-none">
+      {/* Claude-style Minimal Centered Hero */}
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] border border-white/[0.08] shadow-sm mb-4">
+        <BrandMark size={28} />
       </div>
 
-      <div className="mt-6 space-y-2">
-        <h1 className="text-[20px] font-semibold tracking-tight text-mist-100 sm:text-[24px]">
-          {hasSession ? "天童凯伊（Key）已就绪" : "创建会话，开始工程协作"}
-        </h1>
-        <p className="mx-auto max-w-md text-[13px] leading-relaxed text-mist-500">
-          {hasSession
-            ? "输入指令、粘贴日志或代码。推理思考、Pi 哈希编程与副手协同将实时呈现在对话流中。"
-            : "Chaite Agent 支持多端会话聚合、流式推理、Hashline 编辑与实时安全审批。"}
-        </p>
+      <h1 className="text-[20px] font-medium tracking-tight text-mist-100 sm:text-[22px]">
+        {hasSession ? "天童凯伊已就绪" : "有什么我可以帮你的？"}
+      </h1>
 
-        {!hasSession && onCreateSession ? (
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={onCreateSession}
-              className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-[12px] font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              立即新建会话
-            </button>
-          </div>
-        ) : null}
-      </div>
+      <p className="mt-1.5 max-w-sm text-[13px] text-mist-500 leading-relaxed">
+        支持深度推理思考、Pi 哈希高精度编辑与多端网关协同
+      </p>
 
-      {/* Quick Suggestion Pills */}
-      <div className="mt-8 grid w-full gap-2.5 sm:grid-cols-3">
-        {SUGGESTIONS.map((item) => (
+      {/* Tiny subtle prompt chips (Claude style) */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-2 max-w-md">
+        {QUICK_CHIPS.map((chip) => (
           <button
-            key={item.title}
+            key={chip.label}
             type="button"
-            onClick={() => onSuggestion(item.prompt)}
-            className="group relative flex flex-col items-start gap-1.5 rounded-lg border border-white/[0.06] bg-black/10 p-3.5 text-left transition-all hover:border-accent/40 hover:bg-white/[0.03]"
+            onClick={() => onSuggestion(chip.prompt)}
+            className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.025] px-3 py-1 text-[11.5px] text-mist-400 hover:border-white/[0.18] hover:bg-white/[0.06] hover:text-mist-200 transition-colors"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-md border border-white/[0.08] bg-white/[0.03] text-accent">
-              <item.icon className="h-3 w-3" />
-            </span>
-            <span className="text-[12px] font-semibold text-mist-200 group-hover:text-mist-100">
-              {item.title}
-            </span>
-            <span className="text-[10.5px] leading-relaxed text-mist-500 line-clamp-2">
-              {item.text}
-            </span>
-            <ArrowUpRight className="absolute right-2.5 top-2.5 h-3 w-3 text-mist-700 transition-transform group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <span>{chip.label}</span>
+            <ArrowUpRight className="h-3 w-3 opacity-50" />
           </button>
         ))}
-      </div>
-
-      {/* Footer tiny caps */}
-      <div className="mt-8 flex items-center justify-center gap-3 font-mono text-[9.5px] text-mist-600">
-        <span className="flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          <span>Chaite Kernel 1.15</span>
-        </span>
-        <span>·</span>
-        <span>Pi Hashline Enabled</span>
-        <span>·</span>
-        <span>Multi-Platform Ready</span>
       </div>
     </div>
   );
