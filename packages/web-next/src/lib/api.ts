@@ -62,7 +62,7 @@ export function clearStoredToken(): void {
 
 interface RequestOptions {
   token?: string | null;
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
@@ -375,4 +375,127 @@ export function stopGateway(token: string, id: string): Promise<GatewayInfo> {
 
 export function fetchPlugins(token: string, signal?: AbortSignal): Promise<PluginInfo[]> {
   return request<PluginInfo[]>("/api/agent/plugins", { token, signal });
+}
+
+
+// ─── Channels & Models Management ──────────────────────────────────────────
+
+export interface ChannelModelConfig {
+  name: string
+  features?: string[]
+}
+
+export interface ChannelItem {
+  id: string
+  name: string
+  adapterType: string
+  models: ChannelModelConfig[]
+  options?: {
+    baseUrl?: string
+    apiKey?: string
+  }
+  weight?: number
+  priority?: number
+  status?: "enabled" | "disabled"
+}
+
+export function fetchChannels(token: string, signal?: AbortSignal): Promise<ChannelItem[]> {
+  return request<{ items: ChannelItem[] }>("/api/channels/list", {
+    token,
+    query: { page: 1, pageSize: 50 },
+    signal,
+  }).then((res) => res.items || []);
+}
+
+export function createChannel(token: string, payload: Partial<ChannelItem>): Promise<any> {
+  return request("/api/channels", { token, method: "POST", body: payload });
+}
+
+export function updateChannel(token: string, id: string, payload: Partial<ChannelItem>): Promise<any> {
+  return request(`/api/channels/${encodeURIComponent(id)}`, { token, method: "PUT", body: payload });
+}
+
+export function deleteChannel(token: string, id: string): Promise<any> {
+  return request(`/api/channels/${encodeURIComponent(id)}`, { token, method: "DELETE" });
+}
+
+export function testChannel(
+  token: string,
+  payload: { adapterType: string; options: { baseUrl?: string; apiKey?: string }; model: string },
+): Promise<{ success: boolean; latencyMs?: number; error?: string }> {
+  return request("/api/channels/test", { token, method: "POST", body: payload });
+}
+
+// ─── MCP Servers Management ────────────────────────────────────────────────
+
+export interface McpToolInfo {
+  name: string
+  description?: string
+  schema?: any
+}
+
+export interface McpServerConfigItem {
+  id: string
+  name: string
+  description?: string
+  transport?: "streamable-http" | "sse" | "stdio"
+  url?: string
+  command?: string
+  args?: string[]
+  env?: Record<string, string>
+  tools?: McpToolInfo[]
+}
+
+export function fetchMcpServers(token: string, signal?: AbortSignal): Promise<McpServerConfigItem[]> {
+  return request<{ items: McpServerConfigItem[] }>("/api/agent/mcp-servers", {
+    token,
+    query: { page: 1, pageSize: 50 },
+    signal,
+  }).then((res) => res.items || []);
+}
+
+export function createMcpServer(token: string, payload: Partial<McpServerConfigItem>): Promise<any> {
+  return request("/api/agent/mcp-servers", { token, method: "POST", body: payload });
+}
+
+export function deleteMcpServer(token: string, id: string): Promise<any> {
+  return request(`/api/agent/mcp-servers/${encodeURIComponent(id)}`, { token, method: "DELETE" });
+}
+
+export function testMcpServer(
+  token: string,
+  id: string,
+): Promise<{ success: boolean; tools?: McpToolInfo[]; error?: string }> {
+  return request(`/api/agent/mcp-servers/${encodeURIComponent(id)}/test`, { token, method: "POST", body: {} });
+}
+
+// ─── Skill Detailed Management ─────────────────────────────────────────────
+
+export interface SkillDetailItem {
+  name: string
+  description?: string
+  executionMode?: "direct" | "plan" | "workflow"
+  allowedTools?: string[]
+  systemPrompt?: string
+  keywords?: string[]
+  readonly?: boolean
+}
+
+export function fetchSkillList(token: string, signal?: AbortSignal): Promise<SkillDetailItem[]> {
+  return request<{ items: SkillDetailItem[] }>("/api/agent/skills", {
+    token,
+    query: { page: 1, pageSize: 100 },
+    signal,
+  }).then((res) => res.items || []);
+}
+
+export function createSkillItem(
+  token: string,
+  payload: { name: string; description: string; systemPrompt: string; executionMode?: string },
+): Promise<any> {
+  return request("/api/agent/skills", { token, method: "POST", body: payload });
+}
+
+export function deleteSkillItem(token: string, name: string): Promise<any> {
+  return request(`/api/agent/skills/${encodeURIComponent(name)}`, { token, method: "DELETE" });
 }

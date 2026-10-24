@@ -43,6 +43,25 @@ export function AppShell() {
   const [newSessionOpen, setNewSessionOpen] = React.useState(false);
   const [inspectorOpen, setInspectorOpen] = React.useState(false);
   const [inspectorTab, setInspectorTab] = React.useState<InspectorTab>("plugins");
+  const [settingsTab, setSettingsTab] = React.useState<"general" | "channels" | "skills" | "mcp">("general");
+
+  const openChannels = React.useCallback(() => {
+    setSettingsTab("channels");
+    setView("settings");
+    setMobileOpen(false);
+  }, []);
+
+  const openSkills = React.useCallback(() => {
+    setSettingsTab("skills");
+    setView("settings");
+    setMobileOpen(false);
+  }, []);
+
+  const openMcp = React.useCallback(() => {
+    setSettingsTab("mcp");
+    setView("settings");
+    setMobileOpen(false);
+  }, []);
 
   const { logout } = auth;
   const handleUnauthorized = React.useCallback(() => logout(), [logout]);
@@ -201,6 +220,9 @@ export function AppShell() {
           onRefresh={reconnectAll}
           onLogout={auth.logout}
           onToggleInspector={() => setInspectorOpen((value) => !value)}
+          onOpenChannels={openChannels}
+          onOpenSkills={openSkills}
+          onOpenMcp={openMcp}
         />
 
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -228,6 +250,10 @@ export function AppShell() {
               onToggleInspector={() => setInspectorOpen((value) => !value)}
               inspectorTab={inspectorTab}
               onInspectorTabChange={setInspectorTab}
+              onOpenSettingsTab={(tab) => {
+                setSettingsTab(tab);
+                setView("settings");
+              }}
             />
           ) : null}
 
@@ -254,6 +280,7 @@ export function AppShell() {
               onReconnect={reconnectAll}
               onMenu={toggleSidebar}
               onBack={() => setView("chat")}
+              initialTab={settingsTab}
             />
           ) : null}
         </div>

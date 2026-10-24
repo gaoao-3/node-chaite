@@ -130,6 +130,12 @@ async function start() {
   const skillRegistry = new SkillRegistry(skillsDir)
   chaite.setSkillRegistry(skillRegistry)
 
+  // 初始化 MCP 服务管理器
+  const { McpServerManager } = await import('./agent/mcp/McpServerConfig')
+  const mcpStorage = new SimpleMemoryStorage<any>()
+  const mcpServerManager = new McpServerManager(mcpStorage)
+  chaite.setMcpServerManager(mcpServerManager)
+
   // 配置持久 Token 认证
   const authHandler = new PersistentAuthHandler(ADMIN_PASSWORD)
   chaite.setFrontendAuthHandler(authHandler)

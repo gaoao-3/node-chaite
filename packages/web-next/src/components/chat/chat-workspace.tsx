@@ -29,6 +29,7 @@ export interface ChatWorkspaceProps {
   onToggleInspector?: () => void;
   inspectorTab?: InspectorTab;
   onInspectorTabChange?: (tab: InspectorTab) => void;
+  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp") => void;
 }
 
 export function ChatWorkspace({
@@ -50,6 +51,7 @@ export function ChatWorkspace({
   onToggleInspector: controlledToggle,
   inspectorTab: controlledTab,
   onInspectorTabChange: controlledTabChange,
+  onOpenSettingsTab,
 }: ChatWorkspaceProps) {
   const agent = useAgentSession({
     token,
@@ -246,6 +248,7 @@ export function ChatWorkspace({
         evolutionData={evolutionData}
         approvalsFeed={approvalsFeed}
         skillCount={liveSession?.skills.length ?? 0}
+        onOpenSettingsTab={onOpenSettingsTab}
       />
     </div>
   );

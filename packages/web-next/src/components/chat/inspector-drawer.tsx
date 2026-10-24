@@ -5,11 +5,13 @@ import {
   Check,
   ChevronRight,
   Code2,
+  Cpu,
   GitCompare,
   Layers,
   Puzzle,
   Radio,
   RefreshCw,
+  Settings2,
   ShieldAlert,
   Sparkles,
   Wrench,
@@ -29,7 +31,7 @@ import type { UseApprovalsFeedResult } from "@/hooks/use-approvals-feed";
 import type { EvolutionTraceRecord, FusionTaskRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export type InspectorTab = "plugins" | "fusion" | "evolution" | "approvals";
+export type InspectorTab = "fusion" | "evolution" | "approvals" | "plugins";
 
 export interface InspectorDrawerProps {
   open: boolean;
@@ -41,6 +43,7 @@ export interface InspectorDrawerProps {
   evolutionData: EvolutionData;
   approvalsFeed?: UseApprovalsFeedResult;
   skillCount: number;
+  onOpenSettingsTab?: (tab: "channels" | "skills" | "mcp") => void;
 }
 
 export function InspectorDrawer({
@@ -52,7 +55,8 @@ export function InspectorDrawer({
   fusionData,
   evolutionData,
   approvalsFeed,
-  skillCount: _skillCount,
+  skillCount,
+  onOpenSettingsTab,
 }: InspectorDrawerProps) {
   const [gateways, setGateways] = React.useState<GatewayInfo[]>([]);
   const [plugins, setPlugins] = React.useState<PluginInfo[]>([]);
@@ -105,15 +109,15 @@ export function InspectorDrawer({
   return (
     <aside
       className={cn(
-        "flex w-full flex-col border-l border-white/[0.06] bg-[var(--bg-panel)] shadow-xl transition-all duration-200 md:w-96 shrink-0 z-30",
+        "flex w-full flex-col border-l border-[var(--border)] bg-[var(--bg)] shadow-xl transition-all duration-200 md:w-96 shrink-0 z-30",
         "fixed inset-y-0 right-0 md:relative",
       )}
     >
       {/* ── Top Header ── */}
-      <div className="flex h-[52px] items-center justify-between border-b border-white/[0.05] px-3.5">
+      <div className="flex h-[44px] items-center justify-between border-b border-[var(--border)] px-3.5 bg-[var(--bg)]">
         <div className="flex items-center gap-2">
-          <Layers className="h-4 w-4 text-accent" />
-          <span className="text-[12.5px] font-semibold text-mist-100">协同与资产中心</span>
+          <Layers className="h-4 w-4 text-[var(--accent)]" />
+          <span className="text-[12.5px] font-semibold text-[var(--text)]">协同与运行中心</span>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -121,7 +125,7 @@ export function InspectorDrawer({
             onClick={loadData}
             disabled={loading}
             title="刷新数据"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-mist-500 hover:text-mist-200 hover:bg-white/[0.04] transition-colors"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
           </button>
@@ -129,7 +133,7 @@ export function InspectorDrawer({
             type="button"
             onClick={onClose}
             title="关闭面板"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-mist-500 hover:text-mist-200 hover:bg-white/[0.04] transition-colors"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-hover)] transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -137,35 +141,21 @@ export function InspectorDrawer({
       </div>
 
       {/* ── Tabs navigation (4 Pills) ── */}
-      <div className="flex items-center border-b border-white/[0.05] bg-black/15 p-1">
-        <button
-          type="button"
-          onClick={() => onTabChange("plugins")}
-          className={cn(
-            "flex flex-1 items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-medium transition-colors",
-            tab === "plugins"
-              ? "bg-white/[0.08] text-mist-100 shadow-xs"
-              : "text-mist-500 hover:text-mist-300",
-          )}
-        >
-          <Puzzle className="h-3 w-3" />
-          <span>插件</span>
-        </button>
-
+      <div className="flex items-center border-b border-[var(--border)] bg-[var(--bg-hover)] p-1">
         <button
           type="button"
           onClick={() => onTabChange("fusion")}
           className={cn(
-            "flex flex-1 items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-medium transition-colors",
+            "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[11px] font-medium transition-colors",
             tab === "fusion"
-              ? "bg-white/[0.08] text-mist-100 shadow-xs"
-              : "text-mist-500 hover:text-mist-300",
+              ? "bg-[var(--bg-selected)] text-[var(--accent)] shadow-xs"
+              : "text-[var(--text-muted)] hover:text-[var(--text)]",
           )}
         >
           <GitCompare className="h-3 w-3" />
-          <span>副手</span>
+          <span>副手协同</span>
           {fusionData.tasks.length > 0 ? (
-            <span className="rounded bg-accent/20 px-1 font-mono text-[8.5px] text-accent">
+            <span className="rounded bg-[var(--accent)]/15 px-1 font-mono text-[8.5px] text-[var(--accent)]">
               {fusionData.tasks.length}
             </span>
           ) : null}
@@ -175,14 +165,14 @@ export function InspectorDrawer({
           type="button"
           onClick={() => onTabChange("evolution")}
           className={cn(
-            "flex flex-1 items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-medium transition-colors",
+            "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[11px] font-medium transition-colors",
             tab === "evolution"
-              ? "bg-white/[0.08] text-mist-100 shadow-xs"
-              : "text-mist-500 hover:text-mist-300",
+              ? "bg-[var(--bg-selected)] text-[var(--accent)] shadow-xs"
+              : "text-[var(--text-muted)] hover:text-[var(--text)]",
           )}
         >
           <Sparkles className="h-3 w-3" />
-          <span>进化</span>
+          <span>自进化</span>
           {evolutionData.traces.length > 0 ? (
             <span className="rounded bg-purple-500/20 px-1 font-mono text-[8.5px] text-purple-300">
               {evolutionData.traces.length}
@@ -194,143 +184,56 @@ export function InspectorDrawer({
           type="button"
           onClick={() => onTabChange("approvals")}
           className={cn(
-            "flex flex-1 items-center justify-center gap-1 rounded-lg py-1 text-[11px] font-medium transition-colors",
+            "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[11px] font-medium transition-colors",
             tab === "approvals"
-              ? "bg-white/[0.08] text-mist-100 shadow-xs"
-              : "text-mist-500 hover:text-mist-300",
+              ? "bg-[var(--bg-selected)] text-[var(--accent)] shadow-xs"
+              : "text-[var(--text-muted)] hover:text-[var(--text)]",
           )}
         >
           <ShieldAlert className="h-3 w-3" />
-          <span>审批</span>
+          <span>安全审批</span>
           {pendingApprovalsCount > 0 ? (
             <span className="rounded-full bg-amber-400/20 text-amber-300 font-mono text-[8.5px] px-1 font-bold">
               {pendingApprovalsCount}
             </span>
           ) : null}
         </button>
+
+        <button
+          type="button"
+          onClick={() => onTabChange("plugins")}
+          className={cn(
+            "flex flex-1 items-center justify-center gap-1 rounded-md py-1 text-[11px] font-medium transition-colors",
+            tab === "plugins"
+              ? "bg-[var(--bg-selected)] text-[var(--accent)] shadow-xs"
+              : "text-[var(--text-muted)] hover:text-[var(--text)]",
+          )}
+        >
+          <Puzzle className="h-3 w-3" />
+          <span>网关插件</span>
+        </button>
       </div>
 
       {/* ── Drawer Content Body ── */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3.5">
-        {/* ── Tab 1: 插件与网关 ── */}
-        {tab === "plugins" ? (
-          <div className="space-y-3">
-            {/* 1. 外部适配器网关 */}
-            <div>
-              <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-mist-400">
-                <span>网关适配器 (Gateways)</span>
-                <span className="font-mono text-[9px] text-mist-600">热插拔隔离</span>
-              </div>
-              <div className="space-y-1.5">
-                {gateways.length === 0 ? (
-                  <div className="rounded-xl border border-white/[0.05] bg-black/15 p-3 text-center text-[11px] text-mist-600">
-                    暂无已注册网关
-                  </div>
-                ) : (
-                  gateways.map((gw) => (
-                    <div
-                      key={gw.id}
-                      className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-black/20 p-2.5"
-                    >
-                      <div className="min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5">
-                          <Radio
-                            className={cn(
-                              "h-3 w-3",
-                              gw.status === "running" ? "text-emerald-400" : "text-mist-600",
-                            )}
-                          />
-                          <span className="text-[11.5px] font-medium text-mist-100 truncate">{gw.name}</span>
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-2 font-mono text-[9px] text-mist-500">
-                          <span>{gw.platform.toUpperCase()}</span>
-                          <span>·</span>
-                          <span className={gw.status === "running" ? "text-emerald-400" : "text-mist-600"}>
-                            {gw.status}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        size="xs"
-                        variant={gw.status === "running" ? "subtle" : "primary"}
-                        onClick={() => handleToggleGateway(gw)}
-                        disabled={actionPending === gw.id}
-                        className="shrink-0 h-6 text-[10px]"
-                      >
-                        {gw.status === "running" ? "停止" : "启动"}
-                      </Button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* 2. Pi & DSH 插件 */}
-            <div>
-              <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-mist-400">
-                <span>已挂载插件 (Plugins)</span>
-                <span className="font-mono text-[9px] text-accent">Pi/DSH 生态兼容</span>
-              </div>
-              <div className="space-y-1.5">
-                {plugins.length === 0 ? (
-                  <div className="rounded-xl border border-white/[0.05] bg-black/15 p-3 text-center text-[11px] text-mist-600">
-                    plugins/ 目录下未检测到插件
-                  </div>
-                ) : (
-                  plugins.map((pl) => (
-                    <div
-                      key={pl.id}
-                      className="rounded-xl border border-white/[0.06] bg-black/20 p-2.5 space-y-1"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Code2 className="h-3 w-3 text-accent" />
-                          <span className="text-[11.5px] font-medium text-mist-100">{pl.name}</span>
-                        </div>
-                        <span className="rounded border border-accent/20 bg-accent/10 px-1 py-0.5 font-mono text-[8px] text-accent uppercase">
-                          {pl.type}
-                        </span>
-                      </div>
-                      {pl.description ? (
-                        <div className="text-[10px] text-mist-500 leading-relaxed">{pl.description}</div>
-                      ) : null}
-                      <div className="flex flex-wrap gap-1 pt-0.5">
-                        {pl.tools.map((t) => (
-                          <span
-                            key={t}
-                            className="inline-flex items-center gap-1 rounded bg-black/30 border border-white/[0.06] px-1.5 py-0.5 font-mono text-[9px] text-mist-300"
-                          >
-                            <Wrench className="h-2 w-2 text-mist-500" />
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* ── Tab 2: Fusion 副手任务 ── */}
+        {/* ── Tab 1: 副手协同任务 ── */}
         {tab === "fusion" ? (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-mist-400">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--text-muted)]">
               <span>副手执行任务 (Sidekick)</span>
               <button
                 type="button"
                 onClick={fusionData.refresh}
                 disabled={fusionData.loading}
-                className="text-mist-500 hover:text-mist-200"
+                className="text-[var(--text-muted)] hover:text-[var(--text)]"
               >
                 <RefreshCw className={cn("h-3 w-3", fusionData.loading && "animate-spin")} />
               </button>
             </div>
 
             {fusionData.tasks.length === 0 ? (
-              <div className="rounded-xl border border-white/[0.05] bg-black/15 p-4 text-center text-[11px] text-mist-600">
-                当前暂无副手协同任务。在对话中输入复杂代码实现或重构时，主脑会自主调用 delegate_fusion_task 下发。
+              <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-center text-[11px] text-[var(--text-muted)] leading-relaxed">
+                当前暂无副手协同任务。在对话中输入复杂代码实现或重构时，主脑会自主调用 delegate_fusion_task 委派副手。
               </div>
             ) : (
               fusionData.tasks.map((task: FusionTaskRecord) => {
@@ -340,26 +243,25 @@ export function InspectorDrawer({
                 return (
                   <div
                     key={task.id}
-                    className="rounded-xl border border-white/[0.06] bg-black/20 p-2.5 space-y-2"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 space-y-2 shadow-xs"
                   >
                     <div>
-                      <div className="text-[11.5px] font-medium text-mist-100 leading-snug line-clamp-2">
+                      <div className="text-[12px] font-medium text-[var(--text)] leading-snug line-clamp-2">
                         {spec?.instruction || task.id}
                       </div>
-                      <div className="mt-1 flex items-center gap-1.5 font-mono text-[9px] text-mist-500">
-                        <span className="text-accent">{task.status}</span>
+                      <div className="mt-1 flex items-center gap-1.5 font-mono text-[9px] text-[var(--text-muted)]">
+                        <span className="text-[var(--accent)] font-semibold">{task.status}</span>
                         <span>·</span>
                         <span>{spec?.target_tools?.map((t) => t.name).join(", ") || "tools"}</span>
                       </div>
                     </div>
 
-                    {/* Diff Inspector Toggle */}
                     {result?.diff ? (
                       <div>
                         <button
                           type="button"
                           onClick={() => setExpandedDiff(expandedDiff === task.id ? null : task.id)}
-                          className="flex items-center gap-1 text-[10px] font-mono text-cyan-300 hover:underline"
+                          className="flex items-center gap-1 text-[10px] font-mono text-[var(--accent)] hover:underline"
                         >
                           <ChevronRight
                             className={cn("h-3 w-3 transition-transform", expandedDiff === task.id && "rotate-90")}
@@ -368,7 +270,7 @@ export function InspectorDrawer({
                         </button>
 
                         {expandedDiff === task.id ? (
-                          <div className="mt-1.5 rounded-lg border border-white/[0.06] bg-black/40 p-2 font-mono text-[9.5px] leading-relaxed max-h-52 overflow-y-auto">
+                          <div className="mt-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-2 font-mono text-[9.5px] leading-relaxed max-h-52 overflow-y-auto">
                             {result.diff.split("\n").map((line: string, idx: number) => (
                               <div
                                 key={idx}
@@ -377,7 +279,7 @@ export function InspectorDrawer({
                                     ? "text-emerald-300 bg-emerald-500/10"
                                     : line.startsWith("-")
                                       ? "text-rose-300 bg-rose-500/10"
-                                      : "text-mist-400",
+                                      : "text-[var(--text-muted)]",
                                 )}
                               >
                                 {line}
@@ -388,13 +290,12 @@ export function InspectorDrawer({
                       </div>
                     ) : null}
 
-                    {/* Main agent review comments */}
                     {reviews.length > 0 ? (
                       <div className="rounded-lg border border-purple-500/20 bg-purple-500/[0.06] p-2 text-[10px] text-purple-200 leading-relaxed">
                         <div className="font-semibold text-purple-300">
                           主脑评审: {reviews[0].decision}
                         </div>
-                        <div className="mt-0.5 text-mist-400">{reviews[0].summary}</div>
+                        <div className="mt-0.5 text-[var(--text-muted)]">{reviews[0].summary}</div>
                       </div>
                     ) : null}
                   </div>
@@ -404,23 +305,23 @@ export function InspectorDrawer({
           </div>
         ) : null}
 
-        {/* ── Tab 3: 自进化技能 ── */}
+        {/* ── Tab 2: 自进化技能 ── */}
         {tab === "evolution" ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-mist-400">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--text-muted)]">
               <span>自进化经验池 (Candidates)</span>
               <button
                 type="button"
                 onClick={evolutionData.refresh}
                 disabled={evolutionData.loading}
-                className="text-mist-500 hover:text-mist-200"
+                className="text-[var(--text-muted)] hover:text-[var(--text)]"
               >
                 <RefreshCw className={cn("h-3 w-3", evolutionData.loading && "animate-spin")} />
               </button>
             </div>
 
             {evolutionData.traces.length === 0 ? (
-              <div className="rounded-xl border border-white/[0.05] bg-black/15 p-4 text-center text-[11px] text-mist-600">
+              <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-center text-[11px] text-[var(--text-muted)] leading-relaxed">
                 暂无待合入的候选技能。多步工具调用或排错恢复后，闭环反思器会自动提炼出 SOP 草稿。
               </div>
             ) : (
@@ -432,14 +333,14 @@ export function InspectorDrawer({
                 return (
                   <div
                     key={trace.id}
-                    className="rounded-xl border border-white/[0.06] bg-black/20 p-2.5 space-y-2"
+                    className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 space-y-2 shadow-xs"
                   >
                     <div className="flex items-start justify-between gap-1.5">
                       <div className="min-w-0">
-                        <div className="text-[11.5px] font-semibold text-mist-100 truncate">
+                        <div className="text-[12px] font-semibold text-[var(--text)] truncate">
                           {tr.draftSkillName || trace.id}
                         </div>
-                        <div className="text-[9.5px] text-mist-500 mt-0.5 line-clamp-1">
+                        <div className="text-[9.5px] text-[var(--text-muted)] mt-0.5 line-clamp-1">
                           {tr.userIntent?.raw}
                         </div>
                       </div>
@@ -448,7 +349,6 @@ export function InspectorDrawer({
                       </span>
                     </div>
 
-                    {/* SOP preview */}
                     {tr.draftSkillMd ? (
                       <div>
                         <button
@@ -463,18 +363,17 @@ export function InspectorDrawer({
                         </button>
 
                         {expandedSkill === trace.id ? (
-                          <pre className="mt-1.5 rounded-lg border border-white/[0.06] bg-black/40 p-2 font-mono text-[9.5px] text-mist-300 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                          <pre className="mt-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-2 font-mono text-[9.5px] text-[var(--text)] max-h-48 overflow-y-auto whitespace-pre-wrap">
                             {tr.draftSkillMd}
                           </pre>
                         ) : null}
                       </div>
                     ) : null}
 
-                    {/* Merge button */}
                     <Button
                       size="xs"
                       variant="primary"
-                      className="w-full text-[10px] h-6"
+                      className="w-full text-[10.5px] h-6.5"
                       onClick={() => evolutionData.merge(trace.id)}
                     >
                       <Check className="h-3 w-3" />
@@ -487,17 +386,17 @@ export function InspectorDrawer({
           </div>
         ) : null}
 
-        {/* ── Tab 4: 安全审批门禁 ── */}
+        {/* ── Tab 3: 安全审批门禁 ── */}
         {tab === "approvals" ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-mist-400">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--text-muted)]">
               <span>待决高危审批 (Human Guardrails)</span>
               {approvalsFeed ? (
                 <button
                   type="button"
                   onClick={approvalsFeed.refresh}
                   disabled={approvalsFeed.loading}
-                  className="text-mist-500 hover:text-mist-200"
+                  className="text-[var(--text-muted)] hover:text-[var(--text)]"
                 >
                   <RefreshCw className={cn("h-3 w-3", approvalsFeed.loading && "animate-spin")} />
                 </button>
@@ -505,7 +404,7 @@ export function InspectorDrawer({
             </div>
 
             {!approvalsFeed || approvalsFeed.approvals.length === 0 ? (
-              <div className="rounded-xl border border-white/[0.05] bg-black/15 p-4 text-center text-[11px] text-mist-600">
+              <div className="rounded-xl border border-dashed border-[var(--border)] p-4 text-center text-[11px] text-[var(--text-muted)] leading-relaxed">
                 当前暂无待处理的安全审批请求。当 Agent 尝试执行破坏性高危 Shell 或敏感操作时，将在此阻断等待授权。
               </div>
             ) : (
@@ -514,25 +413,25 @@ export function InspectorDrawer({
                 return (
                   <div
                     key={req.requestId}
-                    className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] p-3 space-y-2.5"
+                    className="rounded-xl border border-amber-400/25 bg-amber-400/[0.04] p-3 space-y-2.5 shadow-xs"
                   >
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1 rounded bg-amber-400/20 text-amber-300 px-1.5 py-0.5 text-[9px] font-mono font-semibold uppercase">
                         <ShieldAlert className="h-3 w-3" />
                         {req.riskLevel || "HIGH"} 风险
                       </span>
-                      <span className="font-mono text-[9px] text-mist-500">
+                      <span className="font-mono text-[9px] text-[var(--text-muted)]">
                         {appr.session.title || appr.session.id}
                       </span>
                     </div>
 
-                    <div className="text-[12px] font-medium text-mist-100">{req.title || req.summary}</div>
+                    <div className="text-[12px] font-medium text-[var(--text)]">{req.title || req.summary}</div>
                     {req.summary && req.title ? (
-                      <div className="text-[10.5px] text-mist-400">{req.summary}</div>
+                      <div className="text-[10.5px] text-[var(--text-muted)]">{req.summary}</div>
                     ) : null}
 
                     {req.metadata ? (
-                      <pre className="rounded-lg bg-black/40 border border-white/[0.06] p-2 font-mono text-[9.5px] text-mist-400 max-h-32 overflow-auto">
+                      <pre className="rounded-lg bg-[var(--bg-hover)] border border-[var(--border)] p-2 font-mono text-[9.5px] text-[var(--text-muted)] max-h-32 overflow-auto">
                         {JSON.stringify(req.metadata, null, 2)}
                       </pre>
                     ) : null}
@@ -561,7 +460,149 @@ export function InspectorDrawer({
             )}
           </div>
         ) : null}
+
+        {/* ── Tab 4: 插件与网关 ── */}
+        {tab === "plugins" ? (
+          <div className="space-y-3">
+            <div>
+              <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-[var(--text-muted)]">
+                <span>网关适配器 (Gateways)</span>
+                <span className="font-mono text-[9px] text-[var(--text-muted)]">进程隔离</span>
+              </div>
+              <div className="space-y-1.5">
+                {gateways.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-[var(--border)] p-3 text-center text-[11px] text-[var(--text-muted)]">
+                    暂无已注册网关
+                  </div>
+                ) : (
+                  gateways.map((gw) => (
+                    <div
+                      key={gw.id}
+                      className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 shadow-xs"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <Radio
+                            className={cn(
+                              "h-3 w-3",
+                              gw.status === "running" ? "text-emerald-400" : "text-[var(--text-muted)]",
+                            )}
+                          />
+                          <span className="text-[11.5px] font-medium text-[var(--text)] truncate">{gw.name}</span>
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-2 font-mono text-[9px] text-[var(--text-muted)]">
+                          <span>{gw.platform.toUpperCase()}</span>
+                          <span>·</span>
+                          <span className={gw.status === "running" ? "text-emerald-400" : "text-[var(--text-muted)]"}>
+                            {gw.status}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        size="xs"
+                        variant={gw.status === "running" ? "subtle" : "primary"}
+                        onClick={() => handleToggleGateway(gw)}
+                        disabled={actionPending === gw.id}
+                        className="shrink-0 h-6 text-[10px]"
+                      >
+                        {gw.status === "running" ? "停止" : "启动"}
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-[var(--text-muted)]">
+                <span>已挂载插件 (Plugins)</span>
+                <span className="font-mono text-[9px] text-[var(--accent)]">Pi / DSH 生态</span>
+              </div>
+              <div className="space-y-1.5">
+                {plugins.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-[var(--border)] p-3 text-center text-[11px] text-[var(--text-muted)]">
+                    plugins/ 目录下未检测到外部插件
+                  </div>
+                ) : (
+                  plugins.map((pl) => (
+                    <div
+                      key={pl.id}
+                      className="rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 space-y-1 shadow-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Code2 className="h-3 w-3 text-[var(--accent)]" />
+                          <span className="text-[11.5px] font-medium text-[var(--text)]">{pl.name}</span>
+                        </div>
+                        <span className="rounded border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-1 py-0.5 font-mono text-[8px] text-[var(--accent)] uppercase">
+                          {pl.type}
+                        </span>
+                      </div>
+                      {pl.description ? (
+                        <div className="text-[10px] text-[var(--text-muted)] leading-relaxed">{pl.description}</div>
+                      ) : null}
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {pl.tools.map((t) => (
+                          <span
+                            key={t}
+                            className="inline-flex items-center gap-1 rounded bg-[var(--bg-hover)] border border-[var(--border)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--text)]"
+                          >
+                            <Wrench className="h-2 w-2 text-[var(--text-muted)]" />
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
+
+      {/* ── Bottom Quick Navigation To Settings ── */}
+      {onOpenSettingsTab ? (
+        <div className="shrink-0 border-t border-[var(--border)] p-2 bg-[var(--bg)]">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenSettingsTab("channels");
+              }}
+              className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] py-1.5 text-[10.5px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <Cpu className="h-3 w-3" />
+              <span>渠道设置</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenSettingsTab("skills");
+              }}
+              className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] py-1.5 text-[10.5px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>技能库</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenSettingsTab("mcp");
+              }}
+              className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] py-1.5 text-[10.5px] font-medium text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              <Wrench className="h-3 w-3" />
+              <span>MCP 服务</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </aside>
   );
 }

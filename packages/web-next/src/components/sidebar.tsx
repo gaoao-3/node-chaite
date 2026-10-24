@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  Cpu,
   Layers,
   LogOut,
   MessageSquare,
@@ -10,6 +11,8 @@ import {
   Plus,
   Search,
   Settings2,
+  Sparkles,
+  Wrench,
   X,
 } from "lucide-react";
 import { BrandLockup, BrandMark } from "@/components/brand";
@@ -37,6 +40,9 @@ export interface SidebarProps {
   onRefresh: () => void;
   onLogout: () => void;
   onToggleInspector?: () => void;
+  onOpenChannels?: () => void;
+  onOpenSkills?: () => void;
+  onOpenMcp?: () => void;
 }
 
 export function Sidebar({
@@ -54,6 +60,9 @@ export function Sidebar({
   onViewChange,
   onLogout,
   onToggleInspector,
+  onOpenChannels,
+  onOpenSkills,
+  onOpenMcp,
 }: SidebarProps) {
   const compact = collapsed && !mobileOpen;
   const [query, setQuery] = React.useState("");
@@ -131,14 +140,40 @@ export function Sidebar({
       {/* ── New Chat & Search ── */}
       <div className={cn("shrink-0 space-y-1.5 p-2", compact && "px-1.5 py-2")}>
         {compact ? (
-          <button
-            type="button"
-            onClick={onCreate}
-            title="新建会话"
-            className="flex h-8 w-full items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-mist-200 hover:bg-white/[0.08] hover:text-white transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              onClick={onCreate}
+              title="新建会话"
+              className="flex h-8 w-full items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text)] hover:opacity-80 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenChannels}
+              title="模型渠道"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
+            >
+              <Cpu className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenSkills}
+              title="技能中心"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenMcp}
+              title="MCP 服务"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
+            >
+              <Wrench className="h-3.5 w-3.5" />
+            </button>
+          </div>
         ) : (
           <>
             <button
@@ -193,6 +228,37 @@ export function Sidebar({
                   </button>
                 );
               })}
+            </div>
+
+            {/* Quick Management Nav (Channels, Skills, MCP) */}
+            <div className="flex items-center gap-1 pt-0.5 text-[10.5px]">
+              <button
+                type="button"
+                onClick={onOpenChannels}
+                className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] py-1 text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                title="模型渠道设置"
+              >
+                <Cpu className="h-3 w-3" />
+                <span>渠道</span>
+              </button>
+              <button
+                type="button"
+                onClick={onOpenSkills}
+                className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] py-1 text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                title="技能中心 SOP"
+              >
+                <Sparkles className="h-3 w-3" />
+                <span>技能</span>
+              </button>
+              <button
+                type="button"
+                onClick={onOpenMcp}
+                className="flex-1 flex items-center justify-center gap-1 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] py-1 text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                title="MCP 外部驱动服务"
+              >
+                <Wrench className="h-3 w-3" />
+                <span>MCP</span>
+              </button>
             </div>
           </>
         )}
