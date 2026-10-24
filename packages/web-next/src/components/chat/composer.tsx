@@ -3,11 +3,13 @@
 import * as React from "react";
 import {
   Brain,
+  Check,
   ChevronDown,
   CircleAlert,
   Cpu,
   FileCode,
   Globe,
+  ImageIcon,
   Lightbulb,
   Paperclip,
   SendHorizontal,
@@ -53,17 +55,17 @@ export interface ComposerProps {
 }
 
 const PRESET_MODELS = [
-  { id: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash", desc: "本地高速 · 默认首选", badge: "⚡ 极速" },
-  { id: "claude-3.7-sonnet", label: "Claude 3.7 Sonnet", desc: "架构师 · 深度推理", badge: "🧠 主脑" },
-  { id: "deepseek-v4.1-flash", label: "DeepSeek V4.1", desc: "极速副手 · 工具执行", badge: "🚀 副手" },
-  { id: "gpt-4o", label: "GPT-4o", desc: "OpenAI 旗舰全能多模态", badge: "🌐 全能" },
+  { id: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash", desc: "本地高速 · 默认首选", badge: "⚡" },
+  { id: "claude-3.7-sonnet", label: "Claude 3.7 Sonnet", desc: "架构师 · 深度推理", badge: "🧠" },
+  { id: "deepseek-v4.1-flash", label: "DeepSeek V4.1", desc: "极速副手 · 工具执行", badge: "🚀" },
+  { id: "gpt-4o", label: "GPT-4o", desc: "OpenAI 旗舰多模态", badge: "🌐" },
 ];
 
 const PROMPT_SNIPPETS = [
   { title: "🔍 审查代码质量", prompt: "请全面审查以下代码的安全隐患、性能瓶颈与潜在 Bug，并给出重构方案：" },
-  { title: "🐛 排查报错异常", prompt: "请分析以下报错日志或异常堆栈，诊断根本原因并给出针对性修复步骤：" },
-  { title: "⚡ 重构并补齐类型", prompt: "请将以下代码按照现代 Clean Code 规范重构，补齐严密的 TypeScript 类型：" },
-  { title: "📝 提炼核心要点", prompt: "请将上述讨论的内容与任务提炼为结构清晰的 Executive Summary 与待办清单：" },
+  { title: "🐛 排查报错异常", prompt: "请分析以下报错日志或异常堆栈，诊断根本原因并给出修复步骤：" },
+  { title: "⚡ 重构并补齐类型", prompt: "请将以下代码按照现代 Clean Code 规范重构，补齐 TypeScript 类型：" },
+  { title: "📝 提炼核心要点", prompt: "请将上述讨论的内容与任务提炼为结构清晰的 Summary 与待办清单：" },
 ];
 
 function formatFileSize(bytes: number): string {
@@ -101,6 +103,9 @@ export function Composer({
   const [attachments, setAttachments] = React.useState<AttachmentItem[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
 
+  const modelMenuRef = React.useRef<HTMLDivElement>(null);
+  const snippetsMenuRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     if (model && model !== "auto") {
       setSelectedModel(model);
@@ -118,6 +123,20 @@ export function Composer({
     const next = Math.min(textarea.scrollHeight, 220);
     textarea.style.height = `${Math.max(44, next)}px`;
   }, [value]);
+
+  // Close menus on outside click
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target as Node)) {
+        setModelMenuOpen(false);
+      }
+      if (snippetsMenuRef.current && !snippetsMenuRef.current.contains(event.target as Node)) {
+        setSnippetsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSelectModel = (m: string) => {
     setSelectedModel(m);
@@ -168,7 +187,6 @@ export function Composer({
           dataUrl,
         });
       } else {
-        // Text / code file
         try {
           const text = await file.text();
           newItems.push({
@@ -195,7 +213,7 @@ export function Composer({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  // Clipboard paste support (supports pasting images or screenshots)
+  // Clipboard paste support
   const onPaste = (event: React.ClipboardEvent) => {
     const items = event.clipboardData.items;
     const files: File[] = [];
@@ -318,9 +336,9 @@ export function Composer({
           />
 
           {/* Bottom control bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.045] px-2.5 py-1.5 sm:px-3">
+          <div className="flex flex-col gap-1.5 border-t border-white/[0.045] px-2.5 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:px-3">
             {/* Left controls: Attachments, Models, Web, Reasoning, Snippets */}
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1">
               {/* 1. Attachment Button */}
               <input
                 type="file"
@@ -344,7 +362,7 @@ export function Composer({
               </button>
 
               {/* 2. Model Selector Pill & Popover */}
-              <div className="relative">
+              <div className="relative" ref={modelMenuRef}>
                 <button
                   type="button"
                   onClick={() => setModelMenuOpen((v) => !v)}
@@ -357,7 +375,7 @@ export function Composer({
                   )}
                 >
                   <Cpu className="h-3 w-3 text-accent" />
-                  <span className="max-w-[130px] truncate font-medium">{selectedModel}</span>
+                  <span className="max-w-[100px] truncate font-medium sm:max-w-[130px]">{selectedModel}</span>
                   <ChevronDown className="h-2.5 w-2.5 opacity-60" />
                 </button>
 
@@ -379,11 +397,11 @@ export function Composer({
                               : "text-mist-200 hover:bg-white/[0.06]",
                           )}
                         >
-                          <div>
-                            <div className="font-medium">{item.label}</div>
-                            <div className="text-[9px] text-mist-500">{item.desc}</div>
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">{item.label}</div>
+                            <div className="text-[9px] text-mist-500 truncate">{item.desc}</div>
                           </div>
-                          <span className="text-[9px] font-mono opacity-80">{item.badge}</span>
+                          <span className="ml-2 shrink-0 text-[9px] font-mono opacity-80">{item.badge}</span>
                         </button>
                       ))}
                     </div>
@@ -439,7 +457,7 @@ export function Composer({
               </button>
 
               {/* 5. Prompt Snippets Dropdown */}
-              <div className="relative">
+              <div className="relative" ref={snippetsMenuRef}>
                 <button
                   type="button"
                   onClick={() => setSnippetsOpen((v) => !v)}
@@ -489,8 +507,8 @@ export function Composer({
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
-
               ) : null}
+
               {skillCount > 0 ? (
                 <span className="hidden items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-[9.5px] font-mono text-mist-500 xl:inline-flex">
                   <Sparkles className="h-2.5 w-2.5 text-accent" />
@@ -500,7 +518,7 @@ export function Composer({
             </div>
 
             {/* Right controls: Submit / Stop */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <span className="hidden items-center gap-1 text-[9px] text-mist-500 lg:inline-flex">
                 <Kbd>Enter</Kbd> 发送 · <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd> 换行
               </span>
