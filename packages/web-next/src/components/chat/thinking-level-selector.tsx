@@ -117,7 +117,7 @@ export function ThinkingLevelSelector({
           role="listbox"
           tabIndex={-1}
           onKeyDown={onKeyDown}
-          className="absolute bottom-9 right-0 z-50 w-56 max-w-[calc(100vw-24px)] rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in"
+          className="absolute bottom-9 right-0 z-50 w-56 max-w-[calc(100vw-24px)] rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-spring-up"
         >
           <div className="px-2 py-1 flex items-center justify-between text-[10px] font-semibold text-[var(--text-dim)] uppercase tracking-wider">
             <span>思考等级 · 推理深度</span>
@@ -152,7 +152,7 @@ export function ThinkingLevelSelector({
                       <div className="text-[9.5px] font-normal text-[var(--text-dim)]">{item.desc}</div>
                     </div>
                   </div>
-                  <span className="font-mono text-[9px] text-mist-500">{item.budgetHint.split(" · ")[0]}</span>
+                  <span className="font-mono text-[9px] text-[var(--text-dim)]">{item.budgetHint.split(" · ")[0]}</span>
                 </button>
               );
             })}

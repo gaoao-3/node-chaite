@@ -383,12 +383,21 @@ body {
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
-  textarea:focus-visible,
   [tabindex]:focus-visible {
     outline: none;
     box-shadow:
       0 0 0 1px var(--bg),
       0 0 0 2px var(--accent);
+  }
+
+  textarea {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  textarea:focus,
+  textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
   }
 }
 
@@ -591,4 +600,56 @@ body {
   padding: 0.5em 0.7em;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MICRO-INTERACTION & KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes springUp {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-spring-up {
+  animation: springUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.8s infinite linear;
 }

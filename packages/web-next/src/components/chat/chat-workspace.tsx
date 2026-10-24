@@ -106,6 +106,16 @@ export function ChatWorkspace({
     return { ...agent.view.session, title: session.title };
   }, [agent.view.session, preview, session]);
 
+  const latestUsage = React.useMemo(() => {
+    if (agent.view.usage) return agent.view.usage;
+    for (let i = agent.view.timeline.length - 1; i >= 0; i--) {
+      const item = agent.view.timeline[i];
+      if (item.kind === "assistant" && item.usage) {
+        return item.usage;
+      }
+    }
+    return undefined;
+  }, [agent.view.timeline, agent.view.usage]);
   const [overrideModel, setOverrideModel] = React.useState<string | undefined>(undefined);
   const activeModel = overrideModel || liveSession?.model;
 
@@ -235,6 +245,7 @@ export function ChatWorkspace({
           skillCount={liveSession?.skills.length ?? 0}
           error={agent.error}
           onDismissError={agent.clearError}
+          usage={latestUsage}
         />
       </main>
 
