@@ -55,6 +55,7 @@ export type TimelineItem =
       createdAt: number;
       turnId?: string;
       done: boolean;
+      durationMs?: number;
     }
   | {
       kind: "assistant";
@@ -166,7 +167,7 @@ function replyText(event: FinalReplyWebEvent): string {
 
 function doneForTurn(item: TimelineItem, turnId?: string): TimelineItem {
   if (!turnId || item.turnId !== turnId) return item;
-  if (item.kind === "thought") return { ...item, done: true };
+  if (item.kind === "thought") return { ...item, done: true, durationMs: item.durationMs ?? Math.min(25000, Math.max(200, Date.now() - item.createdAt)) };
   if (item.kind === "assistant") return { ...item, done: true };
   return item;
 }
@@ -264,7 +265,17 @@ function appendThought(view: StreamView, event: AgentWebEvent & { type: "thought
 }
 
 function appendText(view: StreamView, event: AgentWebEvent & { type: "text_chunk" }): StreamView {
-  const previous = view.timeline[view.timeline.length - 1];
+  let baseTimeline = view.timeline;
+  const lastItem = baseTimeline[baseTimeline.length - 1];
+  if (lastItem && lastItem.kind === "thought" && !lastItem.done) {
+    baseTimeline = replaceAt(baseTimeline, baseTimeline.length - 1, {
+      ...lastItem,
+      done: true,
+      durationMs: Math.max(100, event.timestamp - lastItem.createdAt),
+    });
+  }
+
+  const previous = baseTimeline[baseTimeline.length - 1];
   let timeline: TimelineItem[];
   if (
     previous &&
@@ -272,13 +283,13 @@ function appendText(view: StreamView, event: AgentWebEvent & { type: "text_chunk
     !previous.done &&
     previous.turnId === event.turnId
   ) {
-    timeline = replaceAt(view.timeline, view.timeline.length - 1, {
+    timeline = replaceAt(baseTimeline, baseTimeline.length - 1, {
       ...previous,
       text: previous.text + event.delta,
     });
   } else {
     timeline = [
-      ...view.timeline,
+      ...baseTimeline,
       {
         kind: "assistant",
         id: `assistant:${event.eventId}`,

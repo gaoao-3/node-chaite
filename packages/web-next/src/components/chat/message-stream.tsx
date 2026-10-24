@@ -164,7 +164,7 @@ export function MessageStream({
             {view.timeline.map((item) => {
               if (item.kind === "user") return <UserMessage key={item.id} item={item} />;
               if (item.kind === "thought") {
-                return <ThoughtCard key={item.id} text={item.text} done={item.done} createdAt={item.createdAt} />;
+                return <ThoughtCard key={item.id} text={item.text} done={item.done} createdAt={item.createdAt} durationMs={item.durationMs} />;
               }
               if (item.kind === "tool") {
                 return <ToolCallCard key={item.id} call={item.call} createdAt={item.createdAt} />;

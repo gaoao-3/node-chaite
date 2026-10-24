@@ -14,7 +14,7 @@ export type ButtonSize = "xs" | "sm" | "md" | "icon" | "icon-sm";
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "border border-violet-300/25 bg-gradient-to-b from-violet-400/95 to-violet-600/95 text-white shadow-[0_8px_24px_-10px_rgba(139,92,246,0.8),inset_0_1px_0_rgba(255,255,255,0.22)] hover:from-violet-300 hover:to-violet-500 active:from-violet-400 active:to-violet-600",
+    "border border-white/20 bg-white text-zinc-950 font-semibold shadow-sm hover:bg-zinc-100 active:bg-zinc-200 transition-colors",
   secondary:
     "border border-white/[0.09] bg-white/[0.045] text-mist-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/[0.14] hover:bg-white/[0.075] hover:text-white active:bg-white/[0.06]",
   ghost: "border border-transparent text-mist-400 hover:bg-white/[0.055] hover:text-mist-100",
@@ -23,7 +23,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   danger:
     "border border-rose-400/30 bg-rose-500/15 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-rose-300/45 hover:bg-rose-500/25",
   outline:
-    "border border-violet-300/25 bg-violet-400/[0.06] text-violet-100 hover:border-violet-300/40 hover:bg-violet-400/[0.12]",
+    "border border-white/[0.12] bg-white/[0.03] text-mist-200 hover:border-white/[0.2] hover:bg-white/[0.07]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

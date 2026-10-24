@@ -117,7 +117,7 @@ export function ThinkingLevelSelector({
           role="listbox"
           tabIndex={-1}
           onKeyDown={onKeyDown}
-          className="absolute bottom-9 left-0 z-50 w-56 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in"
+          className="absolute bottom-9 right-0 z-50 w-56 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in"
         >
           <div className="px-2 py-1 flex items-center justify-between text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
             <span>思考等级 · 推理深度</span>

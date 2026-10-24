@@ -132,12 +132,10 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
               </span>
             ) : null}
           </div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[9px] text-mist-600">
-            <span className={meta.text}>{meta.label}</span>
-            <span className="text-mist-700">·</span>
-            <Clock3 className="h-2.5 w-2.5" />
-            <span className="font-mono tabular-nums">{formatDuration(duration)}</span>
-            {active ? <span className="text-cyan-300/80 animate-pulse">executing…</span> : null}
+          <div className="mt-0.5 flex items-center gap-1 text-[9px] text-mist-500 font-mono">
+            <Clock3 className="h-2.5 w-2.5 text-mist-600" />
+            <span className="tabular-nums">{formatDuration(duration)}</span>
+            {active ? <span className="text-cyan-300/80 animate-pulse ml-1">· 执行中…</span> : null}
           </div>
         </div>
 

@@ -329,7 +329,7 @@ export function Composer({
                   ? "Agent 正在执行任务，你可以直接输入下一条指令…"
                   : disabled
                     ? "请先创建或选择一个会话"
-                    : "向 Chaite Agent 下达指令… (支持粘贴图片/拖拽文件，Enter 发送)"
+                    : "向 Agent 下达指令… (Enter 发送)"
             }
             rows={1}
             spellCheck={false}
@@ -382,7 +382,7 @@ export function Composer({
                 </button>
 
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
+                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
                     <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
                       选择驱动模型
                     </div>
@@ -461,7 +461,7 @@ export function Composer({
                 </button>
 
                 {snippetsOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
+                  <div className="absolute bottom-9 right-0 z-50 max-h-[60vh] overflow-y-auto w-64 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
                     <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
                       快捷指令模板
                     </div>

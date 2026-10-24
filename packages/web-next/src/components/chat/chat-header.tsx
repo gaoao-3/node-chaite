@@ -163,12 +163,12 @@ export function ChatHeader({
                   if (session) setEditing(true);
                 }}
                 className={cn(
-                  "truncate text-[13px] font-semibold text-mist-100",
+                  "truncate max-w-[160px] sm:max-w-[320px] text-[13px] font-semibold text-mist-100",
                   session && "cursor-pointer hover:text-accent transition-colors",
                 )}
                 title={session ? "点击编辑标题" : undefined}
               >
-                {session?.title || "未选择会话"}
+                {session?.title?.replace(/_/g, " ") || "未选择会话"}
               </h1>
 
               {session ? (

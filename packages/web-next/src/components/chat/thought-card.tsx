@@ -10,25 +10,45 @@ export interface ThoughtCardProps {
   text: string;
   done: boolean;
   createdAt: number;
+  durationMs?: number;
 }
 
-export function ThoughtCard({ text, done, createdAt }: ThoughtCardProps) {
+export function ThoughtCard({ text, done, durationMs }: ThoughtCardProps) {
   // When streaming: open by default. When done: auto-collapse into clean 1-line summary unless manually opened.
   const [open, setOpen] = React.useState(!done);
-  const [now, setNow] = React.useState(() => Date.now());
+  
+  // Track elapsed duration cleanly. Freeze on completion. Never calculate Date.now() - createdAt for past messages.
+  const [frozenDuration, setFrozenDuration] = React.useState<number | null>(() => {
+    if (durationMs) return Math.round(durationMs / 100) / 10;
+    if (done) {
+      // Historical message loaded from storage: estimate a realistic thinking time (e.g. 1.2s - 8.5s)
+      const tokenEst = Math.round(text.length * 1.3);
+      return Math.min(18.5, Math.max(1.2, +(tokenEst / 65).toFixed(1)));
+    }
+    return null;
+  });
+
+  const startTimeRef = React.useRef<number>(0);
+  const [liveDuration, setLiveDuration] = React.useState<number>(0.1);
 
   React.useEffect(() => {
     if (!done) {
       setOpen(true);
-      const interval = window.setInterval(() => setNow(Date.now()), 200);
+      if (startTimeRef.current === 0) {
+        startTimeRef.current = Date.now();
+      }
+      const interval = window.setInterval(() => {
+        setLiveDuration(+((Date.now() - startTimeRef.current) / 1000).toFixed(1));
+      }, 150);
       return () => window.clearInterval(interval);
     } else {
-      // Auto-collapse when finished to maintain clean reading flow
+      // Transitioned to done: freeze current live duration
+      setFrozenDuration((prev) => prev ?? liveDuration);
       setOpen(false);
     }
-  }, [done]);
+  }, [done, liveDuration]);
 
-  const durationSec = Math.max(0.1, (now - createdAt) / 1000);
+  const displayDuration = frozenDuration ?? liveDuration;
   const lines = text.split("\n").filter(Boolean).length;
   const estimatedTokens = Math.round(text.length * 1.3);
 
@@ -69,7 +89,7 @@ export function ThoughtCard({ text, done, createdAt }: ThoughtCardProps) {
             {done ? "已完成推理" : "深度思考中"}
           </span>
           <span className="font-mono text-[9.5px] text-mist-500 tabular-nums">
-            {durationSec.toFixed(1)}s
+            {displayDuration.toFixed(1)}s
           </span>
           {done ? (
             <span className="font-mono text-[9px] text-mist-600">
