@@ -27,7 +27,8 @@ export interface ApiServerOptions {
 
 export function createApp (configure?: (app: Application) => void, options: ApiServerOptions = {}): Application {
   const app = express()
-  app.use(express.json())
+  app.use(express.json({ limit: '50mb' }))
+  app.use(express.urlencoded({ limit: '50mb', extended: true }))
   app.use(cors())
   app.use('/api/system', SystemRouter)
   app.use('/api/auth', AuthRouter)
@@ -77,6 +78,23 @@ export function createApp (configure?: (app: Application) => void, options: ApiS
       res.status(404).json({ code: -1, data: null, message: 'No frontend is mounted. Use /api/agent.' })
     })
   }
+
+  // 全局 JSON 错误处理中间件，严格杜绝向前端客户端泄露 HTML 默认错误页面 (<!DOCTYPE html>)
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    const status = err.status || err.statusCode || 500
+    const message = err.type === 'entity.too.large'
+      ? '请求数据体积过大 (超过 50MB 上限)'
+      : (err.message || '服务器处理异常')
+    res.status(status).json({
+      success: false,
+      code: -1,
+      message,
+      error: {
+        code: err.code || (err.type === 'entity.too.large' ? 'PAYLOAD_TOO_LARGE' : 'INTERNAL_ERROR'),
+        message,
+      },
+    })
+  })
   return app
 }
 

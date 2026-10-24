@@ -113,7 +113,20 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     try {
       payload = JSON.parse(text) as Envelope<T>;
     } catch {
-      if (!response.ok) throw new ApiError(text.slice(0, 240) || response.statusText, response.status);
+      if (!response.ok) {
+        let msg = response.statusText || `请求失败 (${response.status})`;
+        if (response.status === 413) {
+          msg = "发送内容或图片体积过大 (超过服务器限制)";
+        } else if (response.status === 502 || response.status === 504) {
+          msg = "后端服务响应超时，请检查服务状态";
+        } else if (text.includes("<pre>")) {
+          const match = text.match(/<pre>([\s\S]*?)<\/pre>/i);
+          if (match) {
+            msg = match[1].replace(/<[^>]+>/g, "").split("\n")[0].trim() || msg;
+          }
+        }
+        throw new ApiError(msg, response.status, `HTTP_${response.status}`);
+      }
     }
   }
 
