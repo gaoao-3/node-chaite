@@ -273,17 +273,19 @@ export function Composer({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "group relative overflow-hidden rounded-[18px] border bg-[var(--bg-panel)] shadow-lg backdrop-blur-xl transition-all duration-200",
+            "group relative rounded-[18px] border bg-[var(--bg-panel)] shadow-lg backdrop-blur-xl transition-all duration-200",
             isDragging ? "border-accent bg-accent/10" : "border-white/[0.09] focus-within:border-accent/50",
             streaming ? "border-cyan-400/30" : "",
           )}
         >
-          {/* Active indicator top bar */}
-          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          {/* Active indicator top bar (clipped inside rounded corner via own wrapper) */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[18px]">
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          </div>
 
           {/* Attachments preview strip */}
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] bg-black/15 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-t-[17px] border-b border-white/[0.06] bg-black/15 px-3 py-2">
               {attachments.map((att) => (
                 <div
                   key={att.id}
@@ -380,7 +382,7 @@ export function Composer({
                 </button>
 
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
+                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
                     <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
                       选择驱动模型
                     </div>
@@ -469,7 +471,7 @@ export function Composer({
                 </button>
 
                 {snippetsOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
+                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] overflow-y-auto w-64 rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in">
                     <div className="px-2 py-1 text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
                       快捷指令模板
                     </div>
