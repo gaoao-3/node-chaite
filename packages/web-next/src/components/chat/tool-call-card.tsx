@@ -41,15 +41,16 @@ function toolIcon(name: string): IconComponent {
 function StatusSpine({ status }: { status: ToolCallState["status"] }) {
   switch (status) {
     case "succeeded":
-      return <SpineSuccessIcon size={14} className="text-emerald-400" />;
+    case "succeeded":
+      return <SpineSuccessIcon size={14} className="text-emerald-600 dark:text-emerald-400" />;
     case "failed":
-      return <SpineErrorIcon size={14} className="text-rose-400" />;
+      return <SpineErrorIcon size={14} className="text-rose-600 dark:text-rose-400" />;
     case "denied":
-      return <SpineApprovalIcon size={14} className="text-amber-400" />;
+      return <SpineApprovalIcon size={14} className="text-amber-600 dark:text-amber-400" />;
     case "skipped":
-      return <SpineApprovalIcon size={14} className="text-mist-500" />;
+      return <SpineApprovalIcon size={14} className="text-[var(--text-dim)]" />;
     default:
-      return <SpineRunningIcon size={14} className="text-cyan-400" />;
+      return <SpineRunningIcon size={14} className="text-cyan-600 dark:text-cyan-400 animate-spin" />;
   }
 }
 
@@ -87,10 +88,10 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
       className={cn(
         "group relative overflow-hidden rounded-xl border transition-colors duration-200",
         active
-          ? "border-cyan-400/25 bg-cyan-500/[0.035] shadow-[0_0_20px_-8px_rgba(6,182,212,0.3)]"
+          ? "border-cyan-500/30 bg-cyan-500/[0.04] shadow-[0_0_20px_-8px_rgba(6,182,212,0.3)]"
           : call.status === "failed"
-            ? "border-rose-400/20 bg-rose-500/[0.03]"
-            : "border-white/[0.055] bg-white/[0.015] hover:border-white/[0.1] hover:bg-white/[0.025]",
+            ? "border-rose-500/30 bg-rose-500/[0.04]"
+            : "border-[var(--border)] bg-[var(--bg-panel)] shadow-xs hover:border-[var(--accent)]/40",
       )}
     >
       {active ? (
@@ -101,16 +102,16 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
       >
         <span
           className={cn(
             "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
             active
-              ? "border-cyan-400/30 bg-cyan-500/15 text-cyan-300"
+              ? "border-cyan-500/30 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
               : call.status === "failed"
-                ? "border-rose-400/25 bg-rose-500/10 text-rose-300"
-                : "border-white/[0.07] bg-white/[0.03] text-mist-400",
+                ? "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]",
           )}
         >
           <Icon className="h-3 w-3" />
@@ -118,24 +119,24 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate font-mono text-[11.5px] font-medium tracking-tight text-mist-200">
+            <span className="truncate font-mono text-[12px] font-semibold tracking-tight text-[var(--text)]">
               {call.name}
             </span>
             {call.name.startsWith("hash_") ? (
-              <span className="rounded border border-accent/20 bg-accent/10 px-1 font-mono text-[8.5px] text-accent">
+              <span className="rounded border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-1 font-mono text-[8.5px] text-[var(--accent)]">
                 hashline
               </span>
             ) : null}
             {call.attempt && call.attempt > 1 ? (
-              <span className="rounded border border-white/[0.08] px-1 font-mono text-[8px] text-mist-600">
+              <span className="rounded border border-[var(--border)] px-1 font-mono text-[8px] text-[var(--text-dim)]">
                 try {call.attempt}
               </span>
             ) : null}
           </div>
-          <div className="mt-0.5 flex items-center gap-1 text-[9px] text-mist-500 font-mono">
-            <Clock3 className="h-2.5 w-2.5 text-mist-600" />
+          <div className="mt-0.5 flex items-center gap-1 text-[10px] text-[var(--text-muted)] font-mono">
+            <Clock3 className="h-2.5 w-2.5 text-[var(--text-dim)]" />
             <span className="tabular-nums">{formatDuration(duration)}</span>
-            {active ? <span className="text-cyan-300/80 animate-pulse ml-1">· 执行中…</span> : null}
+            {active ? <span className="text-cyan-600 dark:text-cyan-400 font-sans animate-pulse ml-1">· 执行中…</span> : null}
           </div>
         </div>
 
@@ -150,24 +151,24 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
             {meta.label}
           </span>
           <ChevronDown
-            className={cn("h-3.5 w-3.5 shrink-0 text-mist-600 transition-transform duration-200", open && "rotate-180")}
+            className={cn("h-3.5 w-3.5 shrink-0 text-[var(--text-dim)] transition-transform duration-200", open && "rotate-180")}
           />
         </div>
       </button>
 
       {open ? (
-        <div className="space-y-2 border-t border-white/[0.04] px-3 py-2.5 animate-fade-in">
+        <div className="space-y-2 border-t border-[var(--border)] px-3 py-2.5 bg-[var(--bg)] animate-fade-in">
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-mist-600">入参</span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-[var(--text-dim)]">入参</span>
               {args ? <CopyButton value={args} label="复制" /> : null}
             </div>
             {args ? (
-              <pre className="max-h-48 overflow-auto rounded-lg border border-white/[0.055] bg-black/35 p-2 font-mono text-[10.5px] leading-[1.65] text-mist-400">
+              <pre className="max-h-48 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-2 font-mono text-[10.5px] leading-[1.65] text-[var(--text)]">
                 {args}
               </pre>
             ) : (
-              <div className="rounded-lg border border-dashed border-white/[0.06] px-2.5 py-1.5 text-[10px] text-mist-700">
+              <div className="rounded-lg border border-dashed border-[var(--border)] px-2.5 py-1.5 text-[10px] text-[var(--text-dim)]">
                 无参数
               </div>
             )}
@@ -175,30 +176,30 @@ export function ToolCallCard({ call, createdAt }: { call: ToolCallState; created
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-mist-600">返回</span>
+              <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-[var(--text-dim)]">返回</span>
               {result ? <CopyButton value={result} label="复制" /> : null}
             </div>
             {call.error ? (
-              <div className="rounded-lg border border-rose-400/15 bg-rose-400/[0.06] p-2 text-[10.5px] leading-relaxed text-rose-200">
-                <span className="font-mono text-[9px] text-rose-300/80">{call.error.code}</span>
+              <div className="rounded-lg border border-rose-500/25 bg-rose-500/10 p-2 text-[10.5px] leading-relaxed text-rose-700 dark:text-rose-300">
+                <span className="font-mono text-[9px] text-rose-600 dark:text-rose-400 font-bold">{call.error.code}</span>
                 <div className="mt-0.5">{call.error.message}</div>
               </div>
             ) : result ? (
               <pre
                 className={cn(
-                  "max-h-52 overflow-auto rounded-lg border border-white/[0.055] bg-black/35 p-2 font-mono text-[10.5px] leading-[1.65]",
-                  call.status === "failed" ? "text-rose-200/85" : "text-mist-400",
+                  "max-h-52 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-2 font-mono text-[10.5px] leading-[1.65] text-[var(--text)]",
+                  call.status === "failed" && "text-rose-700 dark:text-rose-300",
                 )}
               >
                 {result}
               </pre>
             ) : active ? (
-              <div className="flex items-center gap-2 rounded-lg border border-cyan-300/10 bg-cyan-300/[0.035] px-2.5 py-1.5 text-[10px] text-cyan-200/70">
-                <span className="h-1 w-1 animate-pulse rounded-full bg-cyan-300" />
+              <div className="flex items-center gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1.5 text-[10px] text-cyan-700 dark:text-cyan-300 font-mono">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-500" />
                 等待工具返回…
               </div>
             ) : (
-              <div className="rounded-lg border border-dashed border-white/[0.06] px-2.5 py-1.5 text-[10px] text-mist-700">
+              <div className="rounded-lg border border-dashed border-[var(--border)] px-2.5 py-1.5 text-[10px] text-[var(--text-dim)] font-mono">
                 无返回内容
               </div>
             )}

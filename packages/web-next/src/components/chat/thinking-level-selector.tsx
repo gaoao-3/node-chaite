@@ -100,14 +100,14 @@ export function ThinkingLevelSelector({
         className={cn(
           "flex h-7 items-center gap-1.5 rounded-lg border px-2 text-[11px] font-mono transition-colors",
           value === "none"
-            ? "border-white/[0.08] bg-white/[0.03] text-mist-400 hover:text-mist-200"
+            ? "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text)]"
             : value === "max"
-              ? "border-purple-400/40 bg-purple-500/15 text-purple-200 shadow-[0_0_12px_-3px_rgba(168,85,247,0.4)]"
-              : "border-purple-400/30 bg-purple-500/10 text-purple-300 hover:border-purple-400/50",
-          open && "ring-1 ring-purple-400/50",
+              ? "border-purple-500/40 bg-purple-500/15 text-purple-700 dark:text-purple-200 font-semibold shadow-[0_0_12px_-3px_rgba(168,85,247,0.3)]"
+              : "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-medium hover:border-purple-500/50",
+          open && "ring-1 ring-purple-500/50",
         )}
       >
-        <span className="shrink-0 text-purple-300">{getThinkingIcon(value, 14)}</span>
+        <span className="shrink-0 text-purple-600 dark:text-purple-300">{getThinkingIcon(value, 14)}</span>
         <span className="font-medium tracking-tight">{current.label}</span>
       </button>
 
@@ -117,11 +117,11 @@ export function ThinkingLevelSelector({
           role="listbox"
           tabIndex={-1}
           onKeyDown={onKeyDown}
-          className="absolute bottom-9 right-0 z-50 w-56 max-w-[calc(100vw-24px)] rounded-xl border border-white/[0.12] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in"
+          className="absolute bottom-9 right-0 z-50 w-56 max-w-[calc(100vw-24px)] rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1.5 shadow-2xl backdrop-blur-2xl animate-scale-in"
         >
-          <div className="px-2 py-1 flex items-center justify-between text-[10px] font-semibold text-mist-500 uppercase tracking-wider">
+          <div className="px-2 py-1 flex items-center justify-between text-[10px] font-semibold text-[var(--text-dim)] uppercase tracking-wider">
             <span>思考等级 · 推理深度</span>
-            <span className="font-mono text-purple-300">{current.budgetHint}</span>
+            <span className="font-mono text-purple-600 dark:text-purple-300">{current.budgetHint}</span>
           </div>
           <div className="space-y-0.5 mt-0.5">
             {THINKING_LEVELS.map((item) => {
@@ -139,17 +139,17 @@ export function ThinkingLevelSelector({
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11px] transition-colors",
                     active
-                      ? "bg-purple-500/15 text-purple-200 font-semibold"
-                      : "text-mist-300 hover:bg-white/[0.06] hover:text-mist-100",
+                      ? "bg-purple-500/15 text-purple-700 dark:text-purple-200 font-semibold"
+                      : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <span className={active ? "text-purple-300" : "text-mist-500"}>
+                    <span className={active ? "text-purple-600 dark:text-purple-300" : "text-[var(--text-dim)]"}>
                       {getThinkingIcon(item.id, 14)}
                     </span>
                     <div>
                       <div className="leading-tight">{item.label}</div>
-                      <div className="text-[9.5px] font-normal text-mist-500">{item.desc}</div>
+                      <div className="text-[9.5px] font-normal text-[var(--text-dim)]">{item.desc}</div>
                     </div>
                   </div>
                   <span className="font-mono text-[9px] text-mist-500">{item.budgetHint.split(" · ")[0]}</span>

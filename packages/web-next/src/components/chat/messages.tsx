@@ -14,25 +14,25 @@ export function UserMessage({ item }: { item: UserItem }) {
   return (
     <div className="group flex justify-end animate-fade-up">
       <div className="flex max-w-[88%] flex-col items-end gap-1 sm:max-w-[76%]">
-        <div className="flex items-center gap-1.5 pr-1 text-[9.5px] text-mist-600">
+        <div className="flex items-center gap-1.5 pr-1 text-[9.5px] text-[var(--text-dim)]">
           <span>你</span>
-          <span className="text-mist-700">·</span>
+          <span>·</span>
           <span className="font-mono">{formatClock(item.createdAt)}</span>
           {item.pending ? (
-            <span className="inline-flex items-center gap-1 text-accent/70">
-              <span className="h-1 w-1 animate-pulse rounded-full bg-accent" />
+            <span className="inline-flex items-center gap-1 text-[var(--accent)]">
+              <span className="h-1 w-1 animate-pulse rounded-full bg-[var(--accent)]" />
               发送中
             </span>
           ) : (
-            <CheckCheck className="h-2.5 w-2.5 text-mist-600" />
+            <CheckCheck className="h-2.5 w-2.5 text-[var(--text-dim)]" />
           )}
         </div>
         <div
           className={cn(
             "relative rounded-2xl rounded-tr-sm border px-3.5 py-2.5 text-[13px] leading-[1.65]",
             item.failed
-              ? "border-rose-400/25 bg-rose-400/[0.07] text-rose-100"
-              : "border-white/[0.08] bg-white/[0.05] text-mist-100 shadow-sm",
+              ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200"
+              : "border border-[var(--border)] bg-[var(--user-bg,var(--bg-panel))] text-[var(--text)] shadow-xs",
           )}
         >
           <div className="whitespace-pre-wrap break-words">{item.text}</div>
@@ -72,22 +72,22 @@ export function AssistantMessage({ item, streaming }: { item: AssistantItem; str
   const showTyping = streaming && !item.text && !item.done;
   return (
     <div className="group flex items-start gap-3 animate-fade-up">
-      <div className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04]">
+      <div className="relative mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] text-[var(--accent)]">
         <BrandMark size={18} className="drop-shadow-none" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-semibold tracking-[-0.01em] text-mist-200">Chaite Agent</span>
-          <span className="rounded border border-white/[0.08] bg-white/[0.03] px-1 py-px font-mono text-[8px] uppercase tracking-wider text-mist-500">
+          <span className="text-[12px] font-semibold tracking-[-0.01em] text-[var(--text)]">Chaite Agent</span>
+          <span className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1 py-px font-mono text-[8px] uppercase tracking-wider text-[var(--text-muted)]">
             agent
           </span>
           {!item.done && streaming ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-cyan-300/15 bg-cyan-300/[0.06] px-1.5 py-px text-[8.5px] text-cyan-200/80">
-              <span className="h-1 w-1 animate-pulse rounded-full bg-cyan-300" />
+            <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-px text-[8.5px] text-cyan-700 dark:text-cyan-300 font-medium">
+              <span className="h-1 w-1 animate-pulse rounded-full bg-cyan-500" />
               streaming
             </span>
           ) : null}
-          <span className="ml-auto hidden items-center gap-1 font-mono text-[9px] text-mist-700 sm:inline-flex">
+          <span className="ml-auto hidden items-center gap-1 font-mono text-[9px] text-[var(--text-dim)] sm:inline-flex">
             <Clock3 className="h-2.5 w-2.5" />
             {formatClock(item.createdAt)}
           </span>
@@ -106,14 +106,14 @@ export function AssistantMessage({ item, streaming }: { item: AssistantItem; str
           <ImageGrid images={item.images ?? []} />
         </div>
 
-        <div className="mt-1.5 flex items-center gap-2 text-[8.5px] text-mist-700 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="mt-1.5 flex items-center gap-2 text-[9px] text-[var(--text-dim)] opacity-0 transition-opacity group-hover:opacity-100">
           {item.usage?.totalTokens ? (
             <span className="font-mono">
               {formatNumber(item.usage.promptTokens ?? 0)} in · {formatNumber(item.usage.completionTokens ?? 0)} out
             </span>
           ) : null}
           {item.usage?.cachedTokens ? (
-            <span className="font-mono text-emerald-300/40">{formatNumber(item.usage.cachedTokens)} cached</span>
+            <span className="font-mono text-emerald-700 dark:text-emerald-400 font-medium">{formatNumber(item.usage.cachedTokens)} cached</span>
           ) : null}
         </div>
       </div>

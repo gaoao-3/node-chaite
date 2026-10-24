@@ -57,8 +57,8 @@ export function ThoughtCard({ text, done, durationMs }: ThoughtCardProps) {
       className={cn(
         "group relative overflow-hidden rounded-xl transition-all duration-200 border",
         done
-          ? "border-white/[0.05] bg-white/[0.015] hover:border-white/[0.1] hover:bg-white/[0.025]"
-          : "border-purple-400/25 bg-purple-500/[0.04] shadow-[0_0_20px_-8px_rgba(168,85,247,0.3)]",
+          ? "border-[var(--border)] bg-[var(--bg-panel)] shadow-xs hover:border-[var(--border)]"
+          : "border-purple-500/30 bg-purple-500/[0.05] shadow-[0_0_20px_-8px_rgba(168,85,247,0.2)]",
       )}
     >
       {/* Streaming top micro shimmer */}
@@ -71,39 +71,39 @@ export function ThoughtCard({ text, done, durationMs }: ThoughtCardProps) {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors"
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
       >
         <span
           className={cn(
             "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
             done
-              ? "border-white/[0.07] bg-white/[0.03] text-mist-500"
-              : "border-purple-400/30 bg-purple-500/15 text-purple-300",
+              ? "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]"
+              : "border-purple-500/30 bg-purple-500/15 text-purple-700 dark:text-purple-300",
           )}
         >
           <ThinkingHighIcon size={14} className={!done ? "animate-pulse" : undefined} />
         </span>
 
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] font-medium tracking-tight text-mist-300">
+          <span className="text-[12px] font-medium tracking-tight text-[var(--text)]">
             {done ? "已完成推理" : "深度思考中"}
           </span>
-          <span className="font-mono text-[9.5px] text-mist-500 tabular-nums">
+          <span className="font-mono text-[10px] text-[var(--text-muted)] tabular-nums">
             {displayDuration.toFixed(1)}s
           </span>
           {done ? (
-            <span className="font-mono text-[9px] text-mist-600">
+            <span className="font-mono text-[9.5px] text-[var(--text-dim)]">
               · {lines} 行 · ~{estimatedTokens} tok
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded bg-purple-500/15 border border-purple-400/20 px-1 py-px font-mono text-[8.5px] text-purple-300">
+            <span className="inline-flex items-center gap-1 rounded bg-purple-500/15 border border-purple-500/30 px-1 py-px font-mono text-[8.5px] text-purple-700 dark:text-purple-300 font-medium">
               <Sparkles className="h-2 w-2" />
               reasoning
             </span>
           )}
         </div>
 
-        <span className="ml-auto flex items-center gap-1 text-mist-500">
+        <span className="ml-auto flex items-center gap-1 text-[var(--text-dim)]">
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 transition-transform duration-200",
@@ -115,13 +115,13 @@ export function ThoughtCard({ text, done, durationMs }: ThoughtCardProps) {
 
       {/* Expanded Reasoning Body */}
       {open ? (
-        <div className="border-t border-white/[0.04] px-3.5 py-2.5 animate-fade-in space-y-2">
-          <div className="flex items-center justify-between text-[9px] font-mono text-mist-600">
+        <div className="border-t border-[var(--border)] px-3.5 py-2.5 bg-[var(--bg)] animate-fade-in space-y-2">
+          <div className="flex items-center justify-between text-[9.5px] font-mono text-[var(--text-dim)]">
             <span>THOUGHT TIMELINE</span>
             <CopyButton value={text} label="复制思考流" />
           </div>
 
-          <div className="max-h-[320px] overflow-y-auto whitespace-pre-wrap font-mono text-[11.5px] leading-[1.7] text-mist-400/90 pr-1">
+          <div className="max-h-[320px] overflow-y-auto whitespace-pre-wrap font-mono text-[11.5px] leading-[1.7] text-[var(--text-muted)] pr-1">
             {text}
             {!done ? (
               <span className="ml-0.5 inline-block h-3.5 w-[2px] translate-y-[2px] animate-pulse bg-purple-400" />

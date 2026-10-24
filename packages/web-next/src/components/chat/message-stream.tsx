@@ -6,7 +6,7 @@ import { ApprovalCard } from "@/components/chat/approval-card";
 import { ChatEmptyState } from "@/components/chat/empty-state";
 import { AssistantMessage, ErrorNotice, UserMessage } from "@/components/chat/messages";
 import { ThoughtCard } from "@/components/chat/thought-card";
-import { ToolCallCard } from "@/components/chat/tool-call-card";
+import { ToolCallGroup } from "@/components/chat/tool-call-group";
 import { Skeleton } from "@/components/ui/spinner";
 import type { ConnectionState } from "@/hooks/use-agent-session";
 import type { ApprovalState, StreamView } from "@/lib/timeline";
@@ -136,25 +136,70 @@ export function MessageStream({
   const totalItems = view.timeline.length;
   const lastAssistant = [...view.timeline].reverse().find((item) => item.kind === "assistant");
 
+  // Group adjacent tool calls into tool_group
+  const groupedItems = React.useMemo(() => {
+    type GroupItem =
+      | { kind: "user"; id: string; item: any }
+      | { kind: "thought"; id: string; item: any }
+      | { kind: "assistant"; id: string; item: any }
+      | { kind: "approval"; id: string; item: any }
+      | { kind: "error"; id: string; item: any }
+      | {
+          kind: "tool_group";
+          id: string;
+          items: Array<{ id: string; createdAt: number; call: any }>;
+        };
+
+    const list: GroupItem[] = [];
+    let currentTools: Array<{ id: string; createdAt: number; call: any }> | null = null;
+
+    for (const item of view.timeline) {
+      if (item.kind === "tool") {
+        if (!currentTools) currentTools = [];
+        currentTools.push({ id: item.id, createdAt: item.createdAt, call: item.call });
+      } else {
+        if (currentTools && currentTools.length > 0) {
+          list.push({
+            kind: "tool_group",
+            id: `tool_group_${currentTools[0].id}`,
+            items: currentTools,
+          });
+          currentTools = null;
+        }
+        list.push({ kind: item.kind, id: item.id, item: item as any });
+      }
+    }
+
+    if (currentTools && currentTools.length > 0) {
+      list.push({
+        kind: "tool_group",
+        id: `tool_group_${currentTools[0].id}`,
+        items: currentTools,
+      });
+    }
+
+    return list;
+  }, [view.timeline]);
+
   return (
     <div className="relative min-h-0 flex-1">
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="h-full overflow-y-auto overscroll-contain px-4 pb-10 pt-4 sm:px-7 sm:pt-6"
+        className="h-full overflow-y-auto overscroll-contain px-4 pb-12 pt-4 sm:px-7 sm:pt-6"
       >
         <ConnectionBanner connection={connection} />
 
         {preview ? (
-          <div className="mx-auto mb-5 flex w-full max-w-[760px] items-center gap-2.5 rounded-xl border border-violet-300/18 bg-violet-400/[0.05] px-3 py-2">
-            <Info className="h-3.5 w-3.5 shrink-0 text-violet-300" />
-            <span className="text-[10.5px] text-violet-200/80">
+          <div className="mx-auto mb-5 flex w-full max-w-[760px] items-center gap-2.5 rounded-xl border border-violet-500/20 bg-violet-500/[0.05] px-3 py-2">
+            <Info className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300" />
+            <span className="text-[11px] text-violet-700 dark:text-violet-200">
               本地设计预览：思考、工具调用与审批均为静态示例，不会提交到后端。
             </span>
             <button
               type="button"
               onClick={onExitPreview}
-              className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md border border-violet-300/20 px-1.5 py-0.5 text-[9.5px] text-violet-200 transition-colors hover:bg-violet-300/10"
+              className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md border border-violet-500/30 px-1.5 py-0.5 text-[9.5px] text-violet-700 dark:text-violet-200 transition-colors hover:bg-violet-500/10"
             >
               <X className="h-2.5 w-2.5" />
               退出
@@ -167,38 +212,46 @@ export function MessageStream({
         ) : totalItems === 0 ? (
           <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
         ) : (
-          <div className="chat-stream mx-auto flex w-full max-w-[760px] flex-col gap-4 pb-2">
-            {view.timeline.map((item) => {
-              if (item.kind === "user") return <UserMessage key={item.id} item={item} />;
-              if (item.kind === "thought") {
-                return <ThoughtCard key={item.id} text={item.text} done={item.done} createdAt={item.createdAt} durationMs={item.durationMs} />;
-              }
-              if (item.kind === "tool") {
-                return <ToolCallCard key={item.id} call={item.call} createdAt={item.createdAt} />;
-              }
-              if (item.kind === "assistant") {
+          <div className="chat-stream mx-auto flex w-full max-w-[760px] flex-col gap-3 pb-4">
+            {groupedItems.map((entry) => {
+              if (entry.kind === "user") return <UserMessage key={entry.id} item={entry.item} />;
+              if (entry.kind === "thought") {
                 return (
-                  <AssistantMessage
-                    key={item.id}
-                    item={item}
-                    streaming={view.isStreaming && item.id === lastAssistant?.id}
+                  <ThoughtCard
+                    key={entry.id}
+                    text={entry.item.text}
+                    done={entry.item.done}
+                    createdAt={entry.item.createdAt}
+                    durationMs={entry.item.durationMs}
                   />
                 );
               }
-              if (item.kind === "approval") {
-                const approval: ApprovalState | undefined = view.approvals[item.requestId];
+              if (entry.kind === "tool_group") {
+                return <ToolCallGroup key={entry.id} items={entry.items} />;
+              }
+              if (entry.kind === "assistant") {
+                return (
+                  <AssistantMessage
+                    key={entry.id}
+                    item={entry.item}
+                    streaming={view.isStreaming && entry.item.id === lastAssistant?.id}
+                  />
+                );
+              }
+              if (entry.kind === "approval") {
+                const approval: ApprovalState | undefined = view.approvals[entry.item.requestId];
                 if (!approval) return null;
-                return <ApprovalCard key={item.id} approval={approval} onRespond={onRespond} />;
+                return <ApprovalCard key={entry.id} approval={approval} onRespond={onRespond} />;
               }
               return (
-                <ErrorNotice key={item.id} message={item.message} code={item.code} fatal={item.fatal} />
+                <ErrorNotice key={entry.id} message={entry.item.message} code={entry.item.code} fatal={entry.item.fatal} />
               );
             })}
 
             {view.typing && !view.isStreaming ? (
-              <div className="flex items-center gap-2 pl-11 text-[10px] text-mist-600">
-                <span className="h-1 w-1 animate-pulse rounded-full bg-violet-300" />
-                typing…
+              <div className="flex items-center gap-2 pl-11 text-[11px] text-[var(--text-muted)] font-mono">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" />
+                正在生成中…
               </div>
             ) : null}
             <div ref={bottomRef} className="h-px" />
@@ -210,7 +263,7 @@ export function MessageStream({
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-4 left-1/2 z-10 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/[0.1] bg-ink-800/90 px-3 text-[10.5px] text-mist-300 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.9)] backdrop-blur-md transition-colors hover:border-white/[0.16] hover:text-white animate-fade-in"
+          className="absolute bottom-6 left-1/2 z-10 flex h-7.5 -translate-x-1/2 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-panel)] px-3 text-[11px] font-medium text-[var(--text)] shadow-lg backdrop-blur-md transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] animate-fade-in"
         >
           <ArrowDown className="h-3 w-3" />
           回到最新

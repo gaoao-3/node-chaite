@@ -208,30 +208,30 @@ export function Composer({
             if (e.dataTransfer.files) void handleFiles(e.dataTransfer.files);
           }}
           className={cn(
-            "group relative rounded-2xl border bg-[var(--bg-panel)] shadow-sm transition-all duration-150",
-            isDragging ? "border-accent ring-1 ring-accent" : "border-white/[0.1] focus-within:border-white/[0.2]",
+            "group relative rounded-2xl border bg-[var(--bg-panel)] shadow-xs transition-all duration-150",
+            isDragging ? "border-[var(--accent)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] focus-within:border-[var(--accent)]/60",
           )}
         >
           {/* Attachments preview */}
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] p-2.5">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] p-2.5">
               {attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-1 pr-2 text-[10.5px] text-mist-200"
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-1 pr-2 text-[10.5px] text-[var(--text)]"
                 >
                   {att.type === "image" && att.dataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={att.dataUrl} alt={att.name} className="h-6 w-6 rounded object-cover border border-white/10" />
+                    <img src={att.dataUrl} alt={att.name} className="h-6 w-6 rounded object-cover border border-[var(--border)]" />
                   ) : (
-                    <FileCode className="h-3.5 w-3.5 text-accent ml-1" />
+                    <FileCode className="h-3.5 w-3.5 text-[var(--accent)] ml-1" />
                   )}
                   <span className="max-w-[100px] truncate font-medium">{att.name}</span>
-                  <span className="font-mono text-[8.5px] text-mist-500">({formatFileSize(att.size)})</span>
+                  <span className="font-mono text-[8.5px] text-[var(--text-dim)]">({formatFileSize(att.size)})</span>
                   <button
                     type="button"
                     onClick={() => removeAttachment(att.id)}
-                    className="ml-0.5 text-mist-500 hover:text-white"
+                    className="ml-0.5 text-[var(--text-dim)] hover:text-[var(--text)]"
                   >
                     <X className="h-2.5 w-2.5" />
                   </button>
@@ -255,7 +255,7 @@ export function Composer({
             }
             rows={1}
             spellCheck={false}
-            className="w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-[14px] leading-relaxed text-mist-100 outline-none placeholder:text-mist-500 disabled:cursor-not-allowed"
+            className="w-full resize-none bg-transparent px-3.5 pt-3 pb-2 text-[14px] leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed"
           />
 
           {/* Claude Toolbar (Left pills + Right circular Send button) */}
@@ -277,7 +277,7 @@ export function Composer({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 title="添加附件"
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -290,8 +290,8 @@ export function Composer({
                   className={cn(
                     "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border",
                     modelMenuOpen
-                      ? "border-accent bg-accent/10 text-accent"
-                      : "border-white/[0.07] bg-white/[0.02] text-mist-400 hover:border-white/[0.14] hover:text-mist-200",
+                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                      : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:text-[var(--text)]",
                   )}
                 >
                   <Cpu className="h-3 w-3" />
@@ -300,7 +300,7 @@ export function Composer({
                 </button>
 
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-8 left-0 z-50 w-56 max-h-[60vh] overflow-y-auto rounded-xl border border-white/[0.1] bg-[var(--bg-panel)] p-1 shadow-2xl animate-scale-in">
+                  <div className="absolute bottom-8 left-0 z-50 w-56 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1 shadow-2xl animate-scale-in">
                     <div className="space-y-0.5">
                       {PRESET_MODELS.map((item) => (
                         <button
@@ -309,12 +309,12 @@ export function Composer({
                           onClick={() => handleSelectModel(item.id)}
                           className={cn(
                             "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors",
-                            selectedModel === item.id ? "bg-accent/15 text-accent font-medium" : "text-mist-300 hover:bg-white/[0.05]",
+                            selectedModel === item.id ? "bg-[var(--accent)]/15 text-[var(--accent)] font-semibold" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
                           )}
                         >
                           <div>
-                            <div>{item.label}</div>
-                            <div className="text-[9px] text-mist-500">{item.desc}</div>
+                            <div className="font-medium">{item.label}</div>
+                            <div className="text-[9px] text-[var(--text-dim)]">{item.desc}</div>
                           </div>
                           <span>{item.badge}</span>
                         </button>
@@ -341,8 +341,8 @@ export function Composer({
                 className={cn(
                   "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border",
                   webSearchActive
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                    : "border-white/[0.07] bg-white/[0.02] text-mist-400 hover:border-white/[0.14] hover:text-mist-200",
+                    ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold"
+                    : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:text-[var(--text)]",
                 )}
               >
                 <Globe className="h-3 w-3" />
@@ -357,7 +357,7 @@ export function Composer({
                   type="button"
                   onClick={onCancel}
                   title="停止生成"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-colors"
                 >
                   <Square className="h-3 w-3 fill-current" />
                 </button>
@@ -369,8 +369,8 @@ export function Composer({
                   className={cn(
                     "flex h-8 w-8 items-center justify-center rounded-full transition-all duration-150",
                     canSend
-                      ? "bg-white text-zinc-950 shadow-sm hover:scale-105 active:scale-95"
-                      : "bg-white/[0.08] text-mist-600 cursor-not-allowed",
+                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm hover:scale-105 active:scale-95"
+                      : "bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-600 border border-[var(--border)] cursor-not-allowed",
                   )}
                 >
                   <ArrowUp className="h-4 w-4 stroke-[2.5]" />

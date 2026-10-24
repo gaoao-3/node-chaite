@@ -7,8 +7,8 @@ import { CopyButton } from "@/components/ui/copy-button";
 
 function CodeBlock({ code, language }: { code: string; language?: string }) {
   return (
-    <div className="group/code my-3 overflow-hidden rounded-xl border border-white/[0.075] bg-[#08080d] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-      <div className="flex h-8 items-center gap-2 border-b border-white/[0.055] bg-white/[0.025] px-3">
+    <div className="group/code my-3 overflow-hidden rounded-xl border border-[var(--border)] bg-[#0c0d12] shadow-xs">
+      <div className="flex h-8 items-center gap-2 border-b border-[var(--border)] bg-black/20 px-3">
         <span className="flex gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-400/50" />
           <span className="h-1.5 w-1.5 rounded-full bg-amber-300/50" />
@@ -44,7 +44,7 @@ const components: Components = {
   },
   table({ children }) {
     return (
-      <div className="my-3 overflow-x-auto rounded-xl border border-white/[0.07]">
+      <div className="my-3 overflow-x-auto rounded-xl border border-[var(--border)]">
         <table>{children}</table>
       </div>
     );

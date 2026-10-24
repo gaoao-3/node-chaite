@@ -18,6 +18,7 @@ import { useSessions } from "@/hooks/use-sessions";
 import { isConsoleView, type ConsoleView } from "@/lib/views";
 import type { GatewayPlatform } from "@/lib/types";
 import type { InspectorTab } from "@/components/chat/inspector-drawer";
+import { cn } from "@/lib/utils";
 
 const SIDEBAR_KEY = "chaite.console.sidebar-collapsed";
 
@@ -187,9 +188,8 @@ export function AppShell() {
 
   return (
     <div
-      data-theme={preferences.preferences.theme}
       data-density={preferences.preferences.density}
-      className={preferences.preferences.reduceMotion ? "reduce-motion" : undefined}
+      className={cn("h-full w-full", preferences.preferences.reduceMotion ? "reduce-motion" : undefined)}
     >
       <div className="relative z-10 flex h-dvh w-full overflow-hidden">
         {mobileOpen ? (

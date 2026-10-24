@@ -88,7 +88,7 @@ export function ChatHeader({
   };
 
   return (
-    <header className="relative z-10 flex h-[44px] shrink-0 items-center justify-between border-b border-white/[0.06] bg-[var(--bg)] px-2.5 sm:px-3.5">
+    <header className="relative z-10 flex h-[44px] shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-2.5 sm:px-3.5">
       {/* ── Left Area: Menu toggle, Session Title ── */}
       <div className="flex items-center gap-1.5 min-w-0">
         <button
@@ -96,7 +96,7 @@ export function ChatHeader({
           onClick={onMenu}
           aria-label="切换侧栏"
           title="切换侧栏"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-mist-500 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
         >
           <Menu className="h-4 w-4" />
         </button>
@@ -107,7 +107,7 @@ export function ChatHeader({
             onClick={onCreateSession}
             aria-label="新建会话"
             title="新建会话"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-mist-500 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-colors"
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -180,7 +180,7 @@ export function ChatHeader({
                     <Pencil className="h-2.5 w-2.5" />
                   </button>
 
-                  <span className="rounded bg-black/20 border border-white/[0.06] px-1 py-px font-mono text-[8.5px] uppercase text-mist-500">
+                  <span className="rounded bg-[var(--bg-hover)] border border-[var(--border)] px-1 py-px font-mono text-[8.5px] uppercase text-[var(--text-muted)]">
                     {session.platform}
                   </span>
                 </>
@@ -196,15 +196,15 @@ export function ChatHeader({
           <button
             type="button"
             onClick={onOpenApprovals}
-            className="flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[9.5px] font-medium text-amber-200 hover:bg-amber-400/20 transition-colors"
+            className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9.5px] font-medium text-amber-800 dark:text-amber-200 hover:bg-amber-500/20 transition-colors"
           >
-            <ShieldAlert className="h-3 w-3 text-amber-300" />
+            <ShieldAlert className="h-3 w-3 text-amber-500" />
             <span>{pendingCount} 待审批</span>
           </button>
         ) : null}
 
         {/* Live SSE status pill */}
-        <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-black/10 px-2 py-0.5 text-[9.5px] font-mono text-mist-400">
+        <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-0.5 text-[9.5px] font-mono text-[var(--text-muted)]">
           <span className="relative flex h-1.5 w-1.5">
             {meta.pulse ? (
               <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-60", meta.dot)} />
@@ -223,8 +223,8 @@ export function ChatHeader({
             className={cn(
               "flex h-7 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors",
               inspectorOpen
-                ? "border-accent bg-accent/15 text-accent"
-                : "border-white/[0.08] bg-white/[0.02] text-mist-400 hover:border-white/[0.16] hover:text-mist-100",
+                ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]"
+                : "border-[var(--border)] bg-[var(--bg-panel)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]",
             )}
           >
             <Layers className="h-3.5 w-3.5" />
