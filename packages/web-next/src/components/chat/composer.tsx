@@ -2,14 +2,11 @@
 
 import * as React from "react";
 import {
-  Brain,
-  Check,
   ChevronDown,
   CircleAlert,
   Cpu,
   FileCode,
   Globe,
-  ImageIcon,
   Lightbulb,
   Paperclip,
   SendHorizontal,
@@ -99,7 +96,6 @@ export function Composer({
   const [customModelInput, setCustomModelInput] = React.useState("");
 
   const [webSearchActive, setWebSearchActive] = React.useState(false);
-  const [deepThinkingActive, setDeepThinkingActive] = React.useState(false);
   const [thinkingLevel, setThinkingLevel] = React.useState<ThinkingLevel>("medium");
   const [snippetsOpen, setSnippetsOpen] = React.useState(false);
 

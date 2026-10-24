@@ -28,7 +28,7 @@ export function ThoughtCard({ text, done, createdAt }: ThoughtCardProps) {
     }
   }, [done]);
 
-  const durationSec = Math.max(0.1, (done ? now - createdAt : Date.now() - createdAt) / 1000);
+  const durationSec = Math.max(0.1, (now - createdAt) / 1000);
   const lines = text.split("\n").filter(Boolean).length;
   const estimatedTokens = Math.round(text.length * 1.3);
 

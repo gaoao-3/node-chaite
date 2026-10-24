@@ -8,6 +8,7 @@ import { useAgentSession } from "@/hooks/use-agent-session";
 import type { AgentSessionInfo } from "@/lib/types";
 import { InspectorDrawer, type InspectorTab } from "@/components/chat/inspector-drawer";
 import type { EvolutionData, FusionData } from "@/hooks/use-boards";
+import type { UseApprovalsFeedResult } from "@/hooks/use-approvals-feed";
 
 export interface ChatWorkspaceProps {
   token: string | null;
@@ -23,6 +24,11 @@ export interface ChatWorkspaceProps {
   onCreateSession?: (input?: { platform: "qq" | "dsh" | "web"; title: string; model?: string }) => Promise<AgentSessionInfo | null>;
   fusionData: FusionData;
   evolutionData: EvolutionData;
+  approvalsFeed?: UseApprovalsFeedResult;
+  inspectorOpen?: boolean;
+  onToggleInspector?: () => void;
+  inspectorTab?: InspectorTab;
+  onInspectorTabChange?: (tab: InspectorTab) => void;
 }
 
 export function ChatWorkspace({
@@ -33,12 +39,17 @@ export function ChatWorkspace({
   onUnauthorized,
   onSessionsChanged,
   onRename,
-  onOpenApprovals,
+  onOpenApprovals: _onOpenApprovals,
   onExitPreview,
   autoScroll,
   onCreateSession,
   fusionData,
   evolutionData,
+  approvalsFeed,
+  inspectorOpen: controlledOpen,
+  onToggleInspector: controlledToggle,
+  inspectorTab: controlledTab,
+  onInspectorTabChange: controlledTabChange,
 }: ChatWorkspaceProps) {
   const agent = useAgentSession({
     token,
@@ -47,8 +58,40 @@ export function ChatWorkspace({
     onUnauthorized,
   });
   const [draft, setDraft] = React.useState("");
-  const [inspectorOpen, setInspectorOpen] = React.useState(false);
-  const [inspectorTab, setInspectorTab] = React.useState<InspectorTab>("plugins");
+
+  // Internal inspector drawer state if not controlled
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const [internalTab, setInternalTab] = React.useState<InspectorTab>("plugins");
+
+  const effectiveInspectorOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const effectiveInspectorTab = controlledTab !== undefined ? controlledTab : internalTab;
+
+  const handleToggleInspector = React.useCallback(() => {
+    if (controlledToggle) {
+      controlledToggle();
+    } else {
+      setInternalOpen((v) => !v);
+    }
+  }, [controlledToggle]);
+
+  const handleCloseInspector = React.useCallback(() => {
+    if (controlledToggle && controlledOpen) {
+      controlledToggle();
+    } else {
+      setInternalOpen(false);
+    }
+  }, [controlledOpen, controlledToggle]);
+
+  const handleTabChange = React.useCallback(
+    (tab: InspectorTab) => {
+      if (controlledTabChange) {
+        controlledTabChange(tab);
+      } else {
+        setInternalTab(tab);
+      }
+    },
+    [controlledTabChange],
+  );
 
   React.useEffect(() => {
     setDraft("");
@@ -67,6 +110,7 @@ export function ChatWorkspace({
   const send = React.useCallback(
     async (text: string, options?: ComposerSendOptions) => {
       let finalPrompt = text;
+
       if (options?.attachments && options.attachments.length > 0) {
         const fileBlocks = options.attachments
           .filter(a => a.type === "file" && a.textContent)
@@ -142,22 +186,24 @@ export function ChatWorkspace({
   return (
     <div className="relative z-10 flex min-w-0 flex-1 overflow-hidden">
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 grid-fade opacity-[0.22]" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[240px] w-[560px] -translate-x-1/2 rounded-full bg-violet-500/[0.035] blur-[80px]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.02),transparent_70%)]" />
 
         <ChatHeader
           session={liveSession}
           connection={agent.connection}
-          pendingCount={agent.pendingApprovals.length}
+          pendingCount={approvalsFeed ? approvalsFeed.approvals.length : agent.pendingApprovals.length}
           skillCount={liveSession?.skills.length ?? 0}
           model={liveSession?.model}
           onMenu={onMenu}
           onRename={rename}
           onRefresh={agent.refresh}
-          onOpenApprovals={onOpenApprovals}
+          onOpenApprovals={() => {
+            handleTabChange("approvals");
+            if (!effectiveInspectorOpen) handleToggleInspector();
+          }}
           onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
-          onToggleInspector={() => setInspectorOpen((v) => !v)}
-          inspectorOpen={inspectorOpen}
+          onToggleInspector={handleToggleInspector}
+          inspectorOpen={effectiveInspectorOpen}
         />
 
         <MessageStream
@@ -191,13 +237,14 @@ export function ChatWorkspace({
       </main>
 
       <InspectorDrawer
-        open={inspectorOpen}
-        tab={inspectorTab}
-        onTabChange={setInspectorTab}
-        onClose={() => setInspectorOpen(false)}
+        open={effectiveInspectorOpen}
+        tab={effectiveInspectorTab}
+        onTabChange={handleTabChange}
+        onClose={handleCloseInspector}
         token={token}
         fusionData={fusionData}
         evolutionData={evolutionData}
+        approvalsFeed={approvalsFeed}
         skillCount={liveSession?.skills.length ?? 0}
       />
     </div>

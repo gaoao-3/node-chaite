@@ -260,21 +260,7 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(1000px 600px at 10% -5%, var(--accent), transparent 70%),
-    radial-gradient(900px 500px at 90% 105%, var(--accent), transparent 75%);
-  opacity: 0.035;
-  transition: opacity 0.3s ease;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.015;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.03), transparent 60%);
 }
 
 ::selection {

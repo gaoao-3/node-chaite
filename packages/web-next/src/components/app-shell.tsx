@@ -17,19 +17,17 @@ import { usePreferences } from "@/hooks/use-preferences";
 import { useSessions } from "@/hooks/use-sessions";
 import { isConsoleView, type ConsoleView } from "@/lib/views";
 import type { GatewayPlatform } from "@/lib/types";
+import type { InspectorTab } from "@/components/chat/inspector-drawer";
 
 const SIDEBAR_KEY = "chaite.console.sidebar-collapsed";
 
 function BootScreen() {
   return (
-    <div className="relative flex h-dvh w-full flex-col items-center justify-center gap-4 overflow-hidden">
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.12] blur-[80px]" />
-      <div className="relative animate-float">
-        <BrandMark size={54} />
-      </div>
+    <div className="relative flex h-dvh w-full flex-col items-center justify-center gap-3 overflow-hidden bg-[var(--bg)]">
+      <BrandMark size={42} />
       <BrandLockup compact />
-      <div className="mt-2 h-px w-32 overflow-hidden rounded-full bg-white/[0.06]">
-        <div className="h-full w-1/2 animate-shimmer bg-[linear-gradient(90deg,transparent,rgba(167,139,250,0.9),transparent)]" />
+      <div className="mt-1 h-0.5 w-24 overflow-hidden rounded-full bg-white/[0.06]">
+        <div className="h-full w-1/2 animate-shimmer bg-accent" />
       </div>
     </div>
   );
@@ -43,6 +41,8 @@ export function AppShell() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [newSessionOpen, setNewSessionOpen] = React.useState(false);
+  const [inspectorOpen, setInspectorOpen] = React.useState(false);
+  const [inspectorTab, setInspectorTab] = React.useState<InspectorTab>("plugins");
 
   const { logout } = auth;
   const handleUnauthorized = React.useCallback(() => logout(), [logout]);
@@ -104,7 +104,15 @@ export function AppShell() {
   }, [selectedId, sessionStore.sessions]);
 
   const changeView = React.useCallback((next: ConsoleView) => {
-    setView(next);
+    if (next === "chat") {
+      setView("chat");
+    } else if (next === "settings") {
+      setView("settings");
+    } else if (next === "fusion" || next === "evolution" || next === "approvals") {
+      setView("chat");
+      setInspectorOpen(true);
+      setInspectorTab(next);
+    }
     setMobileOpen(false);
   }, []);
 
@@ -192,6 +200,7 @@ export function AppShell() {
           onViewChange={changeView}
           onRefresh={reconnectAll}
           onLogout={auth.logout}
+          onToggleInspector={() => setInspectorOpen((value) => !value)}
         />
 
         <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -205,11 +214,20 @@ export function AppShell() {
               onUnauthorized={handleUnauthorized}
               onSessionsChanged={() => void sessionStore.refresh({ quiet: true })}
               onRename={renameSession}
-              onOpenApprovals={() => changeView("approvals")}
+              onOpenApprovals={() => {
+                setView("chat");
+                setInspectorOpen(true);
+                setInspectorTab("approvals");
+              }}
               onExitPreview={exitPreview}
               autoScroll={preferences.preferences.autoScroll}
               fusionData={fusion}
               evolutionData={evolution}
+              approvalsFeed={approvalsFeed}
+              inspectorOpen={inspectorOpen}
+              onToggleInspector={() => setInspectorOpen((value) => !value)}
+              inspectorTab={inspectorTab}
+              onInspectorTabChange={setInspectorTab}
             />
           ) : null}
 

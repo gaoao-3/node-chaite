@@ -3,34 +3,31 @@
 import * as React from "react";
 import {
   Check,
-  ChevronDown,
   Cpu,
-  Layers,
   Menu,
   Pencil,
   Plus,
   RefreshCw,
   ShieldAlert,
-  Sparkles,
   X,
 } from "lucide-react";
-import { PlatformBadge } from "@/components/platform-badge";
+import { InstrumentToggleIcon } from "@/components/icons/zen-icons";
 import type { ConnectionState } from "@/hooks/use-agent-session";
 import type { AgentSessionInfo } from "@/lib/types";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const CONNECTION_META: Record<
   ConnectionState,
-  { label: string; dot: string; chip: string; pulse: boolean }
+  { label: string; dot: string; pulse: boolean }
 > = {
-  idle: { label: "Idle", dot: "bg-zinc-600", chip: "text-mist-500", pulse: false },
-  connecting: { label: "Connecting", dot: "bg-cyan-300", chip: "text-cyan-200", pulse: true },
-  live: { label: "Live SSE", dot: "bg-emerald-300", chip: "text-emerald-200", pulse: true },
-  reconnecting: { label: "Reconnecting", dot: "bg-amber-300", chip: "text-amber-200", pulse: true },
-  offline: { label: "Offline", dot: "bg-rose-400", chip: "text-rose-300", pulse: false },
-  unauthorized: { label: "Auth lost", dot: "bg-rose-400", chip: "text-rose-300", pulse: false },
-  error: { label: "Stream error", dot: "bg-rose-400", chip: "text-rose-300", pulse: false },
-  preview: { label: "Preview", dot: "bg-violet-300", chip: "text-violet-200", pulse: false },
+  idle: { label: "Idle", dot: "bg-zinc-600", pulse: false },
+  connecting: { label: "Connecting", dot: "bg-cyan-400", pulse: true },
+  live: { label: "Live", dot: "bg-emerald-400", pulse: true },
+  reconnecting: { label: "Reconnecting", dot: "bg-amber-400", pulse: true },
+  offline: { label: "Offline", dot: "bg-rose-400", pulse: false },
+  unauthorized: { label: "Auth lost", dot: "bg-rose-400", pulse: false },
+  error: { label: "Stream error", dot: "bg-rose-400", pulse: false },
+  preview: { label: "Preview", dot: "bg-purple-400", pulse: false },
 };
 
 export interface ChatHeaderProps {
@@ -52,7 +49,7 @@ export function ChatHeader({
   session,
   connection,
   pendingCount,
-  skillCount,
+  skillCount: _skillCount,
   model,
   onMenu,
   onToggleInspector,
@@ -93,183 +90,164 @@ export function ChatHeader({
   };
 
   return (
-    <header className="glass relative z-10 flex h-[68px] shrink-0 items-center gap-3 border-b border-white/[0.06] px-3.5 sm:px-5">
-      <button
-        type="button"
-        onClick={onMenu}
-        aria-label="切换侧边栏"
-        title="切换侧边栏"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100"
-      >
-        <Menu className="h-4 w-4" />
-      </button>
-
-      {onCreateSession ? (
+    <header className="relative z-10 flex h-[52px] shrink-0 items-center justify-between border-b border-white/[0.06] bg-[var(--bg-panel)] px-3 sm:px-4">
+      {/* ── Left Area: Menu toggle, Session Title, Platform Pill ── */}
+      <div className="flex items-center gap-2 min-w-0">
         <button
           type="button"
-          onClick={onCreateSession}
-          aria-label="新建会话"
-          title="新建会话"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.03] text-mist-400 transition-colors hover:bg-white/[0.06] hover:text-mist-100"
+          onClick={onMenu}
+          aria-label="切换侧栏"
+          title="切换侧栏"
+          className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
         >
-          <Plus className="h-4 w-4" />
+          <Menu className="h-4 w-4" />
         </button>
-      ) : null}
 
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        {onCreateSession ? (
+          <button
+            type="button"
+            onClick={onCreateSession}
+            aria-label="新建会话"
+            title="新建会话"
+            className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-mist-400 hover:bg-white/[0.06] hover:text-mist-100 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        ) : null}
+
+        <div className="flex items-center gap-2 min-w-0">
           {editing ? (
-            <div className="flex min-w-0 items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <input
                 ref={inputRef}
                 value={value}
-                onChange={(event) => setValue(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
                     void commit();
                   }
-                  if (event.key === "Escape") {
+                  if (e.key === "Escape") {
                     setEditing(false);
                     setValue(session?.title ?? "");
                   }
                 }}
                 onBlur={() => void commit()}
                 maxLength={80}
-                className="h-7 min-w-0 rounded-md border border-violet-300/25 bg-black/30 px-2 text-[13px] font-semibold text-mist-100 outline-none"
+                className="h-6.5 rounded border border-accent bg-black/40 px-2 font-medium text-[13px] text-mist-100 outline-none"
               />
               <button
                 type="button"
-                onMouseDown={(event) => event.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void commit()}
-                aria-label="保存标题"
-                className="flex h-6 w-6 items-center justify-center rounded-md text-emerald-300 hover:bg-emerald-300/10"
+                className="flex h-6 w-6 items-center justify-center rounded text-emerald-400 hover:bg-emerald-500/15"
               >
                 {saving ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
               </button>
               <button
                 type="button"
-                onMouseDown={(event) => event.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   setEditing(false);
                   setValue(session?.title ?? "");
                 }}
-                aria-label="取消重命名"
-                className="flex h-6 w-6 items-center justify-center rounded-md text-mist-500 hover:bg-white/[0.06]"
+                className="flex h-6 w-6 items-center justify-center rounded text-mist-500 hover:bg-white/[0.06]"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3 w-3" />
               </button>
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-1.5 min-w-0 group">
               <h1
-                onClick={() => { if (session) setEditing(true); }}
+                onClick={() => {
+                  if (session) setEditing(true);
+                }}
                 className={cn(
-                  "min-w-0 truncate text-[14px] font-semibold tracking-[-0.02em] text-mist-100",
-                  session && "cursor-pointer hover:text-mist-200 transition-colors"
+                  "truncate text-[13px] font-semibold text-mist-100",
+                  session && "cursor-pointer hover:text-accent transition-colors",
                 )}
-                title={session ? "点击编辑会话标题" : undefined}
+                title={session ? "点击编辑标题" : undefined}
               >
                 {session?.title || "未选择会话"}
               </h1>
-              {session ? (
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  aria-label="重命名会话"
-                  title="重命名会话"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-mist-600 transition-colors hover:bg-white/[0.06] hover:text-mist-200"
-                >
-                  <Pencil className="h-3 w-3" />
-                </button>
-              ) : null}
-            </>
-          )}
-        </div>
 
-        <div className="mt-1 flex min-w-0 items-center gap-2 text-[9.5px] text-mist-600">
-          {session ? (
-            <>
-              <PlatformBadge platform={session.platform} size="xs" />
-              <span className="hidden truncate font-mono text-[9px] text-mist-600 sm:inline">
-                {session.botId}
-              </span>
-              <span className="hidden text-mist-700 sm:inline">·</span>
-              <span className="hidden items-center gap-1 sm:inline-flex">
-                <Cpu className="h-2.5 w-2.5" />
-                <span className="max-w-44 truncate font-mono text-[9px]">{model || session.model || "auto"}</span>
-              </span>
-              {skillCount > 0 ? (
-                <span className="hidden items-center gap-1 md:inline-flex">
-                  <Sparkles className="h-2.5 w-2.5 text-violet-300/60" />
-                  <span>{skillCount} skills</span>
-                </span>
+              {session ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    title="重命名会话"
+                    className="opacity-0 group-hover:opacity-100 text-mist-500 hover:text-mist-200 transition-opacity"
+                  >
+                    <Pencil className="h-2.5 w-2.5" />
+                  </button>
+
+                  <span className="rounded bg-black/30 border border-white/[0.06] px-1.5 py-0.5 font-mono text-[8.5px] uppercase text-mist-500">
+                    {session.platform}
+                  </span>
+                </>
               ) : null}
-              <span className="hidden text-mist-700 lg:inline">·</span>
-              <span className="hidden text-mist-600 lg:inline">{formatRelativeTime(session.lastActiveAt)}活跃</span>
-            </>
-          ) : (
-            <span>从左侧选择一个会话</span>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5">
+      {/* ── Right Area: Approvals, Live SSE, Model Pill, Inspector Toggle ── */}
+      <div className="flex items-center gap-2 shrink-0">
         {pendingCount > 0 ? (
           <button
             type="button"
             onClick={onOpenApprovals}
-            className="hidden items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/[0.08] px-2.5 py-1 text-[10px] font-medium text-amber-100 transition-colors hover:bg-amber-300/[0.14] sm:inline-flex"
+            className="flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-0.5 text-[9.5px] font-medium text-amber-200 hover:bg-amber-400/20 transition-colors"
           >
-            <ShieldAlert className="h-3 w-3" />
-            {pendingCount} 待审批
-            <ChevronDown className="h-2.5 w-2.5 -rotate-90" />
+            <ShieldAlert className="h-3 w-3 text-amber-300" />
+            <span>{pendingCount} 待审批</span>
           </button>
         ) : null}
 
-        <div
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.025] px-2.5 py-1 text-[10px] font-medium",
-            meta.chip,
-          )}
-          title={`SSE: /api/agent/sessions/${session?.id ?? ":id"}/events`}
-        >
+        {/* Live SSE status pill */}
+        <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-white/[0.06] bg-black/20 px-2 py-0.5 text-[9.5px] font-mono text-mist-400">
           <span className="relative flex h-1.5 w-1.5">
             {meta.pulse ? (
-              <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-50", meta.dot)} />
+              <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-60", meta.dot)} />
             ) : null}
             <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", meta.dot)} />
           </span>
-          <span className="hidden sm:inline">{meta.label}</span>
+          <span>{meta.label}</span>
         </div>
 
-        <button
-          type="button"
-          onClick={onRefresh}
-          aria-label="重新连接事件流"
-          title="重新连接事件流"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-mist-600 transition-colors hover:bg-white/[0.055] hover:text-mist-200"
-        >
-          <RefreshCw className="h-3.5 w-3.5" />
-        </button>
+        {/* Current Model */}
+        <div className="hidden md:flex items-center gap-1 rounded-lg border border-white/[0.06] bg-black/20 px-2 py-0.5 text-[10px] font-mono text-mist-400">
+          <Cpu className="h-2.5 w-2.5 text-accent" />
+          <span className="max-w-[120px] truncate">{model || session?.model || "auto"}</span>
+        </div>
 
+        {/* Inspector toggle button */}
         {onToggleInspector ? (
           <button
             type="button"
             onClick={onToggleInspector}
-            aria-label="资产与协同抽屉"
-            title="打开资产与协同抽屉 (插件、网关、Fusion、自进化)"
+            title={inspectorOpen ? "收起协同抽屉" : "展开协同抽屉 (网关、插件、Fusion、自进化)"}
             className={cn(
-              "flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-medium transition-colors",
+              "flex h-7.5 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-medium transition-colors",
               inspectorOpen
-                ? "border-accent bg-accent/15 text-accent shadow-sm"
-                : "border-white/[0.08] bg-white/[0.03] text-mist-400 hover:border-white/[0.16] hover:text-mist-100"
+                ? "border-accent bg-accent/15 text-accent shadow-xs"
+                : "border-white/[0.08] bg-white/[0.02] text-mist-400 hover:border-white/[0.16] hover:text-mist-100",
             )}
           >
-            <Layers className="h-3.5 w-3.5 text-accent" />
-            <span className="hidden sm:inline">协同抽屉</span>
+            <InstrumentToggleIcon size={14} className={inspectorOpen ? "text-accent" : "text-mist-400"} />
+            <span className="hidden sm:inline">协同面板</span>
           </button>
         ) : null}
+
+        <button
+          type="button"
+          onClick={onRefresh}
+          title="刷新连接"
+          className="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.02] text-mist-500 hover:text-mist-200 transition-colors"
+        >
+          <RefreshCw className="h-3 w-3" />
+        </button>
       </div>
     </header>
   );

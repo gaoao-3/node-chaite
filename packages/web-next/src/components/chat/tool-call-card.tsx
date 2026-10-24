@@ -10,7 +10,6 @@ import {
   Globe2,
   SquareTerminal,
   Wrench,
-  type LucideIcon,
 } from "lucide-react";
 import {
   SpineRunningIcon,
@@ -24,7 +23,9 @@ import { TOOL_STATUS_META } from "@/lib/platform";
 import type { ToolCallState } from "@/lib/timeline";
 import { cn, formatDuration, safeJson, tryParseJson } from "@/lib/utils";
 
-const TOOL_ICONS: { match: RegExp; icon: any }[] = [
+type IconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
+
+const TOOL_ICONS: { match: RegExp; icon: IconComponent }[] = [
   { match: /^hash_/i, icon: HashlineCodeIcon },
   { match: /query_action/i, icon: DatabaseZap },
   { match: /web|search|browse/i, icon: Globe2 },
@@ -33,7 +34,7 @@ const TOOL_ICONS: { match: RegExp; icon: any }[] = [
   { match: /read|file|fs/i, icon: FileSearch },
 ];
 
-function toolIcon(name: string): any {
+function toolIcon(name: string): IconComponent {
   return TOOL_ICONS.find((entry) => entry.match.test(name))?.icon ?? Wrench;
 }
 
