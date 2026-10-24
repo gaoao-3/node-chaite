@@ -253,6 +253,7 @@ export function AppShell() {
               onLogout={auth.logout}
               onReconnect={reconnectAll}
               onMenu={toggleSidebar}
+              onBack={() => setView("chat")}
             />
           ) : null}
         </div>
