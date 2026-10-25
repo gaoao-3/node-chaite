@@ -108,6 +108,12 @@ export function ChatWorkspace({
     setDraft("");
   }, [session?.id]);
 
+  React.useEffect(() => {
+    if (!agent.view.isStreaming) {
+      void fusionData.refresh();
+    }
+  }, [agent.view.isStreaming, fusionData]);
+
   const liveSession = React.useMemo<AgentSessionInfo | null>(() => {
     if (preview && agent.view.session) return agent.view.session;
     if (!agent.view.session) return session;
@@ -141,6 +147,9 @@ export function ChatWorkspace({
       }
       if (options?.webSearch) {
         finalPrompt = `[联网搜索模式: 请检索互联网最新信息] ${finalPrompt}`;
+      }
+      if (options?.fusionMode) {
+        finalPrompt = `[双星协同模式: 请由主脑制定架构方案与验收条件，并必须调用 delegate_fusion_task 工具委派副手模型执行代码并生成 Diff 补丁进行交叉审计] ${finalPrompt}`;
       }
 
       const imageAttachments = options?.attachments

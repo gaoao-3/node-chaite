@@ -7,6 +7,7 @@ import {
   CircleAlert,
   FileCode,
   Square,
+  GitCompare,
   X,
 } from "lucide-react";
 import {
@@ -35,6 +36,7 @@ export interface ComposerSendOptions {
   deepThinking?: boolean;
   thinkingLevel?: ThinkingLevel;
   attachments?: AttachmentItem[];
+  fusionMode?: boolean;
 }
 
 export interface ComposerProps {
@@ -92,6 +94,7 @@ export function Composer({
   const [webSearchActive, setWebSearchActive] = React.useState(false);
   const [deepThinkingActive, setDeepThinkingActive] = React.useState(false);
   const [thinkingLevel, setThinkingLevel] = React.useState<ThinkingLevel>("medium");
+  const [fusionModeActive, setFusionModeActive] = React.useState(false);
 
   const [usageOpen, setUsageOpen] = React.useState(false);
   const usageMenuRef = React.useRef<HTMLDivElement>(null);
@@ -159,6 +162,7 @@ export function Composer({
       deepThinking: deepThinkingActive,
       thinkingLevel,
       attachments: currentAttachments,
+      fusionMode: fusionModeActive,
     });
   };
 
@@ -444,6 +448,20 @@ export function Composer({
               >
                 <GlobeWireIcon size={12} />
                 <span className="hidden sm:inline">联网</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFusionModeActive((v) => !v)}
+                title="双星协同 (主脑架构师规划 + 副手模型执行生成 Diff 交叉审查)"
+                className={cn(
+                  "flex h-8 items-center gap-1 rounded-[10px] border px-2 text-[11px] font-medium transition-colors",
+                  fusionModeActive
+                    ? "border-purple-500/40 bg-purple-500/15 text-purple-700 dark:text-purple-300 font-semibold"
+                    : "border-[var(--border)] bg-[var(--bg-subtle,rgba(127,127,127,0.04))] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
+                )}
+              >
+                <GitCompare className="h-3 w-3 shrink-0" />
+                <span className="hidden sm:inline">双星</span>
               </button>
             </div>
           </div>

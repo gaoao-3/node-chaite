@@ -4,11 +4,13 @@ import * as React from "react";
 import {
   Check,
   ChevronDown,
+  ChevronRight,
   Clock3,
   Copy,
   DatabaseZap,
   FileCode2,
   FileSearch,
+  GitCompare,
   Globe2,
   ListTree,
   SquareTerminal,
@@ -30,6 +32,7 @@ import { cn, formatDuration, safeJson, tryParseJson } from "@/lib/utils";
 type IconComponent = React.ComponentType<{ size?: number | string; className?: string }>;
 
 const TOOL_ICONS: { match: RegExp; icon: IconComponent }[] = [
+  { match: /delegate_fusion_task|fusion/i, icon: GitCompare },
   { match: /^hash_/i, icon: HashlineCodeIcon },
   { match: /query_action/i, icon: DatabaseZap },
   { match: /web|search|browse/i, icon: Globe2 },
@@ -96,9 +99,25 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
   const result = pretty(call.resultPreview);
   const Icon = getToolIcon(call.name);
   const meta = TOOL_STATUS_META[call.status] ?? TOOL_STATUS_META.running;
+  const isFusion = call.name === "delegate_fusion_task";
+  const parsedFusion = React.useMemo(() => {
+    if (!isFusion || !call.resultPreview) return null;
+    try {
+      const obj = tryParseJson(call.resultPreview) as any;
+      if (obj && typeof obj === "object" && (obj.diff || obj.sidekickSummary || obj.reviewerDecision)) {
+        return obj;
+      }
+    } catch {}
+    return null;
+  }, [isFusion, call.resultPreview]);
 
   return (
-    <div className="rounded-[7px] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.04)] overflow-hidden transition-colors">
+    <div className={cn(
+      "rounded-[7px] border overflow-hidden transition-colors",
+      isFusion
+        ? "border-purple-500/30 bg-purple-500/[0.04]"
+        : "border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.04)]"
+    )}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -110,8 +129,11 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
           </span>
         ) : null}
 
-        <span className="truncate font-mono text-[11px] font-semibold text-[#16a34a]">
-          {call.name}
+        <span className={cn(
+          "truncate font-mono text-[11px] font-semibold",
+          isFusion ? "text-purple-700 dark:text-purple-300" : "text-[#16a34a]"
+        )}>
+          {isFusion ? "双星协同 (Sidekick)" : call.name}
         </span>
         <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-[var(--text-dim)]">
           {call.argsPreview}
@@ -120,6 +142,12 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
         {call.name.startsWith("hash_") ? (
           <span className="rounded border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-1 font-mono text-[8.5px] text-[var(--accent)]">
             hashline
+          </span>
+        ) : null}
+
+        {isFusion ? (
+          <span className="rounded border border-purple-500/30 bg-purple-500/10 px-1 font-mono text-[8.5px] text-purple-700 dark:text-purple-300 font-semibold">
+            fusion
           </span>
         ) : null}
 
@@ -157,33 +185,96 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
             </div>
           ) : null}
 
-          <div>
-            <div className="mb-1 flex items-center justify-between text-[9px] font-mono text-[var(--text-dim)] uppercase">
-              <span>返回结果 (Result)</span>
-              {result ? <CopyButton value={result} label="复制" /> : null}
+          {parsedFusion && (parsedFusion.diff || parsedFusion.sidekickSummary) ? (
+            <div className="space-y-2 pt-0.5">
+              <div className="rounded-lg border border-purple-500/25 bg-purple-500/[0.04] p-2.5 space-y-2 text-[11px]">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-purple-900 dark:text-purple-300 flex items-center gap-1">
+                    <GitCompare className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>副手模型执行产物</span>
+                  </span>
+                  {parsedFusion.status ? (
+                    <span className="rounded bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.2 font-mono text-[8.5px] uppercase text-emerald-700 dark:text-emerald-300 font-semibold">
+                      ✓ {parsedFusion.status}
+                    </span>
+                  ) : null}
+                </div>
+
+                {parsedFusion.sidekickSummary ? (
+                  <p className="text-[11px] text-[var(--text)] leading-relaxed whitespace-pre-wrap">{parsedFusion.sidekickSummary}</p>
+                ) : null}
+
+                {/* Diff Viewer */}
+                {parsedFusion.diff ? (
+                  <div className="pt-1">
+                    <div className="flex items-center justify-between mb-1 font-mono text-[9.5px]">
+                      <span className="text-[var(--accent)] font-semibold">Unified Diff 代码补丁:</span>
+                      <CopyButton value={parsedFusion.diff} label="复制 Diff" />
+                    </div>
+                    <div className="max-h-60 overflow-auto rounded-md border border-[var(--border)] bg-[var(--bg)] p-2 font-mono text-[9.5px] leading-relaxed">
+                      {parsedFusion.diff.split("\n").map((line: string, idx: number) => (
+                        <div
+                          key={idx}
+                          className={cn(
+                            "px-1 py-0.2 rounded-xs",
+                            line.startsWith("+")
+                              ? "text-emerald-700 dark:text-emerald-300 bg-emerald-500/10"
+                              : line.startsWith("-")
+                                ? "text-rose-700 dark:text-rose-300 bg-rose-500/10"
+                                : "text-[var(--text)]"
+                          )}
+                        >
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Reviewer Section */}
+                {parsedFusion.reviewerDecision ? (
+                  <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 dark:bg-purple-500/[0.08] p-2.5 text-[10.5px]">
+                    <div className="font-semibold text-purple-900 dark:text-purple-300">
+                      主脑架构师评审: {parsedFusion.reviewerDecision}
+                    </div>
+                    {parsedFusion.reviewerSummary ? (
+                      <div className="mt-0.5 text-purple-950/80 dark:text-purple-200/90 text-[10px] leading-relaxed">
+                        {parsedFusion.reviewerSummary}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
-            {call.error ? (
-              <div className="rounded-md border border-rose-500/25 bg-rose-500/10 p-2 text-rose-700 dark:text-rose-300 font-mono text-[10.5px]">
-                {call.error.code ? <div className="font-bold">{call.error.code}</div> : null}
-                <div>{call.error.message}</div>
+          ) : (
+            <div>
+              <div className="mb-1 flex items-center justify-between text-[9px] font-mono text-[var(--text-dim)] uppercase">
+                <span>返回结果 (Result)</span>
+                {result ? <CopyButton value={result} label="复制" /> : null}
               </div>
-            ) : result ? (
-              <pre
-                className={cn(
-                  "max-h-48 overflow-auto rounded-md border border-[var(--border)] bg-[var(--bg-panel)] p-2 font-mono text-[10.5px] text-[var(--text)] leading-relaxed",
-                  call.status === "failed" && "text-rose-700 dark:text-rose-300",
-                )}
-              >
-                {result}
-              </pre>
-            ) : active ? (
-              <div className="text-[10px] text-cyan-600 dark:text-cyan-400 animate-pulse font-mono py-1">
-                执行中，等待输出…
-              </div>
-            ) : (
-              <div className="text-[10px] text-[var(--text-dim)] font-mono py-1">无返回内容</div>
-            )}
-          </div>
+              {call.error ? (
+                <div className="rounded-md border border-rose-500/25 bg-rose-500/10 p-2 text-rose-700 dark:text-rose-300 font-mono text-[10.5px]">
+                  {call.error.code ? <div className="font-bold">{call.error.code}</div> : null}
+                  <div>{call.error.message}</div>
+                </div>
+              ) : result ? (
+                <pre
+                  className={cn(
+                    "max-h-48 overflow-auto rounded-md border border-[var(--border)] bg-[var(--bg-panel)] p-2 font-mono text-[10.5px] text-[var(--text)] leading-relaxed",
+                    call.status === "failed" && "text-rose-700 dark:text-rose-300",
+                  )}
+                >
+                  {result}
+                </pre>
+              ) : active ? (
+                <div className="text-[10px] text-cyan-600 dark:text-cyan-400 animate-pulse font-mono py-1">
+                  执行中，等待输出…
+                </div>
+              ) : (
+                <div className="text-[10px] text-[var(--text-dim)] font-mono py-1">无返回内容</div>
+              )}
+            </div>
+          )}
         </div>
       ) : null}
     </div>

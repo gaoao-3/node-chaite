@@ -145,6 +145,28 @@ function normalizeTests(value: unknown): FusionTestResult[] | undefined {
 
 function cloneSpec(raw: Record<string, unknown>, now: () => number, idFactory: () => string): Record<string, unknown> {
   const spec: Record<string, unknown> = { ...raw }
+
+  // 兼容前端/上层可能传入的 camelCase 字段
+  if (spec.taskId && !spec.task_id) spec.task_id = spec.taskId
+  if (spec.sessionId && !spec.session_id) spec.session_id = spec.sessionId
+  if (spec.parentTaskId && !spec.parent_task_id) spec.parent_task_id = spec.parentTaskId
+  if (spec.parentRunId && !spec.parent_run_id) spec.parent_run_id = spec.parentRunId
+  if (spec.targetTools && !spec.target_tools) spec.target_tools = spec.targetTools
+  if (spec.diffSchema && !spec.diff_schema) spec.diff_schema = spec.diffSchema
+  if (spec.reviewCriteria && !spec.review_criteria) spec.review_criteria = spec.reviewCriteria
+  if (spec.createdAt && !spec.created_at) spec.created_at = spec.createdAt
+  if (spec.deadlineAt && !spec.deadline_at) spec.deadline_at = spec.deadlineAt
+
+  if (isRecord(spec.diff_schema)) {
+    const diff = { ...spec.diff_schema }
+    if (diff.pathScope && !diff.path_scope) diff.path_scope = diff.pathScope
+    if (diff.requiredFields && !diff.required_fields) diff.required_fields = diff.requiredFields
+    if (diff.maxFiles && !diff.max_files) diff.max_files = diff.maxFiles
+    if (diff.maxChangedLines && !diff.max_changed_lines) diff.max_changed_lines = diff.maxChangedLines
+    if (diff.allowBinary !== undefined && diff.allow_binary === undefined) diff.allow_binary = diff.allowBinary
+    spec.diff_schema = diff
+  }
+
   if (typeof spec.task_id !== 'string' || spec.task_id.trim() === '') {
     spec.task_id = idFactory()
   }

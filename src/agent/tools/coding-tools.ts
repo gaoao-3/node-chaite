@@ -353,12 +353,12 @@ export function createCodingTools(options: CodingToolsOptions = {}): Tool[] {
       }))
 
       options.fusionService.create({
-        taskId,
-        sessionId: 'web:active_session',
+        task_id: taskId,
+        session_id: 'web:active_session',
         instruction,
-        targetTools: [{ name: 'write_file', source: 'builtin', required: true }],
-        diffSchema: { format: 'unified_diff', pathScope },
-        reviewCriteria: criteria,
+        target_tools: [{ name: 'write_file', source: 'builtin', required: true }],
+        diff_schema: { format: 'unified_diff', path_scope: pathScope },
+        review_criteria: criteria,
       })
 
       const finalRecord = await runner.runTask(taskId)
