@@ -17,15 +17,15 @@ import * as path from 'node:path'
 
 const CONFIG = {
   wsUrl: process.env.ONEBOT_WS_URL || 'ws://127.0.0.1:3001',
-  wsToken: process.env.ONEBOT_WS_TOKEN || '7m51-6aOcSzlv4JO_NId9Vlj2WcRVEh5SkBSlUT6nPk',
+  wsToken: process.env.ONEBOT_WS_TOKEN || '',
   httpUrl: process.env.ONEBOT_HTTP_URL || 'http://127.0.0.1:3004',
-  httpToken: process.env.ONEBOT_HTTP_TOKEN || 'X4PmQtXLnLNgT4hHstI7B1aSpivoB_PQBNX-onzdgQM',
-  botQq: process.env.BOT_QQ || '1579989279',
+  httpToken: process.env.ONEBOT_HTTP_TOKEN || '',
+  botQq: process.env.BOT_QQ || '',
   botName: '凯伊',
-  ownerQq: process.env.OWNER_QQ || '3094274628',
-  mcpServerPath: process.env.SNOWLUMA_MCP_PATH || '/home/hina/数据盘/persona/node_modules/@snowluma/mcp/dist/server.js',
+  ownerQq: process.env.OWNER_QQ || '',
+  mcpServerPath: process.env.SNOWLUMA_MCP_PATH || '',
   llmBaseUrl: process.env.LLM_BASE_URL || 'http://127.0.0.1:3000/v1',
-  llmApiKey: process.env.LLM_API_KEY || 'cpa-key-30942',
+  llmApiKey: process.env.LLM_API_KEY || '',
   llmModel: process.env.LLM_MODEL || 'gemini-3.8-flash-high',
   skillsCandidateDir: path.resolve(process.cwd(), 'skills/candidates'),
 }

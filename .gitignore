@@ -9,3 +9,7 @@ packages/web-next/.next/
 packages/web-next/node_modules/
 packages/web-next/web-next.log
 data/
+*.log
+*.tmp
+.env*
+!frontend/.env.example

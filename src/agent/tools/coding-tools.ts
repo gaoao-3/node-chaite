@@ -326,6 +326,10 @@ export function createCodingTools(options: CodingToolsOptions = {}): Tool[] {
             items: { type: 'string', description: '验收条件文本' },
             description: '主脑验收标准列表，例如 ["包含完整的单元测试", "编译通过无报错"]',
           },
+          sidekickModel: {
+            type: 'string',
+            description: '可选：指定具体的副手执行模型标识，如 "deepseek-v4.1-flash" 或 "gemini-3.8-flash-high"',
+          },
         },
         required: ['instruction'],
       },
@@ -342,8 +346,11 @@ export function createCodingTools(options: CodingToolsOptions = {}): Tool[] {
         })
       }
 
+      const sidekickModel = typeof args['sidekickModel'] === 'string' && args['sidekickModel'].trim()
+        ? String(args['sidekickModel']).trim()
+        : undefined
       const taskId = `fusion_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-      const runner = new FusionRunner({ fusionService: options.fusionService })
+      const runner = new FusionRunner({ fusionService: options.fusionService, sidekickModel })
 
       const criteria = criteriaList.map((c, i) => ({
         id: `criterion_${i + 1}`,
@@ -356,6 +363,7 @@ export function createCodingTools(options: CodingToolsOptions = {}): Tool[] {
         task_id: taskId,
         session_id: 'web:active_session',
         instruction,
+        sidekick: sidekickModel,
         target_tools: [{ name: 'write_file', source: 'builtin', required: true }],
         diff_schema: { format: 'unified_diff', path_scope: pathScope },
         review_criteria: criteria,

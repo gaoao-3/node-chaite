@@ -31,7 +31,7 @@ export async function ensureDefaultPresetAndChannel(
 
   const clientOptions = new BaseClientOptions({
     baseUrl: process.env.LLM_BASE_URL || 'http://127.0.0.1:3000/v1',
-    apiKey: process.env.LLM_API_KEY || 'cpa-key-30942',
+    apiKey: process.env.LLM_API_KEY || '',
     tools: builtinTools,
   })
 

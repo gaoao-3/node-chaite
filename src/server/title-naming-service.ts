@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: TitleNamingConfig = {
   enabled: true,
   model: process.env.TITLE_MODEL || 'gemini-3.8-flash-high',
   baseUrl: process.env.TITLE_BASE_URL || process.env.LLM_BASE_URL || 'http://127.0.0.1:3000/v1',
-  apiKey: process.env.TITLE_API_KEY || process.env.LLM_API_KEY || 'cpa-key-30942',
+  apiKey: process.env.TITLE_API_KEY || process.env.LLM_API_KEY || '',
   timeoutMs: 12_000,
   maxChars: 24,
 }
