@@ -7,7 +7,7 @@ import { ChatEmptyState } from "@/components/chat/empty-state";
 import { AssistantMessage, ErrorNotice, UserMessage } from "@/components/chat/messages";
 import { ThoughtCard } from "@/components/chat/thought-card";
 import { ToolCallGroup } from "@/components/chat/tool-call-group";
-import { Skeleton } from "@/components/ui/spinner";
+
 import type { ConnectionState } from "@/hooks/use-agent-session";
 import type { ApprovalState, StreamView } from "@/lib/timeline";
 import type { HumanApprovalOption } from "@/lib/types";
@@ -26,24 +26,12 @@ interface MessageStreamProps {
   autoScroll?: boolean;
 }
 
-function LoadingSkeleton() {
+function LoadingIndicator() {
   return (
-    <div className="mx-auto w-full max-w-[var(--chat-content-max-width,820px)] space-y-7 py-8">
-      <div className="flex justify-end gap-3">
-        <div className="space-y-2">
-          <Skeleton className="ml-auto h-3 w-24" />
-          <Skeleton className="h-16 w-[300px] rounded-2xl" />
-        </div>
-        <Skeleton className="h-7 w-7 rounded-full" />
-      </div>
-      <div className="flex gap-3">
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[82%]" />
-          <Skeleton className="h-24 w-full rounded-xl" />
-        </div>
+    <div className="flex flex-1 flex-col items-center justify-center py-24 text-[var(--text-dim)] font-mono text-[12px] animate-fade-in select-none">
+      <div className="flex items-center gap-2">
+        <span className="h-1.5 w-1.5 animate-ping rounded-full bg-[var(--accent)]" />
+        <span className="font-sans font-medium text-[var(--text-muted)]">正在载入会话…</span>
       </div>
     </div>
   );
@@ -208,7 +196,7 @@ export function MessageStream({
         ) : null}
 
         {loading && totalItems === 0 ? (
-          <LoadingSkeleton />
+          <LoadingIndicator />
         ) : totalItems === 0 ? (
           <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
         ) : (

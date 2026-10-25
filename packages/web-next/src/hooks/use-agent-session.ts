@@ -172,6 +172,9 @@ export function useAgentSession({
       return;
     }
 
+    // 每次切换会话，立即重置视图，杜绝上一个会话的 lastSeq 污染新会话的 since 请求！
+    replaceView(createInitialStreamView());
+
     let stopped = false;
     let closed = false;
     let resetPending = true;
@@ -180,6 +183,7 @@ export function useAgentSession({
     let controller: AbortController | null = null;
     let retryTimer: number | null = null;
     let watchdog: number | null = null;
+    let safetyLoadingTimer: number | null = null;
     let raf: number | null = null;
     const seen = new Set<number>();
     const queue: QueueEntry[] = [];
@@ -187,6 +191,11 @@ export function useAgentSession({
     setLoading(true);
     setError(null);
     setConnection("connecting");
+
+    // 2.5 秒保底：绝不允许界面无限卡在加载态！
+    safetyLoadingTimer = window.setTimeout(() => {
+      if (!stopped) setLoading(false);
+    }, 2500);
 
     const flush = () => {
       raf = null;
@@ -394,6 +403,7 @@ export function useAgentSession({
       if (raf !== null) window.cancelAnimationFrame(raf);
       if (retryTimer !== null) window.clearTimeout(retryTimer);
       if (watchdog !== null) window.clearInterval(watchdog);
+      if (safetyLoadingTimer !== null) window.clearTimeout(safetyLoadingTimer);
       controller?.abort();
     };
   }, [commit, enabled, preview, reconnectKey, replaceView, sessionId, token]);
