@@ -12,6 +12,10 @@ import {
   reviewEvolutionTrace,
   updateFusionStatus,
   executeFusionTask,
+  deleteFusionTask,
+  clearFusionTasks,
+  deleteEvolutionTrace,
+  clearEvolutionTraces,
 } from "@/lib/api";
 import type {
   EvolutionStats,
@@ -33,6 +37,8 @@ export interface FusionData {
   refresh: () => Promise<void>;
   advance: (taskId: string, status: string) => Promise<boolean>;
   execute: (taskId: string) => Promise<boolean>;
+  remove: (taskId: string) => Promise<boolean>;
+  clear: () => Promise<boolean>;
 }
 
 export function useFusionData(token: string | null, onUnauthorized?: () => void): FusionData {
@@ -125,7 +131,42 @@ export function useFusionData(token: string | null, onUnauthorized?: () => void)
     [load],
   );
 
-  return { tasks, stats, loading, refreshing, error, refresh: () => load(true), advance, execute };
+  const remove = useCallback(
+    async (taskId: string) => {
+      if (!tokenRef.current) return false;
+      try {
+        await deleteFusionTask(tokenRef.current, taskId);
+        await load(true);
+        return true;
+      } catch (caught) {
+        if (caught instanceof UnauthorizedError) {
+          authRef.current?.();
+          return false;
+        }
+        setError(messageOf(caught, "删除任务失败"));
+        return false;
+      }
+    },
+    [load],
+  );
+
+  const clear = useCallback(async () => {
+    if (!tokenRef.current) return false;
+    try {
+      await clearFusionTasks(tokenRef.current);
+      await load(true);
+      return true;
+    } catch (caught) {
+      if (caught instanceof UnauthorizedError) {
+        authRef.current?.();
+        return false;
+      }
+      setError(messageOf(caught, "清空任务失败"));
+      return false;
+    }
+  }, [load]);
+
+  return { tasks, stats, loading, refreshing, error, refresh: () => load(true), advance, execute, remove, clear };
 }
 
 export interface EvolutionData {
@@ -137,6 +178,8 @@ export interface EvolutionData {
   refresh: () => Promise<void>;
   review: (traceId: string, action: "approve" | "reject") => Promise<boolean>;
   merge: (traceId: string) => Promise<boolean>;
+  remove: (traceId: string) => Promise<boolean>;
+  clear: () => Promise<boolean>;
 }
 
 export function useEvolutionData(token: string | null, onUnauthorized?: () => void): EvolutionData {
@@ -229,6 +272,41 @@ export function useEvolutionData(token: string | null, onUnauthorized?: () => vo
     [load],
   );
 
+  const remove = useCallback(
+    async (traceId: string) => {
+      if (!tokenRef.current) return false;
+      try {
+        await deleteEvolutionTrace(tokenRef.current, traceId);
+        await load(true);
+        return true;
+      } catch (caught) {
+        if (caught instanceof UnauthorizedError) {
+          authRef.current?.();
+          return false;
+        }
+        setError(messageOf(caught, "删除自进化记录失败"));
+        return false;
+      }
+    },
+    [load],
+  );
+
+  const clear = useCallback(async () => {
+    if (!tokenRef.current) return false;
+    try {
+      await clearEvolutionTraces(tokenRef.current);
+      await load(true);
+      return true;
+    } catch (caught) {
+      if (caught instanceof UnauthorizedError) {
+        authRef.current?.();
+        return false;
+      }
+      setError(messageOf(caught, "清空自进化记录失败"));
+      return false;
+    }
+  }, [load]);
+
   return {
     traces,
     stats,
@@ -238,5 +316,7 @@ export function useEvolutionData(token: string | null, onUnauthorized?: () => vo
     refresh: () => load(true),
     review,
     merge,
+    remove,
+    clear,
   };
 }

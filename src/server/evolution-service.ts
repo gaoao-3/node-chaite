@@ -341,12 +341,23 @@ export class EvolutionService {
     }
   }
 
+  delete(id: string): boolean {
+    const deleted = this.traces.delete(id)
+    if (deleted) this.persistQueue.schedule()
+    return deleted
+  }
+
+  clear(): void {
+    this.traces.clear()
+    this.persistQueue.schedule()
+  }
+
   stats(): {
     total: number
     byStatus: Record<string, number>
     gatePassed: number
     averageScore: number
-    } {
+  } {
     const byStatus: Record<string, number> = {}
     let gatePassed = 0
     let sum = 0

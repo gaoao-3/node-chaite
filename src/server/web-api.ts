@@ -439,6 +439,17 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
     const executed = await runner.runTask(req.params.id as string)
     sendOk(res, executed)
   }))
+  router.delete('/fusion/tasks/:id', route((req, res) => {
+    const service = requireService(dependencies.fusion, 'FusionTaskService')
+    const deleted = service.delete(req.params.id as string)
+    sendOk(res, { deleted })
+  }))
+
+  router.delete('/fusion/tasks', route((_req, res) => {
+    const service = requireService(dependencies.fusion, 'FusionTaskService')
+    service.clear()
+    sendOk(res, { cleared: true })
+  }))
 
   router.get('/fusion/stats', route((_req, res) => {
     const service = requireService(dependencies.fusion, 'FusionTaskService')
@@ -500,6 +511,17 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
       req.params.id as string,
       (isRecord(req.body) ? req.body : {}) as MergeEvolutionInput,
     ))
+  }))
+  router.delete('/evolution/traces/:id', route((req, res) => {
+    const service = requireService(dependencies.evolution, 'EvolutionService')
+    const deleted = service.delete(req.params.id as string)
+    sendOk(res, { deleted })
+  }))
+
+  router.delete('/evolution/traces', route((_req, res) => {
+    const service = requireService(dependencies.evolution, 'EvolutionService')
+    service.clear()
+    sendOk(res, { cleared: true })
   }))
 
   router.get('/evolution/stats', route((_req, res) => {

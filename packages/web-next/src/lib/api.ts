@@ -339,6 +339,22 @@ export function mergeEvolutionTrace(
   });
 }
 
+export function deleteFusionTask(token: string, id: string): Promise<{ deleted: boolean }> {
+  return request<{ deleted: boolean }>(`/api/agent/fusion/tasks/${encodeURIComponent(id)}`, { token, method: "DELETE" });
+}
+
+export function clearFusionTasks(token: string): Promise<{ cleared: boolean }> {
+  return request<{ cleared: boolean }>("/api/agent/fusion/tasks", { token, method: "DELETE" });
+}
+
+export function deleteEvolutionTrace(token: string, id: string): Promise<{ deleted: boolean }> {
+  return request<{ deleted: boolean }>(`/api/agent/evolution/traces/${encodeURIComponent(id)}`, { token, method: "DELETE" });
+}
+
+export function clearEvolutionTraces(token: string): Promise<{ cleared: boolean }> {
+  return request<{ cleared: boolean }>("/api/agent/evolution/traces", { token, method: "DELETE" });
+}
+
 // ─── Skills ──────────────────────────────────────────────────────────────────
 
 export function fetchSkills(token: string, signal?: AbortSignal): Promise<SkillListResponse> {

@@ -356,6 +356,17 @@ export class FusionTaskService {
     this.persistQueue.schedule()
     return task
   }
+  delete(id: string): boolean {
+    const deleted = this.tasks.delete(id)
+    if (deleted) this.persistQueue.schedule()
+    return deleted
+  }
+
+  clear(): void {
+    this.tasks.clear()
+    this.persistQueue.schedule()
+  }
+
 
   stats(): { total: number; byStatus: Record<string, number>; bySession: Record<string, number> } {
     const byStatus: Record<string, number> = {}
