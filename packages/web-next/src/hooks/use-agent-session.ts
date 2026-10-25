@@ -399,15 +399,16 @@ export function useAgentSession({
       } = {},
     ) => {
       const text = prompt.trim();
-      if (!text || !token || !sessionId || preview) return false;
+      const hasImages = Boolean(options.images && options.images.length > 0);
+      if ((!text && !hasImages) || !token || !sessionId || preview) return false;
       const current = viewRef.current;
       if (current.isStreaming) return false;
-      commit(appendOptimisticPrompt(current, text));
+      commit(appendOptimisticPrompt(current, text || "分享了一张图片", options.images));
       setPromptPending(true);
       setError(null);
       try {
         await apiSendPrompt(token, sessionId, {
-          prompt: text,
+          prompt: text || (hasImages ? "分享了一张图片" : ""),
           displayText: text,
           model: options.model,
           skillName: options.skillName,

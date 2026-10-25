@@ -209,8 +209,8 @@ export function Composer({
     : null;
 
   return (
-    <div className="relative shrink-0 px-3 pb-3 pt-1 sm:px-6 sm:pb-4">
-      <div className="mx-auto w-full max-w-[760px]">
+    <div className="relative shrink-0 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-1 sm:px-8 sm:pb-5">
+      <div className="mx-auto w-full max-w-[var(--chat-content-max-width,820px)]">
         {/* Error notice */}
         {error ? (
           <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-700 dark:text-rose-200 animate-slide-up-fade">
@@ -238,7 +238,7 @@ export function Composer({
             if (e.dataTransfer.files) void handleFiles(e.dataTransfer.files);
           }}
           className={cn(
-            "group relative rounded-2xl border bg-[var(--bg-panel)] shadow-xs transition-all duration-150",
+            "group relative rounded-xl border bg-[var(--bg-panel)] transition-all duration-150",
             isDragging
               ? "border-[var(--accent)] ring-1 ring-[var(--accent)]"
               : "border-[var(--border)] focus-within:border-[var(--border)] focus-within:shadow-sm",
@@ -287,13 +287,13 @@ export function Composer({
             }
             rows={1}
             spellCheck={false}
-            className="w-full resize-none border-0 bg-transparent px-3.5 pt-3 pb-2 text-[14px] leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed focus:outline-none focus:ring-0"
+            className="w-full resize-none border-0 bg-transparent px-3.5 pt-3 pb-2 text-[calc(14px_+_var(--chat-font-size-offset))] leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed focus:outline-none focus:ring-0"
           />
 
           {/* ── Token Usage & Cache Hit Rate Micro-Strip ── */}
           {totalTok > 0 ? (
-            <div className="flex items-center justify-between border-t border-[var(--border)] px-3 py-1 font-mono text-[10px] text-[var(--text-dim)] bg-[var(--bg-hover)]/30 select-none transition-colors">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex items-center justify-between gap-2 border-t border-[var(--border)] px-3 py-1 font-mono text-[10px] text-[var(--text-dim)] bg-[var(--bg-hover)]/30 select-none transition-colors">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:gap-3">
                 <span className="flex items-center gap-1 font-medium text-[var(--text)]">
                   <TokenCoinIcon size={12} className="text-[var(--accent)]" />
                   <span>{formatNumber(totalTok)}</span>
@@ -364,8 +364,8 @@ export function Composer({
           ) : null}
 
           {/* ── Toolbar: Actions & Send ── */}
-          <div className="flex items-center justify-between px-2.5 pb-2 pt-1.5">
-            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+          <div className="flex items-end justify-between gap-2 px-2.5 pb-2 pt-1.5">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 sm:gap-1.5">
               {/* Attach button (+) */}
               <input
                 type="file"
@@ -400,7 +400,7 @@ export function Composer({
                   )}
                 >
                   <CpuChipIcon size={13} className="text-[var(--accent)] shrink-0" />
-                  <span className="max-w-[90px] truncate sm:max-w-[130px]">{selectedModel}</span>
+                  <span className="max-w-[72px] truncate sm:max-w-[130px]">{selectedModel}</span>
                   <ChevronDown className="h-2.5 w-2.5 opacity-60 shrink-0" />
                 </button>
 
@@ -451,7 +451,7 @@ export function Composer({
                 )}
               >
                 <GlobeWireIcon size={13} className="shrink-0" />
-                <span>联网</span>
+                <span className="hidden sm:inline">联网</span>
               </button>
             </div>
 

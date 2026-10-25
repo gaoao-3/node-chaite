@@ -250,7 +250,14 @@ export type AgentEventDraft =
     }
   | { type: 'typing'; state: TypingState; durationMs?: number; turnId?: string }
   | { type: 'error'; error: GatewayErrorPayload; fatal?: boolean; turnId?: string }
-  | { type: 'turn_started'; turnId: string; prompt: string; model?: string; skillName?: string }
+  | {
+      type: 'turn_started'
+      turnId: string
+      prompt: string
+      model?: string
+      skillName?: string
+      images?: Array<{ url?: string; base64?: string; mimeType?: string }>
+    }
   | {
       type: 'turn_finished'
       turnId: string

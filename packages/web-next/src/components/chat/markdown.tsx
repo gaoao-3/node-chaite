@@ -7,21 +7,20 @@ import { CopyButton } from "@/components/ui/copy-button";
 
 function CodeBlock({ code, language }: { code: string; language?: string }) {
   return (
-    <div className="group/code my-3 overflow-hidden rounded-xl border border-[var(--border)] bg-[#0c0d12] shadow-xs">
-      <div className="flex h-8 items-center gap-2 border-b border-[var(--border)] bg-black/20 px-3">
-        <span className="flex gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-400/50" />
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-300/50" />
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-300/50" />
-        </span>
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.12em] text-mist-600">
+    <div className="group/code my-3 overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
+      <div className="flex h-7 items-center gap-2 border-b border-[var(--code-border)] bg-[var(--code-header-bg)] px-3">
+        <span className="font-mono text-[10px] text-[var(--code-muted)]">
           {language || "text"}
         </span>
         <span className="ml-auto">
-          <CopyButton value={code} label="复制代码" />
+          <CopyButton
+            value={code}
+            label="复制代码"
+            className="text-[var(--code-muted)] hover:bg-white/10 hover:text-[var(--code-text)]"
+          />
         </span>
       </div>
-      <pre className="max-h-[420px] overflow-auto p-3.5 font-mono text-[11.5px] leading-[1.7] text-mist-300">
+      <pre className="max-h-[420px] overflow-auto p-3.5 font-mono text-[11.5px] leading-[1.65] text-[var(--code-text)]">
         <code>{code}</code>
       </pre>
     </div>

@@ -700,6 +700,7 @@ export class SessionRegistry {
       prompt: normalized.prompt,
       model: normalized.model,
       skillName: normalized.skillName,
+      images: normalized.images,
     })
 
     const done = this.runTurn(session, driver, normalized, turnId, startedAt, controller.signal)

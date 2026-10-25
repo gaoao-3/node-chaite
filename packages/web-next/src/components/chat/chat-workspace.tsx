@@ -141,6 +141,9 @@ export function ChatWorkspace({
         ?.filter(a => a.type === "image" && a.dataUrl)
         .map(a => ({ base64: a.dataUrl, url: a.dataUrl }));
 
+      if (!finalPrompt.trim() && imageAttachments?.length) {
+        finalPrompt = "分享了一张图片";
+      }
       const targetModel = options?.model || overrideModel || liveSession?.model;
       if (options?.model) {
         setOverrideModel(options.model);

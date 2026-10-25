@@ -28,7 +28,7 @@ interface MessageStreamProps {
 
 function LoadingSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[760px] space-y-7 py-8">
+    <div className="mx-auto w-full max-w-[var(--chat-content-max-width,820px)] space-y-7 py-8">
       <div className="flex justify-end gap-3">
         <div className="space-y-2">
           <Skeleton className="ml-auto h-3 w-24" />
@@ -52,7 +52,7 @@ function LoadingSkeleton() {
 function ConnectionBanner({ connection }: { connection: ConnectionState }) {
   if (connection === "reconnecting") {
     return (
-      <div className="mx-auto mb-4 flex w-full max-w-[760px] items-center gap-2 rounded-xl border border-amber-300/18 bg-amber-300/[0.055] px-3 py-2 text-[10.5px] text-amber-200/90">
+      <div className="mx-auto mb-4 flex w-full max-w-[var(--chat-content-max-width,820px)] items-center gap-2 rounded-xl border border-amber-300/18 bg-amber-300/[0.055] px-3 py-2 text-[10.5px] text-amber-200/90">
         <RadioTower className="h-3.5 w-3.5 animate-pulse" />
         事件流中断，正在携带 Last-Event-ID 重连…
       </div>
@@ -60,7 +60,7 @@ function ConnectionBanner({ connection }: { connection: ConnectionState }) {
   }
   if (connection === "offline" || connection === "error") {
     return (
-      <div className="mx-auto mb-4 flex w-full max-w-[760px] items-center gap-2 rounded-xl border border-rose-400/18 bg-rose-400/[0.055] px-3 py-2 text-[10.5px] text-rose-200/90">
+      <div className="mx-auto mb-4 flex w-full max-w-[var(--chat-content-max-width,820px)] items-center gap-2 rounded-xl border border-rose-400/18 bg-rose-400/[0.055] px-3 py-2 text-[10.5px] text-rose-200/90">
         <WifiOff className="h-3.5 w-3.5" />
         SSE 连接不可用。请检查后端是否运行在 127.0.0.1:3200，或点击右上角重连。
       </div>
@@ -68,7 +68,7 @@ function ConnectionBanner({ connection }: { connection: ConnectionState }) {
   }
   if (connection === "unauthorized") {
     return (
-      <div className="mx-auto mb-4 flex w-full max-w-[760px] items-center gap-2 rounded-xl border border-rose-400/18 bg-rose-400/[0.055] px-3 py-2 text-[10.5px] text-rose-200/90">
+      <div className="mx-auto mb-4 flex w-full max-w-[var(--chat-content-max-width,820px)] items-center gap-2 rounded-xl border border-rose-400/18 bg-rose-400/[0.055] px-3 py-2 text-[10.5px] text-rose-200/90">
         <WifiOff className="h-3.5 w-3.5" />
         登录凭据已失效，请退出后重新输入口令。
       </div>
@@ -191,7 +191,7 @@ export function MessageStream({
         <ConnectionBanner connection={connection} />
 
         {preview ? (
-          <div className="mx-auto mb-5 flex w-full max-w-[760px] items-center gap-2.5 rounded-xl border border-violet-500/20 bg-violet-500/[0.05] px-3 py-2">
+          <div className="mx-auto mb-5 flex w-full max-w-[var(--chat-content-max-width,820px)] items-center gap-2.5 rounded-xl border border-violet-500/20 bg-violet-500/[0.05] px-3 py-2">
             <Info className="h-3.5 w-3.5 shrink-0 text-violet-600 dark:text-violet-300" />
             <span className="text-[11px] text-violet-700 dark:text-violet-200">
               本地设计预览：思考、工具调用与审批均为静态示例，不会提交到后端。
@@ -212,7 +212,7 @@ export function MessageStream({
         ) : totalItems === 0 ? (
           <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
         ) : (
-          <div className="chat-stream mx-auto flex w-full max-w-[760px] flex-col gap-3 pb-4">
+          <div className="chat-stream mx-auto flex w-full max-w-[var(--chat-content-max-width,820px)] flex-col gap-4 pb-2">
             {groupedItems.map((entry) => {
               if (entry.kind === "user") return <UserMessage key={entry.id} item={entry.item} />;
               if (entry.kind === "thought") {
@@ -254,7 +254,7 @@ export function MessageStream({
                 正在生成中…
               </div>
             ) : null}
-            <div ref={bottomRef} className="h-px" />
+            <div ref={bottomRef} className="h-12 shrink-0" />
           </div>
         )}
       </div>
@@ -263,7 +263,7 @@ export function MessageStream({
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-6 left-1/2 z-10 flex h-7.5 -translate-x-1/2 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-panel)] px-3 text-[11px] font-medium text-[var(--text)] shadow-lg backdrop-blur-md transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] animate-fade-in"
+          className="absolute bottom-4 left-1/2 z-20 flex h-7.5 -translate-x-1/2 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-panel)] px-3 text-[11px] font-medium text-[var(--text)] shadow-lg backdrop-blur-md transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] animate-spring-up active:scale-95"
         >
           <ArrowDown className="h-3 w-3" />
           回到最新

@@ -229,6 +229,7 @@ export interface TurnStartedWebEvent extends AgentWebEventBase {
   prompt: string;
   model?: string;
   skillName?: string;
+  images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
 }
 
 export interface TurnFinishedWebEvent extends AgentWebEventBase {

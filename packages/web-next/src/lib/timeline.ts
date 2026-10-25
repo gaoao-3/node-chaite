@@ -47,6 +47,7 @@ export type TimelineItem =
       turnId?: string;
       pending?: boolean;
       failed?: boolean;
+      images?: Array<{ url?: string; base64?: string; mimeType?: string }>;
     }
   | {
       kind: "thought";
@@ -190,6 +191,7 @@ export function applyTurnStarted(view: StreamView, event: TurnStartedWebEvent): 
         ...item,
         pending: false,
         turnId: event.turnId,
+        images: event.images ?? item.images,
       });
     }
   } else if (existingIndex < 0) {
@@ -199,6 +201,7 @@ export function applyTurnStarted(view: StreamView, event: TurnStartedWebEvent): 
         kind: "user",
         id: `user:${event.turnId}`,
         text: prompt,
+        images: event.images,
         createdAt: event.timestamp,
         turnId: event.turnId,
       },
@@ -601,13 +604,18 @@ export function applySnapshot(
   return next;
 }
 
-export function appendOptimisticPrompt(view: StreamView, prompt: string, createdAt = Date.now()): StreamView {
+export function appendOptimisticPrompt(
+  view: StreamView,
+  prompt: string,
+  images?: Array<{ url?: string; base64?: string; mimeType?: string }>,
+  createdAt = Date.now(),
+): StreamView {
   const id = `local:${createdAt}:${Math.random().toString(36).slice(2, 8)}`;
   return {
     ...view,
     timeline: [
       ...view.timeline,
-      { kind: "user", id, text: prompt, createdAt, pending: true },
+      { kind: "user", id, text: prompt, images, createdAt, pending: true },
     ],
     isStreaming: true,
     lastEventAt: createdAt,
