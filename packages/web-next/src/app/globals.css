@@ -521,6 +521,21 @@ body {
   overflow-wrap: anywhere;
 }
 
+.md-body h1 { font-size: 1.55em; }
+.md-body h2 { font-size: 1.3em; }
+.md-body h3 { font-size: 1.12em; }
+.md-body h4 { font-size: 1em; }
+.md-body strong { color: var(--text); font-weight: 650; }
+.md-body del { color: var(--text-dim); }
+.md-body ul, .md-body ol { margin: 0.45em 0 0.85em; padding-left: 1.5em; }
+.md-body li { padding-left: 0.15em; }
+.md-body li + li { margin-top: 0.22em; }
+.md-body li::marker { color: var(--text-dim); }
+.md-body input[type="checkbox"] { margin-right: 0.4em; accent-color: var(--accent); vertical-align: -0.08em; }
+.md-body img { display: block; max-width: 100%; height: auto; margin: 0.75em 0; border: 1px solid var(--border); border-radius: 8px; }
+.md-body figure { margin: 0.8em 0; }
+.md-body hr { opacity: 0.75; }
+
 .md-body > :first-child {
   margin-top: 0;
 }
@@ -591,6 +606,9 @@ body {
 }
 
 .md-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;

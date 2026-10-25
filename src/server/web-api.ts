@@ -17,6 +17,7 @@ import type { SkillListFilter, SkillsService } from './skills-service'
 import { createAgentEventStream, type AgentEventStreamOptions } from './sse-stream'
 import type { AgentSessionStatus, SessionCreateInput } from './types'
 import type { GatewayManager } from '../gateway/gateway-manager'
+import { WorkspaceService } from './workspace-service'
 import type { PluginLoader } from '../agent/plugins/plugin-loader'
 import {
   COMMUNITY_MCP_CATALOG,
@@ -213,6 +214,39 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
   if (dependencies.auth && dependencies.auth.length > 0) {
     router.use(...dependencies.auth)
   }
+
+  // ─── Workspace: file tree, source editor and controlled terminal ─────────────
+  const workspace = new WorkspaceService()
+
+  router.get('/workspace/tree', route(async (req, res) => {
+    const result = await workspace.list(queryString(req, 'path') || '.', queryBoolean(req, 'hidden') === true)
+    sendOk(res, result)
+  }))
+
+  router.get('/workspace/file', route(async (req, res) => {
+    const result = await workspace.readFile(queryString(req, 'path') || '.')
+    sendOk(res, result)
+  }))
+
+  router.put('/workspace/file', route(async (req, res) => {
+    if (!isRecord(req.body) || typeof req.body.path !== 'string' || typeof req.body.content !== 'string') {
+      throw new BadRequestError('path and content are required')
+    }
+    const result = await workspace.writeFile(req.body.path, req.body.content)
+    sendOk(res, result)
+  }))
+
+  router.post('/workspace/terminal', route(async (req, res) => {
+    if (!isRecord(req.body) || typeof req.body.command !== 'string') {
+      throw new BadRequestError('command is required')
+    }
+    const result = await workspace.runTerminal(
+      req.body.command,
+      typeof req.body.cwd === 'string' ? req.body.cwd : '.',
+      typeof req.body.timeout === 'number' ? req.body.timeout : 30,
+    )
+    sendOk(res, result)
+  }))
 
   // ─── Sessions ──────────────────────────────────────────────────────────────
 

@@ -7,6 +7,7 @@ import { MessageStream } from "@/components/chat/message-stream";
 import { useAgentSession } from "@/hooks/use-agent-session";
 import type { AgentSessionInfo } from "@/lib/types";
 import { InspectorDrawer, type InspectorTab } from "@/components/chat/inspector-drawer";
+import { WorkspaceDrawer } from "@/components/workspace/workspace-drawer";
 import type { EvolutionData, FusionData } from "@/hooks/use-boards";
 import type { UseApprovalsFeedResult } from "@/hooks/use-approvals-feed";
 
@@ -63,12 +64,14 @@ export function ChatWorkspace({
 
   // Internal inspector drawer state if not controlled
   const [internalOpen, setInternalOpen] = React.useState(false);
+  const [workspaceOpen, setWorkspaceOpen] = React.useState(false);
   const [internalTab, setInternalTab] = React.useState<InspectorTab>("plugins");
 
   const effectiveInspectorOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const effectiveInspectorTab = controlledTab !== undefined ? controlledTab : internalTab;
 
   const handleToggleInspector = React.useCallback(() => {
+    setWorkspaceOpen(false);
     if (controlledToggle) {
       controlledToggle();
     } else {
@@ -83,6 +86,11 @@ export function ChatWorkspace({
       setInternalOpen(false);
     }
   }, [controlledOpen, controlledToggle]);
+
+  const handleToggleWorkspace = React.useCallback(() => {
+    setWorkspaceOpen((value) => !value);
+    if (effectiveInspectorOpen) handleCloseInspector();
+  }, [effectiveInspectorOpen, handleCloseInspector]);
 
   const handleTabChange = React.useCallback(
     (tab: InspectorTab) => {
@@ -219,6 +227,8 @@ export function ChatWorkspace({
           onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
           onToggleInspector={handleToggleInspector}
           inspectorOpen={effectiveInspectorOpen}
+          onToggleWorkspace={handleToggleWorkspace}
+          workspaceOpen={workspaceOpen}
         />
 
         <MessageStream
@@ -263,6 +273,11 @@ export function ChatWorkspace({
         approvalsFeed={approvalsFeed}
         skillCount={liveSession?.skills.length ?? 0}
         onOpenSettingsTab={onOpenSettingsTab}
+      />
+      <WorkspaceDrawer
+        open={workspaceOpen}
+        token={token}
+        onClose={() => setWorkspaceOpen(false)}
       />
     </div>
   );

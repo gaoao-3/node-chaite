@@ -645,3 +645,56 @@ export function fetchDshHub(
   const q = params.toString() ? `?${params.toString()}` : "";
   return request<{ total: number; plugins: DshMarketPlugin[] }>(`/api/agent/hub/dsh${q}`, { token });
 }
+
+
+// ─── Workspace: file tree, editor and controlled terminal ─────────────────────
+
+export interface WorkspaceEntry {
+  name: string;
+  path: string;
+  type: "file" | "directory";
+  size: number;
+  modifiedAt: number;
+}
+
+export interface WorkspaceFile {
+  path: string;
+  content: string;
+  language: string;
+  size: number;
+  truncated: boolean;
+  readOnly: boolean;
+  dataUrl?: string;
+  mimeType?: string;
+}
+
+export interface WorkspaceTerminalResult {
+  command: string;
+  cwd: string;
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  durationMs: number;
+  approvalRequired?: boolean;
+}
+
+export function fetchWorkspaceTree(token: string, path = ".", hidden = false): Promise<{ path: string; entries: WorkspaceEntry[] }> {
+  return request(`/api/agent/workspace/tree?path=${encodeURIComponent(path)}&hidden=${hidden ? "1" : "0"}`, { token });
+}
+
+export function fetchWorkspaceFile(token: string, path: string): Promise<WorkspaceFile> {
+  return request(`/api/agent/workspace/file?path=${encodeURIComponent(path)}`, { token });
+}
+
+export function saveWorkspaceFile(token: string, path: string, content: string): Promise<{ path: string; bytes: number }> {
+  return request("/api/agent/workspace/file", { token, method: "PUT", body: { path, content } });
+}
+
+export function runWorkspaceCommand(
+  token: string,
+  command: string,
+  cwd = ".",
+  timeout = 30,
+): Promise<WorkspaceTerminalResult> {
+  return request("/api/agent/workspace/terminal", { token, method: "POST", body: { command, cwd, timeout } });
+}

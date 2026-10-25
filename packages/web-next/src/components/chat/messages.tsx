@@ -152,7 +152,7 @@ export function AssistantMessage({ item, streaming, model }: { item: AssistantIt
         {showTyping ? <TypingDots /> : null}
         {item.text ? (
           <div className="relative">
-            <Markdown content={item.text} />
+            <Markdown content={item.text} isStreaming={!item.done && streaming} />
             {!item.done && streaming ? (
               <span className="ml-0.5 inline-block h-3.5 w-[2px] translate-y-[2px] animate-pulse bg-cyan-500" />
             ) : null}

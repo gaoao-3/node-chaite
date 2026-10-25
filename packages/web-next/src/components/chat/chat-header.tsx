@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   Check,
   Layers,
+  PanelRight,
   Menu,
   Pencil,
   Plus,
@@ -42,6 +43,8 @@ export interface ChatHeaderProps {
   onCreateSession?: () => void;
   onToggleInspector?: () => void;
   inspectorOpen?: boolean;
+  onToggleWorkspace?: () => void;
+  workspaceOpen?: boolean;
 }
 
 export function ChatHeader({
@@ -52,6 +55,8 @@ export function ChatHeader({
   onMenu,
   onToggleInspector,
   inspectorOpen,
+  onToggleWorkspace,
+  workspaceOpen,
   onRename,
   onRefresh,
   onOpenApprovals,
@@ -213,6 +218,24 @@ export function ChatHeader({
           </span>
           <span>{meta.label}</span>
         </div>
+
+        {onToggleWorkspace ? (
+          <button
+            type="button"
+            onClick={onToggleWorkspace}
+            title={workspaceOpen ? "收起工作区" : "打开工作区（文件树 / 终端）"}
+            aria-label="切换工作区"
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors",
+              workspaceOpen
+                ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)]"
+                : "border-[var(--border)] bg-[var(--bg-panel)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]",
+            )}
+          >
+            <PanelRight className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">工作区</span>
+          </button>
+        ) : null}
 
         {/* Inspector toggle button */}
         {onToggleInspector ? (
