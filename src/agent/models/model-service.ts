@@ -128,6 +128,9 @@ export function inferThinkingCapability(modelId: string): {
   maxThinkingTokens?: number
 } {
   const lower = modelId.toLowerCase()
+  if (lower.includes('image') || lower.includes('embed')) {
+    return { supportsThinking: false }
+  }
 
   // 1. Anthropic 扩展思考
   if (lower.includes('claude-3-7-sonnet') || lower.includes('claude-3.7-sonnet') || lower.includes('claude-opus-4') || lower.includes('claude-sonnet-4') || (lower.includes('claude') && lower.includes('thinking'))) {
@@ -148,7 +151,7 @@ export function inferThinkingCapability(modelId: string): {
   }
 
   // 3. OpenAI o1/o3 及 DeepSeek R1 推理模型
-  if (lower.includes('deepseek-r1') || lower.includes('deepseek-reasoner') || lower.includes('-r1') || lower.startsWith('o1') || lower.startsWith('o3')) {
+  if (lower.includes('deepseek-r1') || lower.includes('deepseek-reasoner') || lower.includes('-r1') || lower.startsWith('o1') || lower.startsWith('o3') || lower.includes('gpt-oss')) {
     return {
       supportsThinking: true,
       thinkingType: 'reasoning_effort',
@@ -196,27 +199,27 @@ export function buildModelMetadata(
 
   // 易读 Label 生成
   let label = cleanId
-  if (cleanId === 'gemini-3.8-flash-high') label = 'Gemini 3.8 Flash'
-  else if (cleanId === 'claude-3.7-sonnet' || cleanId === 'claude-3-7-sonnet-20250219') label = 'Claude 3.7 Sonnet'
-  else if (cleanId === 'claude-opus-4-6-thinking') label = 'Claude Opus 4.6 (Thinking)'
+  if (cleanId === 'gemini-3.8-flash-high') label = 'Gemini 3.8 Flash (High)'
+  else if (cleanId === 'gemini-3-flash') label = 'Gemini 3 Flash'
+  else if (cleanId === 'gemini-3.5-flash-lite') label = 'Gemini 3.5 Flash Lite'
+  else if (cleanId === 'gemini-3.1-flash-lite') label = 'Gemini 3.1 Flash Lite'
+  else if (cleanId === 'gemini-3.1-flash-image') label = 'Gemini 3.1 Flash Image'
   else if (cleanId === 'claude-sonnet-4-6') label = 'Claude Sonnet 4.6'
-  else if (cleanId === 'deepseek-v4.1-flash') label = 'DeepSeek V4.1'
+  else if (cleanId === 'claude-opus-4-6-thinking') label = 'Claude Opus 4.6 (Thinking)'
+  else if (cleanId === 'gpt-oss-120b-medium') label = 'GPT-OSS 120B'
+  else if (cleanId === 'claude-3.7-sonnet' || cleanId === 'claude-3-7-sonnet-20250219') label = 'Claude 3.7 Sonnet'
   else if (cleanId === 'deepseek-chat') label = 'DeepSeek V3'
   else if (cleanId === 'deepseek-reasoner') label = 'DeepSeek R1'
   else if (cleanId === 'gpt-4o') label = 'GPT-4o'
   else if (cleanId === 'gpt-4o-mini') label = 'GPT-4o Mini'
-  else if (cleanId === 'gpt-oss-120b-medium') label = 'GPT-OSS 120B'
   else if (cleanId === 'kimi-k3-1') label = 'Kimi K3.1'
 
   const isRecommended = extra.isRecommended ?? [
     'gemini-3.8-flash-high',
-    'claude-3.7-sonnet',
     'claude-sonnet-4-6',
-    'deepseek-v4.1-flash',
-    'deepseek-chat',
-    'gpt-4o',
+    'claude-opus-4-6-thinking',
+    'gemini-3-flash',
   ].includes(cleanId)
-
   return {
     id: cleanId,
     label,
@@ -350,19 +353,18 @@ export class ModelDiscoveryService {
 
     await Promise.allSettled(probePromises)
 
-    // 2. 默认置顶预设兜底（确保就算离线也能至少有推荐模型可选）
-    const defaults = [
-      { id: 'gemini-3.8-flash-high', channel: 'default-gemini', rec: true },
-      { id: 'claude-3.7-sonnet', channel: 'default-gemini', rec: true },
-      { id: 'deepseek-v4.1-flash', channel: 'default-gemini', rec: true },
-      { id: 'gpt-4o', channel: 'default-gemini', rec: true },
-    ]
-    for (const d of defaults) {
-      if (!modelsMap.has(d.id)) {
-        modelsMap.set(d.id, buildModelMetadata(d.id, d.channel, { isRecommended: d.rec }))
+    // 2. 只有在完全没有探测到任何模型时（例如上游网关未启动或未配置），才使用基础默认模型兜底
+    if (modelsMap.size === 0) {
+      const fallbackChannel = channels[0]?.name || 'cpa-gateway'
+      const fallbackChannelId = channels[0]?.id
+      const defaults = [
+        { id: 'gemini-3.8-flash-high', channel: fallbackChannel, channelId: fallbackChannelId, rec: true },
+        { id: 'claude-sonnet-4-6', channel: fallbackChannel, channelId: fallbackChannelId, rec: true },
+      ]
+      for (const d of defaults) {
+        modelsMap.set(d.id, buildModelMetadata(d.id, d.channel, { channelId: d.channelId, isRecommended: d.rec }))
       }
     }
-
     // 3. 排序策略：推荐模型置顶，其余按供应商及模型名称排序
     const list = Array.from(modelsMap.values()).sort((a, b) => {
       if (a.isRecommended && !b.isRecommended) return -1
