@@ -27,6 +27,7 @@ import {
   CommunityHubManager,
   getDshMarketPlugins,
 } from '../agent/hub/community-hub'
+import { getModelDiscoveryService, type ModelDiscoveryService } from '../agent/models/model-service'
 
 export interface AgentWebApiDependencies {
   sessions: SessionRegistry
@@ -36,6 +37,7 @@ export interface AgentWebApiDependencies {
   gateways?: GatewayManager
   plugins?: PluginLoader
   titleNaming?: TitleNamingService
+  modelDiscovery?: ModelDiscoveryService
   /** Extra middleware (auth, rate limiting) applied to every new route. */
   auth?: RequestHandler[]
   /** SSE tuning; tests use short heartbeats and small backlog limits. */
@@ -258,6 +260,28 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
   router.put('/title-naming', route(async (req, res) => {
     if (!isRecord(req.body)) throw new BadRequestError('Body must be an object')
     sendOk(res, await requireService(dependencies.titleNaming, 'TitleNamingService').updateConfig(req.body))
+  }))
+
+  // ─── Available Models & Capabilities ───────────────────────────────────────────
+  router.get('/models', route(async (req, res) => {
+    const service = dependencies.modelDiscovery ?? getModelDiscoveryService()
+    const refresh = queryBoolean(req, 'refresh') === true
+    let items = await service.getAvailableModels(refresh)
+
+    const q = queryString(req, 'query')?.toLowerCase()
+    if (q) {
+      items = items.filter(m => m.id.toLowerCase().includes(q) || m.label.toLowerCase().includes(q) || m.channelName.toLowerCase().includes(q))
+    }
+
+    const provider = queryString(req, 'provider')
+    if (provider && provider !== 'all') {
+      items = items.filter(m => m.provider === provider)
+    }
+
+    sendOk(res, {
+      items,
+      total: items.length,
+    })
   }))
 
   // ─── Sessions ──────────────────────────────────────────────────────────────

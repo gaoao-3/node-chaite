@@ -737,3 +737,35 @@ export function updateTitleNamingConfig(
 ): Promise<TitleNamingConfig> {
   return request<TitleNamingConfig>("/api/agent/title-naming", { token, method: "PUT", body: payload });
 }
+
+
+// ─── Available Models & Capabilities ──────────────────────────────────────────
+
+export interface ModelMetadata {
+  id: string;
+  label: string;
+  provider: "google" | "anthropic" | "openai" | "deepseek" | "moonshot" | "meta" | "alibaba" | "other";
+  channelName: string;
+  channelId?: string;
+  adapterType?: string;
+  contextWindow: number;
+  contextWindowFormatted: string;
+  supportsThinking: boolean;
+  thinkingType?: "budget_tokens" | "reasoning_effort" | "gemini_level";
+  maxThinkingTokens?: number;
+  supportsVision: boolean;
+  supportsTools: boolean;
+  isRecommended?: boolean;
+}
+
+export function fetchAvailableModels(
+  token: string,
+  options?: { query?: string; provider?: string; refresh?: boolean },
+): Promise<{ items: ModelMetadata[]; total: number }> {
+  const params = new URLSearchParams();
+  if (options?.query) params.set("query", options.query);
+  if (options?.provider) params.set("provider", options.provider);
+  if (options?.refresh) params.set("refresh", "1");
+  const qs = params.toString();
+  return request<{ items: ModelMetadata[]; total: number }>(`/api/agent/models${qs ? `?${qs}` : ""}`, { token });
+}

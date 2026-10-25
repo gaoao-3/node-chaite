@@ -21,6 +21,8 @@ export interface ConsolePreferences {
   autoSynthesize: boolean;
   userTitle: string;
   customSystemPrompt: string;
+  fusionSidekickModel: string;
+  fusionMainModel: string;
 }
 
 const STORAGE_KEY = "chaite.console.preferences";
@@ -40,6 +42,8 @@ export const DEFAULTS: ConsolePreferences = {
   autoSynthesize: true,
   userTitle: "老师",
   customSystemPrompt: "",
+  fusionSidekickModel: "deepseek-v4.1-flash",
+  fusionMainModel: "claude-3.7-sonnet",
 };
 
 function readPreferences(): ConsolePreferences {
@@ -72,6 +76,8 @@ function readPreferences(): ConsolePreferences {
       autoSynthesize: parsed.autoSynthesize !== false,
       userTitle: typeof parsed.userTitle === "string" ? parsed.userTitle : DEFAULTS.userTitle,
       customSystemPrompt: typeof parsed.customSystemPrompt === "string" ? parsed.customSystemPrompt : "",
+      fusionSidekickModel: typeof parsed.fusionSidekickModel === "string" ? parsed.fusionSidekickModel : DEFAULTS.fusionSidekickModel,
+      fusionMainModel: typeof parsed.fusionMainModel === "string" ? parsed.fusionMainModel : DEFAULTS.fusionMainModel,
     };
   } catch {
     return DEFAULTS;

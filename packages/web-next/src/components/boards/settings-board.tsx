@@ -850,6 +850,31 @@ export function SettingsBoard({
                 label="默认联网搜索"
               />
             </SettingRow>
+            <SettingRow
+              title="双星协同副手模型 (Sidekick)"
+              description="双星协同模式下负责具体编写代码与输出 Diff 的极速模型（如 deepseek-v4.1-flash）。"
+            >
+              <input
+                type="text"
+                value={preferences.fusionSidekickModel}
+                onChange={(e) => update({ fusionSidekickModel: e.target.value })}
+                placeholder="例如：deepseek-v4.1-flash"
+                className="w-full max-w-[240px] rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 font-mono text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+              />
+            </SettingRow>
+
+            <SettingRow
+              title="双星协同主脑模型 (Architect)"
+              description="负责制定 SOP 架构方案与交叉审查的架构师模型（如 claude-3.7-sonnet）。"
+            >
+              <input
+                type="text"
+                value={preferences.fusionMainModel}
+                onChange={(e) => update({ fusionMainModel: e.target.value })}
+                placeholder="例如：claude-3.7-sonnet"
+                className="w-full max-w-[240px] rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 font-mono text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+              />
+            </SettingRow>
           </SectionCard>
 
           <SectionCard title="会话标题自动命名" hint="Auxiliary Model">

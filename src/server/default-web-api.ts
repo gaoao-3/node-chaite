@@ -15,6 +15,7 @@ import { GatewayManager } from '../gateway/gateway-manager'
 import { QqOnebotPlugin } from '../gateway/plugins/qq-onebot'
 import { DshMobilePlugin } from '../gateway/plugins/dsh-mobile'
 import { PluginLoader } from '../agent/plugins/plugin-loader'
+import { getModelDiscoveryService } from '../agent/models/model-service'
 
 let override: AgentWebApiDependencies | null = null
 let dependencies: AgentWebApiDependencies | null = null
@@ -67,7 +68,9 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
 
   const plugins = new PluginLoader()
 
-  return { sessions, fusion, evolution, skills, gateways, plugins, titleNaming }
+  const modelDiscovery = getModelDiscoveryService()
+
+  return { sessions, fusion, evolution, skills, gateways, plugins, titleNaming, modelDiscovery }
 }
 
 function ensureHydrated(deps: AgentWebApiDependencies): void {

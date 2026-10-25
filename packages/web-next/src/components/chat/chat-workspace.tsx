@@ -10,6 +10,7 @@ import { InspectorDrawer, type InspectorTab } from "@/components/chat/inspector-
 import { WorkspaceDrawer } from "@/components/workspace/workspace-drawer";
 import type { EvolutionData, FusionData } from "@/hooks/use-boards";
 import type { UseApprovalsFeedResult } from "@/hooks/use-approvals-feed";
+import { usePreferences } from "@/hooks/use-preferences";
 
 export interface ChatWorkspaceProps {
   token: string | null;
@@ -61,6 +62,7 @@ export function ChatWorkspace({
     onUnauthorized,
     onTitleChange: () => onSessionsChanged(),
   });
+  const { preferences } = usePreferences();
   const [draft, setDraft] = React.useState("");
 
   // Internal inspector drawer state if not controlled
@@ -149,7 +151,9 @@ export function ChatWorkspace({
         finalPrompt = `[联网搜索模式: 请检索互联网最新信息] ${finalPrompt}`;
       }
       if (options?.fusionMode) {
-        finalPrompt = `[双星协同模式: 请由主脑制定架构方案与验收条件，并必须调用 delegate_fusion_task 工具委派副手模型执行代码并生成 Diff 补丁进行交叉审计] ${finalPrompt}`;
+        const sidekick = preferences.fusionSidekickModel || "deepseek-v4.1-flash";
+        const architect = preferences.fusionMainModel || "claude-3.7-sonnet";
+        finalPrompt = `[双星协同模式: 主脑架构师模型使用 ${architect}，副手执行模型使用 ${sidekick}。请主脑制定架构与验收标准，必须调用 delegate_fusion_task(instruction, pathScope, criteria, sidekickModel="${sidekick}") 委派副手模型执行代码并生成 Diff 补丁进行交叉审计] ${finalPrompt}`;
       }
 
       const imageAttachments = options?.attachments
@@ -198,7 +202,7 @@ export function ChatWorkspace({
       if (ok) onSessionsChanged();
       return ok;
     },
-    [agent, liveSession?.model, onCreateSession, onSessionsChanged, overrideModel, session, token],
+    [agent, liveSession?.model, onCreateSession, onSessionsChanged, overrideModel, preferences.fusionMainModel, preferences.fusionSidekickModel, session, token],
   );
 
   const suggestion = React.useCallback((prompt: string) => {
@@ -268,6 +272,7 @@ export function ChatWorkspace({
           error={agent.error}
           onDismissError={agent.clearError}
           usage={latestUsage}
+          token={token}
         />
       </main>
 

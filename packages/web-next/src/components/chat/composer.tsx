@@ -6,8 +6,10 @@ import {
   ChevronDown,
   CircleAlert,
   FileCode,
-  Square,
   GitCompare,
+  Search,
+  Sparkles,
+  Square,
   X,
 } from "lucide-react";
 import {
@@ -18,6 +20,10 @@ import {
   CacheLightningIcon,
 } from "@/components/icons/zen-icons";
 import { ThinkingLevelSelector, type ThinkingLevel } from "@/components/chat/thinking-level-selector";
+import {
+  fetchAvailableModels,
+  type ModelMetadata,
+} from "@/lib/api";
 import type { GatewayUsage } from "@/lib/types";
 import { cn, formatNumber } from "@/lib/utils";
 
@@ -54,13 +60,60 @@ export interface ComposerProps {
   error: string | null;
   onDismissError: () => void;
   usage?: GatewayUsage;
+  token?: string | null;
 }
 
-const PRESET_MODELS = [
-  { id: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash", desc: "本地高速 · 默认首选", badge: "⚡" },
-  { id: "claude-3.7-sonnet", label: "Claude 3.7 Sonnet", desc: "架构师 · 深度推理", badge: "🧠" },
-  { id: "deepseek-v4.1-flash", label: "DeepSeek V4.1", desc: "极速副手 · 工具执行", badge: "🚀" },
-  { id: "gpt-4o", label: "GPT-4o", desc: "OpenAI 旗舰全能多模态", badge: "🌐" },
+const DEFAULT_PRESET_MODELS: ModelMetadata[] = [
+  {
+    id: "gemini-3.8-flash-high",
+    label: "Gemini 3.8 Flash",
+    provider: "google",
+    channelName: "default-gemini",
+    contextWindow: 1_048_576,
+    contextWindowFormatted: "1M",
+    supportsThinking: true,
+    thinkingType: "gemini_level",
+    supportsVision: true,
+    supportsTools: true,
+    isRecommended: true,
+  },
+  {
+    id: "claude-3.7-sonnet",
+    label: "Claude 3.7 Sonnet",
+    provider: "anthropic",
+    channelName: "default-gemini",
+    contextWindow: 200_000,
+    contextWindowFormatted: "200K",
+    supportsThinking: true,
+    thinkingType: "budget_tokens",
+    supportsVision: true,
+    supportsTools: true,
+    isRecommended: true,
+  },
+  {
+    id: "deepseek-v4.1-flash",
+    label: "DeepSeek V4.1",
+    provider: "deepseek",
+    channelName: "default-gemini",
+    contextWindow: 64_000,
+    contextWindowFormatted: "64K",
+    supportsThinking: false,
+    supportsVision: false,
+    supportsTools: true,
+    isRecommended: true,
+  },
+  {
+    id: "gpt-4o",
+    label: "GPT-4o",
+    provider: "openai",
+    channelName: "default-gemini",
+    contextWindow: 128_000,
+    contextWindowFormatted: "128K",
+    supportsThinking: false,
+    supportsVision: true,
+    supportsTools: true,
+    isRecommended: true,
+  },
 ];
 
 function formatFileSize(bytes: number): string {
@@ -83,13 +136,20 @@ export function Composer({
   error,
   onDismissError,
   usage,
+  token,
 }: ComposerProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [selectedModel, setSelectedModel] = React.useState(model || "gemini-3.8-flash-high");
   const [modelMenuOpen, setModelMenuOpen] = React.useState(false);
+  const [modelSearchQuery, setModelSearchQuery] = React.useState("");
+  const [customModelInput, setCustomModelInput] = React.useState("");
   const modelMenuRef = React.useRef<HTMLDivElement>(null);
+
+  // Available models dynamically fetched from backend
+  const [modelsList, setModelsList] = React.useState<ModelMetadata[]>(DEFAULT_PRESET_MODELS);
+  const [modelsLoading, setModelsLoading] = React.useState(false);
 
   const [webSearchActive, setWebSearchActive] = React.useState(false);
   const [deepThinkingActive, setDeepThinkingActive] = React.useState(false);
@@ -108,12 +168,33 @@ export function Composer({
     }
   }, [model]);
 
+  // Load available models automatically from backend /api/agent/models
+  const loadModels = React.useCallback(async (force = false) => {
+    if (!token) return;
+    setModelsLoading(true);
+    try {
+      const res = await fetchAvailableModels(token, { refresh: force });
+      if (res && Array.isArray(res.items) && res.items.length > 0) {
+        setModelsList(res.items);
+      }
+    } catch (err) {
+      console.warn("fetchAvailableModels failed, fallback to preset models:", err);
+    } finally {
+      setModelsLoading(false);
+    }
+  }, [token]);
+
+  React.useEffect(() => {
+    void loadModels(false);
+  }, [loadModels]);
+
   // Outside click for model selector
   React.useEffect(() => {
     if (!modelMenuOpen) return;
     const handleClick = (e: MouseEvent) => {
       if (modelMenuRef.current && !modelMenuRef.current.contains(e.target as Node)) {
         setModelMenuOpen(false);
+        setModelSearchQuery("");
       }
     };
     document.addEventListener("mousedown", handleClick);
@@ -148,6 +229,7 @@ export function Composer({
     setSelectedModel(m);
     onModelChange?.(m);
     setModelMenuOpen(false);
+    setModelSearchQuery("");
   };
 
   const submit = async () => {
@@ -202,6 +284,41 @@ export function Composer({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
+  // Find current model's metadata
+  const currentModelMetadata = React.useMemo<ModelMetadata>(() => {
+    const found = modelsList.find((m) => m.id === selectedModel);
+    if (found) return found;
+
+    // Fallback heuristic for ad-hoc custom model input
+    const lower = selectedModel.toLowerCase();
+    const ctx = lower.includes("gemini") ? 1_048_576 : lower.includes("claude") ? 200_000 : 128_000;
+    const supportsThinking = lower.includes("thinking") || lower.includes("sonnet") || lower.includes("r1") || lower.startsWith("o1") || lower.startsWith("o3");
+    return {
+      id: selectedModel,
+      label: selectedModel,
+      provider: "other",
+      channelName: "custom",
+      contextWindow: ctx,
+      contextWindowFormatted: ctx >= 1_000_000 ? `${+(ctx / 1_000_000).toFixed(1)}M` : `${Math.round(ctx / 1_000)}K`,
+      supportsThinking,
+      supportsVision: true,
+      supportsTools: true,
+    };
+  }, [modelsList, selectedModel]);
+
+  // Filtered models by search query
+  const filteredModels = React.useMemo(() => {
+    if (!modelSearchQuery.trim()) return modelsList;
+    const q = modelSearchQuery.trim().toLowerCase();
+    return modelsList.filter(
+      (m) =>
+        m.id.toLowerCase().includes(q) ||
+        m.label.toLowerCase().includes(q) ||
+        m.provider.toLowerCase().includes(q) ||
+        m.channelName.toLowerCase().includes(q)
+    );
+  }, [modelsList, modelSearchQuery]);
+
   // Token & Cache statistics
   const totalTok = usage?.totalTokens ?? 0;
   const promptTok = usage?.promptTokens ?? 0;
@@ -212,9 +329,15 @@ export function Composer({
     ? Math.min(100, Math.round((cachedTok / promptTok) * 100))
     : null;
 
+  // Context window usage ratio
+  const maxContext = currentModelMetadata.contextWindow;
+  const contextUsagePercent = Math.min(100, +((totalTok / maxContext) * 100).toFixed(1));
+  const remainingTok = Math.max(0, maxContext - totalTok);
+
   return (
     <div className="chat-input-shell relative shrink-0 px-4 pb-2 pt-1 sm:px-8 sm:pb-3">
       <div className="mx-auto w-full max-w-[var(--chat-content-max-width,820px)]">
+        {/* Error notice */}
         {error ? (
           <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-700 dark:text-rose-200 animate-slide-up-fade">
             <span className="truncate">{error}</span>
@@ -241,6 +364,7 @@ export function Composer({
           }}
           className="group relative"
         >
+          {/* Attachments preview */}
           {attachments.length > 0 ? (
             <div className="mb-2 flex flex-wrap items-center gap-2">
               {attachments.map((att) => (
@@ -321,52 +445,123 @@ export function Composer({
             )}
           </div>
 
-          {/* Usage metadata stays quiet and outside the input card. */}
+          {/* ── Token Usage & Context Window Ratio Micro-Strip ── */}
           {totalTok > 0 ? (
             <div className="mt-1 flex min-h-5 items-center justify-between gap-2 px-1 font-mono text-[10px] text-[var(--text-dim)] select-none">
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 sm:gap-3">
-                <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                {/* Real context window ratio: e.g. 5万 / 100万 (5%) */}
+                <span className="flex items-center gap-1 text-[var(--text-muted)]" title={`已使用上下文: ${formatNumber(totalTok)} / ${currentModelMetadata.contextWindowFormatted} (${contextUsagePercent}%)`}>
                   <TokenCoinIcon size={11} className="text-[var(--accent)]" />
-                  <span>{formatNumber(totalTok)}</span>
-                  <span className="text-[9px] text-[var(--text-dim)]">tok</span>
+                  <span className="font-semibold text-[var(--text)]">{formatNumber(totalTok)}</span>
+                  <span className="text-[var(--text-dim)]">/ {currentModelMetadata.contextWindowFormatted}</span>
+                  <span className={cn(
+                    "rounded px-1 py-0.2 text-[8.5px] font-semibold",
+                    contextUsagePercent > 80
+                      ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
+                      : contextUsagePercent > 50
+                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                        : "bg-[var(--bg-hover)] text-[var(--text-dim)]"
+                  )}>
+                    {contextUsagePercent}%
+                  </span>
                 </span>
+
                 {cacheRate !== null && cacheRate > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 text-emerald-700 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-0.5 text-emerald-700 dark:text-emerald-400 font-medium">
                     <CacheLightningIcon size={10} />
                     <span>{cacheRate}% 缓存</span>
                   </span>
                 ) : null}
+
                 {reasoningTok > 0 ? (
-                  <span className="text-purple-700 dark:text-purple-300">🧠 {formatNumber(reasoningTok)} 思考</span>
+                  <span className="text-purple-700 dark:text-purple-300 font-medium">
+                    🧠 {formatNumber(reasoningTok)} 思考
+                  </span>
                 ) : null}
               </div>
 
+              {/* Usage & Context Breakdown Trigger */}
               <div className="relative shrink-0" ref={usageMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUsageOpen((v) => !v)}
-                  className="flex items-center gap-0.5 rounded px-1 py-0.5 text-[9.5px] text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text)]"
+                  className="flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9.5px] text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text)]"
                 >
-                  <span>用量</span>
+                  <span>用量与上下文</span>
                   <ChevronDown className={cn("h-2.5 w-2.5 opacity-60 transition-transform", usageOpen && "rotate-180")} />
                 </button>
+
                 {usageOpen ? (
-                  <div className="absolute bottom-6 right-0 z-50 w-52 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 shadow-xl text-[11px] font-mono space-y-1.5 animate-spring-up">
-                    <div className="border-b border-[var(--border)] pb-1 text-[9.5px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">
-                      Token 与缓存指标明细
+                  <div className="absolute bottom-6 right-0 z-50 w-64 rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-3 shadow-2xl backdrop-blur-2xl text-[11px] font-mono space-y-2 animate-spring-up">
+                    <div className="border-b border-[var(--border)] pb-1.5 flex items-center justify-between text-[9.5px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">
+                      <span>模型实际上下文诊断</span>
+                      <span className="text-[var(--accent)]">{currentModelMetadata.id}</span>
                     </div>
-                    <div className="flex justify-between"><span className="text-[var(--text-muted)]">输入 (Prompt)</span><span className="text-[var(--text)]">{formatNumber(promptTok)}</span></div>
-                    {cachedTok > 0 ? <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><span>缓存命中</span><span>{formatNumber(cachedTok)} ({cacheRate}%)</span></div> : null}
-                    <div className="flex justify-between"><span className="text-[var(--text-muted)]">输出 (Output)</span><span className="text-[var(--text)]">{formatNumber(completionTok)}</span></div>
-                    {reasoningTok > 0 ? <div className="flex justify-between text-purple-700 dark:text-purple-300"><span>深度推理</span><span>{formatNumber(reasoningTok)}</span></div> : null}
-                    <div className="flex justify-between border-t border-[var(--border)] pt-1 font-semibold text-[var(--text)]"><span>总计 Tokens</span><span className="text-[var(--accent)]">{formatNumber(totalTok)}</span></div>
+
+                    {/* Context window progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-[var(--text-muted)]">上下文占用</span>
+                        <span className="font-semibold text-[var(--text)]">
+                          {formatNumber(totalTok)} / {currentModelMetadata.contextWindowFormatted} ({contextUsagePercent}%)
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-[var(--bg-hover)] overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all duration-300",
+                            contextUsagePercent > 80
+                              ? "bg-rose-500"
+                              : contextUsagePercent > 50
+                                ? "bg-amber-500"
+                                : "bg-[var(--accent)]"
+                          )}
+                          style={{ width: `${contextUsagePercent}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-[9px] text-[var(--text-dim)]">
+                        <span>剩余可用空间:</span>
+                        <span className="font-semibold">{formatNumber(remainingTok)} Tokens</span>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[var(--border)] pt-1.5 space-y-1 text-[10.5px]">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-muted)]">输入 (Prompt)</span>
+                        <span className="text-[var(--text)]">{formatNumber(promptTok)}</span>
+                      </div>
+                      {cachedTok > 0 ? (
+                        <div className="flex justify-between text-emerald-700 dark:text-emerald-400">
+                          <span className="flex items-center gap-1">
+                            <CacheLightningIcon size={11} />
+                            <span>缓存命中</span>
+                          </span>
+                          <span>{formatNumber(cachedTok)} ({cacheRate}%)</span>
+                        </div>
+                      ) : null}
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-muted)]">输出 (Output)</span>
+                        <span className="text-[var(--text)]">{formatNumber(completionTok)}</span>
+                      </div>
+                      {reasoningTok > 0 ? (
+                        <div className="flex justify-between text-purple-700 dark:text-purple-300">
+                          <span>深度推理 (Reasoning)</span>
+                          <span>{formatNumber(reasoningTok)}</span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="flex justify-between border-t border-[var(--border)] pt-1.5 font-bold text-[var(--text)]">
+                      <span>总计消耗 Tokens</span>
+                      <span className="text-[var(--accent)]">{formatNumber(totalTok)}</span>
+                    </div>
                   </div>
                 ) : null}
               </div>
             </div>
           ) : null}
 
-          {/* Pi Web: left attach/model, right thinking/tools, below the card. */}
+          {/* ── Bottom Controls: Model Selector, Thinking, WebSearch, Fusion ── */}
           <div className="chat-input-controls mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
             <div className="flex min-w-0 items-center gap-1">
               <input
@@ -389,10 +584,14 @@ export function Composer({
                 <PlusAttachmentIcon size={14} />
               </button>
 
+              {/* Dynamic Available Models Selector */}
               <div className="relative min-w-0" ref={modelMenuRef}>
                 <button
                   type="button"
-                  onClick={() => setModelMenuOpen((v) => !v)}
+                  onClick={() => {
+                    setModelMenuOpen((v) => !v);
+                    if (!modelMenuOpen) void loadModels(false);
+                  }}
                   className={cn(
                     "flex h-8 min-w-0 items-center gap-1 rounded-[10px] border px-2 text-[11px] font-medium transition-colors",
                     modelMenuOpen
@@ -401,26 +600,138 @@ export function Composer({
                   )}
                 >
                   <CpuChipIcon size={12} className="shrink-0 text-[var(--accent)]" />
-                  <span className="max-w-[112px] truncate sm:max-w-[180px]">{selectedModel}</span>
+                  <span className="max-w-[100px] truncate sm:max-w-[160px] font-semibold">
+                    {currentModelMetadata.label}
+                  </span>
+                  <span className="font-mono text-[9px] text-[var(--text-dim)] shrink-0 hidden sm:inline">
+                    {currentModelMetadata.contextWindowFormatted}
+                  </span>
                   <ChevronDown className="h-2.5 w-2.5 shrink-0 opacity-60" />
                 </button>
+
+                {/* Enhanced Dropdown with Search, Context Window and Badges */}
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] w-56 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-1 shadow-xl animate-spring-up">
-                    <div className="space-y-0.5">
-                      {PRESET_MODELS.map((item) => (
+                  <div className="absolute bottom-9 left-0 z-50 w-72 max-w-[calc(100vw-32px)] rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1.5 shadow-2xl animate-spring-up">
+                    {/* Search bar inside popover */}
+                    <div className="relative mb-1.5 px-0.5">
+                      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-[var(--text-dim)]" />
+                      <input
+                        type="text"
+                        value={modelSearchQuery}
+                        onChange={(e) => setModelSearchQuery(e.target.value)}
+                        placeholder="搜索可用模型 (如 gemini, claude, r1)..."
+                        className="h-7 w-full rounded-md border border-[var(--border)] bg-[var(--bg)] pl-7 pr-6 text-[11px] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--accent)]"
+                      />
+                      {modelSearchQuery ? (
                         <button
-                          key={item.id}
                           type="button"
-                          onClick={() => handleSelectModel(item.id)}
-                          className={cn(
-                            "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
-                            selectedModel === item.id ? "bg-[var(--accent)]/15 text-[var(--accent)] font-semibold" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
-                          )}
+                          onClick={() => setModelSearchQuery("")}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-dim)] hover:text-[var(--text)]"
                         >
-                          <div><div className="font-medium">{item.label}</div><div className="text-[9px] text-[var(--text-dim)]">{item.desc}</div></div>
-                          <span>{item.badge}</span>
+                          <X className="h-2.5 w-2.5" />
                         </button>
-                      ))}
+                      ) : null}
+                    </div>
+
+                    {/* Model items list */}
+                    <div className="max-h-[50vh] overflow-y-auto space-y-0.5 pr-0.5">
+                      {modelsLoading && modelsList.length === 0 ? (
+                        <div className="py-6 text-center text-[11px] text-[var(--text-dim)]">
+                          正在探测渠道可用模型…
+                        </div>
+                      ) : filteredModels.length === 0 ? (
+                        <div className="py-4 text-center text-[11px] text-[var(--text-dim)]">
+                          未找到匹配模型
+                        </div>
+                      ) : (
+                        filteredModels.map((item) => {
+                          const isSelected = selectedModel === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => handleSelectModel(item.id)}
+                              className={cn(
+                                "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[11.5px] transition-colors",
+                                isSelected
+                                  ? "bg-[var(--accent)]/15 text-[var(--accent)] font-semibold"
+                                  : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
+                              )}
+                            >
+                              <div className="min-w-0 flex-1 pr-1.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate leading-tight font-medium">{item.label}</span>
+                                  {item.isRecommended ? (
+                                    <span className="text-[9px] text-amber-500 font-normal shrink-0">⚡</span>
+                                  ) : null}
+                                </div>
+                                <div className="mt-0.5 flex items-center gap-1.5 font-mono text-[9px] text-[var(--text-dim)]">
+                                  <span>{item.channelName}</span>
+                                  <span>·</span>
+                                  <span>{item.provider}</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                {/* Context Window badge */}
+                                <span className="rounded bg-[var(--bg)] border border-[var(--border)] px-1 py-0.2 font-mono text-[8.5px] text-[var(--text)] font-semibold">
+                                  {item.contextWindowFormatted}
+                                </span>
+
+                                {/* Capability icons */}
+                                {item.supportsThinking ? (
+                                  <span title="支持思考推理链" className="text-[10px] text-purple-600 dark:text-purple-300">
+                                    🧠
+                                  </span>
+                                ) : null}
+                                {item.supportsVision ? (
+                                  <span title="支持多模态视觉" className="text-[10px]">
+                                    👁️
+                                  </span>
+                                ) : null}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* Custom model input fallback */}
+                    <div className="border-t border-[var(--border)] pt-1.5 mt-1 px-1">
+                      <div className="text-[9px] font-mono text-[var(--text-dim)] mb-1">
+                        自定义输入任意模型 ID:
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={customModelInput}
+                          onChange={(e) => setCustomModelInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              if (customModelInput.trim()) {
+                                handleSelectModel(customModelInput.trim());
+                                setCustomModelInput("");
+                              }
+                            }
+                          }}
+                          placeholder="如: deepseek-chat, gpt-4.5..."
+                          className="h-6 flex-1 rounded border border-[var(--border)] bg-[var(--bg)] px-1.5 font-mono text-[10px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                        />
+                        <button
+                          type="button"
+                          disabled={!customModelInput.trim()}
+                          onClick={() => {
+                            if (customModelInput.trim()) {
+                              handleSelectModel(customModelInput.trim());
+                              setCustomModelInput("");
+                            }
+                          }}
+                          className="h-6 px-2 rounded bg-[var(--accent)] text-[var(--accent-contrast)] text-[10px] font-medium disabled:opacity-40 shrink-0"
+                        >
+                          设置
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -428,13 +739,17 @@ export function Composer({
             </div>
 
             <div className="flex items-center justify-end gap-1">
+              {/* Dynamic Thinking Level Selector aware of current model */}
               <ThinkingLevelSelector
                 value={thinkingLevel}
+                modelMetadata={currentModelMetadata}
                 onChange={(level) => {
                   setThinkingLevel(level);
                   setDeepThinkingActive(level !== "none");
                 }}
               />
+
+              {/* Web search toggle pill */}
               <button
                 type="button"
                 onClick={() => setWebSearchActive((v) => !v)}
@@ -449,6 +764,8 @@ export function Composer({
                 <GlobeWireIcon size={12} />
                 <span className="hidden sm:inline">联网</span>
               </button>
+
+              {/* Fusion mode pill */}
               <button
                 type="button"
                 onClick={() => setFusionModeActive((v) => !v)}
