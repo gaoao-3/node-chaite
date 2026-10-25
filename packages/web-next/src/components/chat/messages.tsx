@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CheckCheck, CircleAlert, Copy, Sparkles } from "lucide-react";
-import { BrandMark } from "@/components/brand";
+
 import { Markdown } from "@/components/chat/markdown";
 import type { AssistantImage, TimelineItem } from "@/lib/timeline";
 import { cn, formatClock, formatNumber } from "@/lib/utils";
@@ -14,7 +14,7 @@ export function UserMessage({ item }: { item: UserItem }) {
   const [lightboxImage, setLightboxImage] = React.useState<string | null>(null);
 
   return (
-    <div className="group flex w-full justify-end animate-fade-up">
+    <div className="group mb-4 flex w-full justify-end animate-fade-up">
       <div className="flex max-w-[85%] sm:max-w-[75%] min-w-0 flex-col items-end gap-1.5">
 
         {/* Attached Images */}
@@ -124,47 +124,31 @@ function ImageGrid({ images }: { images: AssistantImage[] }) {
   );
 }
 
-export function AssistantMessage({ item, streaming }: { item: AssistantItem; streaming: boolean }) {
+export function AssistantMessage({ item, streaming, model }: { item: AssistantItem; streaming: boolean; model?: string }) {
   const showTyping = streaming && !item.text && !item.done;
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
-    if (item.text) {
-      navigator.clipboard?.writeText(item.text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }
+    if (!item.text) return;
+    void navigator.clipboard?.writeText(item.text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
   };
 
   return (
-    <div className="group relative animate-fade-up w-full">
-      {/* Pi Web Style: Minimal Model & Meta Label at the top, full width markdown body */}
-      <div className="mb-1.5 flex items-center gap-2 text-[11px] font-mono text-[var(--text-dim)]">
-        <span className="flex h-4 w-4 items-center justify-center rounded bg-[var(--bg-panel)] text-[var(--accent)] border border-[var(--border)]">
-          <BrandMark size={10} />
-        </span>
-        <span className="font-medium text-[var(--text-muted)] font-sans">Chaite Agent</span>
-        <span className="text-[10px] opacity-70">· {formatClock(item.createdAt)}</span>
-
+    <div className="group relative mb-4 w-full animate-fade-up" data-message-role="assistant">
+      {/* Original Pi Web: an 11px model label, then the full-width message blocks. */}
+      <div className="mb-1 flex items-center gap-1.5 text-[11px] text-[var(--text-dim)]">
+        <span>{model || "Chaite Agent"}</span>
         {!item.done && streaming ? (
-          <span className="inline-flex items-center gap-1 rounded bg-cyan-500/10 border border-cyan-500/20 px-1 py-px text-[9px] text-cyan-600 dark:text-cyan-300">
+          <span className="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-300">
             <span className="h-1 w-1 animate-pulse rounded-full bg-cyan-500" />
             streaming
           </span>
         ) : null}
-
-        {/* Pi Web-style hover actions: Copy */}
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="ml-auto opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-[var(--text-dim)] hover:text-[var(--text)] p-1 rounded hover:bg-[var(--bg-hover)]"
-          title="复制回复"
-        >
-          {copied ? <span className="text-emerald-500 text-[10px] font-medium">已复制</span> : <Copy className="h-3 w-3" />}
-        </button>
       </div>
 
-      <div className="min-w-0 w-full">
+      <div className="flex min-w-0 flex-col gap-2">
         {showTyping ? <TypingDots /> : null}
         {item.text ? (
           <div className="relative">
@@ -177,17 +161,25 @@ export function AssistantMessage({ item, streaming }: { item: AssistantItem; str
         <ImageGrid images={item.images ?? []} />
       </div>
 
-      {/* Bottom Meta (Tokens & Cache info if present) */}
-      {item.usage?.totalTokens ? (
-        <div className="mt-1 flex items-center gap-2 text-[9px] font-mono text-[var(--text-dim)] opacity-0 group-hover:opacity-100 transition-opacity">
-          <span>{formatNumber(item.usage.promptTokens ?? 0)} in · {formatNumber(item.usage.completionTokens ?? 0)} out</span>
-          {item.usage.cachedTokens ? (
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-              {formatNumber(item.usage.cachedTokens)} cached
-            </span>
-          ) : null}
-        </div>
-      ) : null}
+      <div className="mt-1 flex items-center gap-2 text-[11px] text-[var(--text-dim)]">
+        {item.usage?.totalTokens ? (
+          <span className="font-mono">
+            {formatNumber(item.usage.promptTokens ?? 0)} in · {formatNumber(item.usage.completionTokens ?? 0)} out
+            {item.usage.cachedTokens ? ` · ${formatNumber(item.usage.cachedTokens)} cached` : ""}
+          </span>
+        ) : null}
+        {item.text && item.done ? (
+          <button
+            type="button"
+            onClick={handleCopy}
+            title="复制回复"
+            className="inline-flex h-[22px] items-center gap-1 rounded px-1.5 text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text)] md:opacity-0 md:group-hover:opacity-100"
+          >
+            <Copy className="h-3 w-3" />
+            <span>{copied ? "已复制" : "复制"}</span>
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

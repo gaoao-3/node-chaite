@@ -98,16 +98,14 @@ export function ThinkingLevelSelector({
         aria-label={`思考等级: ${current.label} (${current.desc})`}
         title={`思考等级: ${current.label} · ${current.budgetHint}`}
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-lg border px-2 text-[11px] font-mono transition-colors",
-          value === "none"
-            ? "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text)]"
-            : value === "max"
-              ? "border-purple-500/40 bg-purple-500/15 text-purple-700 dark:text-purple-200 font-semibold shadow-[0_0_12px_-3px_rgba(168,85,247,0.3)]"
-              : "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300 font-medium hover:border-purple-500/50",
-          open && "ring-1 ring-purple-500/50",
+          "flex h-8 items-center gap-1.5 rounded-[10px] border px-2 text-[11px] font-mono transition-colors",
+          value === "max"
+            ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+            : "border-[var(--border)] bg-[var(--bg-subtle,rgba(127,127,127,0.04))] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
+          open && "ring-1 ring-[var(--accent)]/40",
         )}
       >
-        <span className="shrink-0 text-purple-600 dark:text-purple-300">{getThinkingIcon(value, 14)}</span>
+        <span className="shrink-0 text-[var(--text-muted)]">{getThinkingIcon(value, 14)}</span>
         <span className="font-medium tracking-tight">{current.label}</span>
       </button>
 

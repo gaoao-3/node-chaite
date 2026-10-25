@@ -212,7 +212,7 @@ export function MessageStream({
         ) : totalItems === 0 ? (
           <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
         ) : (
-          <div className="chat-stream mx-auto flex w-full max-w-[var(--chat-content-max-width,820px)] flex-col gap-4 pb-2">
+          <div className="chat-stream mx-auto flex w-full max-w-[var(--chat-content-max-width,820px)] flex-col gap-0 pb-2">
             {groupedItems.map((entry) => {
               if (entry.kind === "user") return <UserMessage key={entry.id} item={entry.item} />;
               if (entry.kind === "thought") {
@@ -235,6 +235,7 @@ export function MessageStream({
                     key={entry.id}
                     item={entry.item}
                     streaming={view.isStreaming && entry.item.id === lastAssistant?.id}
+                    model={view.session?.model}
                   />
                 );
               }
@@ -263,10 +264,11 @@ export function MessageStream({
         <button
           type="button"
           onClick={() => scrollToBottom(true)}
-          className="absolute bottom-4 left-1/2 z-20 flex h-7.5 -translate-x-1/2 items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-panel)] px-3 text-[11px] font-medium text-[var(--text)] shadow-lg backdrop-blur-md transition-all hover:border-[var(--accent)] hover:text-[var(--accent)] animate-spring-up active:scale-95"
+          title="回到最新"
+          aria-label="回到最新"
+          className="chat-scroll-to-bottom absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-panel)] text-[var(--text-muted)] opacity-60 shadow-sm transition-all hover:bg-[var(--bg-hover)] hover:text-[var(--text)] hover:opacity-100"
         >
-          <ArrowDown className="h-3 w-3" />
-          回到最新
+          <ArrowDown className="h-3.5 w-3.5" />
         </button>
       ) : null}
 

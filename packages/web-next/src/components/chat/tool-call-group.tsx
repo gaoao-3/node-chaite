@@ -98,7 +98,7 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
   const meta = TOOL_STATUS_META[call.status] ?? TOOL_STATUS_META.running;
 
   return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] overflow-hidden transition-colors">
+    <div className="rounded-[7px] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.04)] overflow-hidden transition-colors">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -110,12 +110,11 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
           </span>
         ) : null}
 
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)]">
-          <Icon className="h-3 w-3" />
-        </span>
-
-        <span className="truncate font-mono text-[11.5px] font-semibold text-[var(--text)]">
+        <span className="truncate font-mono text-[11px] font-semibold text-[#16a34a]">
           {call.name}
+        </span>
+        <span className="min-w-0 flex-1 truncate font-mono text-[10px] text-[var(--text-dim)]">
+          {call.argsPreview}
         </span>
 
         {call.name.startsWith("hash_") ? (
@@ -130,10 +129,7 @@ export function ToolDetailItem({ item }: { item: ToolItemProps }) {
         </span>
 
         <span
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-mono shrink-0 ml-1.5",
-            meta.chip,
-          )}
+          className="inline-flex items-center gap-1 text-[10px] font-mono shrink-0 ml-1.5 text-[var(--text-dim)]"
         >
           <StatusSpine status={call.status} />
           {meta.label}
@@ -251,7 +247,7 @@ export function ToolCallGroup({ items }: { items: ToolItemProps[] }) {
   }
 
   return (
-    <div className="my-1.5 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] shadow-xs transition-all duration-200">
+    <div className="my-1.5 overflow-hidden rounded-[7px] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.04)] transition-colors">
       {/* ── Group Header Bar (Click to toggle) ── */}
       <button
         type="button"
@@ -259,19 +255,6 @@ export function ToolCallGroup({ items }: { items: ToolItemProps[] }) {
         aria-expanded={isOpen}
         className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
       >
-        {/* Leading Icon with count badge */}
-        <span
-          className={cn(
-            "relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border",
-            !isAllDone
-              ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"
-              : failedCount > 0
-                ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300"
-                : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--accent)]",
-          )}
-        >
-          <Wrench className={cn("h-3.5 w-3.5", !isAllDone && "animate-pulse")} />
-        </span>
 
         {/* Title and breakdown */}
         <div className="min-w-0 flex-1">
@@ -298,17 +281,17 @@ export function ToolCallGroup({ items }: { items: ToolItemProps[] }) {
         {/* Status chip */}
         <div className="flex shrink-0 items-center gap-2">
           {!isAllDone ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[9.5px] font-medium text-cyan-700 dark:text-cyan-300">
+            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-cyan-700 dark:text-cyan-300">
               <span className="h-1.5 w-1.5 animate-ping rounded-full bg-cyan-500" />
               执行中
             </span>
           ) : failedCount > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2 py-0.5 font-mono text-[9.5px] font-medium text-rose-700 dark:text-rose-300">
+            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-rose-700 dark:text-rose-300">
               <X className="h-3 w-3" />
               {failedCount} 项失败
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[9.5px] font-medium text-emerald-700 dark:text-emerald-300">
+            <span className="inline-flex items-center gap-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
               <Check className="h-3 w-3" />
               全部完成
             </span>

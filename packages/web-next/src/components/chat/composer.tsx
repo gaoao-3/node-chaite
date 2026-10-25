@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  ArrowRight,
   ChevronDown,
   CircleAlert,
   FileCode,
@@ -9,7 +10,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  SendArrowIcon,
   PlusAttachmentIcon,
   CpuChipIcon,
   GlobeWireIcon,
@@ -209,11 +209,10 @@ export function Composer({
     : null;
 
   return (
-    <div className="relative shrink-0 px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-1 sm:px-8 sm:pb-5">
+    <div className="chat-input-shell relative shrink-0 px-4 pb-2 pt-1 sm:px-8 sm:pb-3">
       <div className="mx-auto w-full max-w-[var(--chat-content-max-width,820px)]">
-        {/* Error notice */}
         {error ? (
-          <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-700 dark:text-rose-200 animate-slide-up-fade">
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-700 dark:text-rose-200 animate-slide-up-fade">
             <span className="truncate">{error}</span>
             <button type="button" onClick={onDismissError} className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-100">
               <X className="h-3 w-3" />
@@ -221,7 +220,6 @@ export function Composer({
           </div>
         ) : null}
 
-        {/* Minimal Floating Composer Card */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -237,20 +235,14 @@ export function Composer({
             setIsDragging(false);
             if (e.dataTransfer.files) void handleFiles(e.dataTransfer.files);
           }}
-          className={cn(
-            "group relative rounded-xl border bg-[var(--bg-panel)] transition-all duration-150",
-            isDragging
-              ? "border-[var(--accent)] ring-1 ring-[var(--accent)]"
-              : "border-[var(--border)] focus-within:border-[var(--border)] focus-within:shadow-sm",
-          )}
+          className="group relative"
         >
-          {/* Attachments preview */}
           {attachments.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] p-2.5">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               {attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-1 pr-2 text-[10.5px] text-[var(--text)] animate-scale-in"
+                  className="flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--bg-panel)] p-1 pr-2 text-[10.5px] text-[var(--text)] animate-scale-in"
                 >
                   {att.type === "image" && att.dataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -272,101 +264,107 @@ export function Composer({
             </div>
           ) : null}
 
-          {/* Clean Textarea */}
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={
-              streaming
-                ? "Agent 正在生成中…"
-                : disabled
-                  ? "请选择或新建会话"
-                  : "输入你的需求或问题…"
-            }
-            rows={1}
-            spellCheck={false}
-            className="w-full resize-none border-0 bg-transparent px-3.5 pt-3 pb-2 text-[calc(14px_+_var(--chat-font-size-offset))] leading-relaxed text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed focus:outline-none focus:ring-0"
-          />
+          {/* Pi Web: a quiet input card; controls live outside below it. */}
+          <div
+            className={cn(
+              "flex items-end gap-2 rounded-[14px] border bg-[var(--bg)] px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.10)] transition-colors",
+              isDragging ? "border-[var(--accent)]" : "border-[var(--border)] focus-within:border-[var(--accent)]/60",
+            )}
+          >
+            <textarea
+              ref={textareaRef}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={
+                streaming
+                  ? "Agent 正在生成中…"
+                  : disabled
+                    ? "请选择或新建会话"
+                    : "输入你的需求或问题…"
+              }
+              rows={1}
+              spellCheck={false}
+              className="chat-input-textarea max-h-[200px] min-h-6 flex-1 resize-none border-0 bg-transparent py-0.5 text-[16px] leading-[1.6] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed focus:outline-none focus:ring-0 sm:text-[calc(14px_+_var(--chat-font-size-offset))]"
+            />
 
-          {/* ── Token Usage & Cache Hit Rate Micro-Strip ── */}
+            {streaming ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                title="停止生成"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-300 sm:px-3"
+              >
+                <Square className="h-3 w-3 fill-current" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!canSend}
+                title="发送"
+                aria-label="发送"
+                className={cn(
+                  "flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-0 text-[13px] font-semibold transition-colors sm:px-3.5",
+                  canSend
+                    ? "bg-[var(--accent)] text-[var(--accent-contrast)] shadow-sm hover:bg-[var(--accent-hover)]"
+                    : "bg-[var(--bg-panel)] text-[var(--text-dim)] cursor-not-allowed",
+                  "w-9 sm:w-auto",
+                )}
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">发送</span>
+              </button>
+            )}
+          </div>
+
+          {/* Usage metadata stays quiet and outside the input card. */}
           {totalTok > 0 ? (
-            <div className="flex items-center justify-between gap-2 border-t border-[var(--border)] px-3 py-1 font-mono text-[10px] text-[var(--text-dim)] bg-[var(--bg-hover)]/30 select-none transition-colors">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 sm:gap-3">
-                <span className="flex items-center gap-1 font-medium text-[var(--text)]">
-                  <TokenCoinIcon size={12} className="text-[var(--accent)]" />
+            <div className="mt-1 flex min-h-5 items-center justify-between gap-2 px-1 font-mono text-[10px] text-[var(--text-dim)] select-none">
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 sm:gap-3">
+                <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                  <TokenCoinIcon size={11} className="text-[var(--accent)]" />
                   <span>{formatNumber(totalTok)}</span>
-                  <span className="font-normal text-[9px] text-[var(--text-dim)]">tok</span>
+                  <span className="text-[9px] text-[var(--text-dim)]">tok</span>
                 </span>
-
                 {cacheRate !== null && cacheRate > 0 ? (
-                  <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-0.5 text-emerald-700 dark:text-emerald-400">
                     <CacheLightningIcon size={10} />
                     <span>{cacheRate}% 缓存</span>
                   </span>
                 ) : null}
-
                 {reasoningTok > 0 ? (
-                  <span className="inline-flex items-center gap-1 text-purple-700 dark:text-purple-300 font-medium bg-purple-500/10 px-1 py-0.2 rounded border border-purple-500/20">
-                    <span>🧠 {formatNumber(reasoningTok)} 思考</span>
-                  </span>
+                  <span className="text-purple-700 dark:text-purple-300">🧠 {formatNumber(reasoningTok)} 思考</span>
                 ) : null}
               </div>
 
-              {/* Usage Breakdown Trigger */}
-              <div className="relative" ref={usageMenuRef}>
+              <div className="relative shrink-0" ref={usageMenuRef}>
                 <button
                   type="button"
                   onClick={() => setUsageOpen((v) => !v)}
-                  className="flex items-center gap-0.5 text-[9.5px] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors px-1 py-0.5 rounded hover:bg-[var(--bg-hover)]"
+                  className="flex items-center gap-0.5 rounded px-1 py-0.5 text-[9.5px] text-[var(--text-dim)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text)]"
                 >
                   <span>用量</span>
-                  <ChevronDown className={cn("h-2.5 w-2.5 opacity-60 transition-transform duration-150", usageOpen && "rotate-180")} />
+                  <ChevronDown className={cn("h-2.5 w-2.5 opacity-60 transition-transform", usageOpen && "rotate-180")} />
                 </button>
-
                 {usageOpen ? (
-                  <div className="absolute bottom-6 right-0 z-50 w-52 rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 shadow-2xl backdrop-blur-2xl animate-spring-up text-[11px] font-mono space-y-1.5">
-                    <div className="text-[9.5px] font-semibold text-[var(--text-dim)] uppercase tracking-wider pb-1 border-b border-[var(--border)]">
+                  <div className="absolute bottom-6 right-0 z-50 w-52 rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 shadow-xl text-[11px] font-mono space-y-1.5 animate-spring-up">
+                    <div className="border-b border-[var(--border)] pb-1 text-[9.5px] font-semibold uppercase tracking-wider text-[var(--text-dim)]">
                       Token 与缓存指标明细
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[var(--text-muted)]">输入 (Prompt)</span>
-                      <span className="text-[var(--text)] font-semibold">{formatNumber(promptTok)}</span>
-                    </div>
-                    {cachedTok > 0 ? (
-                      <div className="flex justify-between items-center text-emerald-700 dark:text-emerald-400">
-                        <span className="flex items-center gap-1">
-                          <CacheLightningIcon size={11} />
-                          <span>缓存命中</span>
-                        </span>
-                        <span className="font-semibold">{formatNumber(cachedTok)} ({cacheRate}%)</span>
-                      </div>
-                    ) : null}
-                    <div className="flex justify-between items-center">
-                      <span className="text-[var(--text-muted)]">输出 (Output)</span>
-                      <span className="text-[var(--text)] font-semibold">{formatNumber(completionTok)}</span>
-                    </div>
-                    {reasoningTok > 0 ? (
-                      <div className="flex justify-between items-center text-purple-700 dark:text-purple-300">
-                        <span>深度推理</span>
-                        <span className="font-semibold">{formatNumber(reasoningTok)}</span>
-                      </div>
-                    ) : null}
-                    <div className="flex justify-between items-center pt-1 border-t border-[var(--border)] font-bold text-[var(--text)]">
-                      <span>总计 Tokens</span>
-                      <span className="text-[var(--accent)]">{formatNumber(totalTok)}</span>
-                    </div>
+                    <div className="flex justify-between"><span className="text-[var(--text-muted)]">输入 (Prompt)</span><span className="text-[var(--text)]">{formatNumber(promptTok)}</span></div>
+                    {cachedTok > 0 ? <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><span>缓存命中</span><span>{formatNumber(cachedTok)} ({cacheRate}%)</span></div> : null}
+                    <div className="flex justify-between"><span className="text-[var(--text-muted)]">输出 (Output)</span><span className="text-[var(--text)]">{formatNumber(completionTok)}</span></div>
+                    {reasoningTok > 0 ? <div className="flex justify-between text-purple-700 dark:text-purple-300"><span>深度推理</span><span>{formatNumber(reasoningTok)}</span></div> : null}
+                    <div className="flex justify-between border-t border-[var(--border)] pt-1 font-semibold text-[var(--text)]"><span>总计 Tokens</span><span className="text-[var(--accent)]">{formatNumber(totalTok)}</span></div>
                   </div>
                 ) : null}
               </div>
             </div>
           ) : null}
 
-          {/* ── Toolbar: Actions & Send ── */}
-          <div className="flex items-end justify-between gap-2 px-2.5 pb-2 pt-1.5">
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 sm:gap-1.5">
-              {/* Attach button (+) */}
+          {/* Pi Web: left attach/model, right thinking/tools, below the card. */}
+          <div className="chat-input-controls mt-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1">
               <input
                 type="file"
                 multiple
@@ -382,30 +380,28 @@ export function Composer({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 title="添加附件"
-                className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)] transition-all active:scale-95 shrink-0"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-[var(--border)] bg-[var(--bg-subtle,rgba(127,127,127,0.04))] text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text)]"
               >
-                <PlusAttachmentIcon size={15} />
+                <PlusAttachmentIcon size={14} />
               </button>
 
-              {/* Model Pill */}
-              <div className="relative shrink-0" ref={modelMenuRef}>
+              <div className="relative min-w-0" ref={modelMenuRef}>
                 <button
                   type="button"
                   onClick={() => setModelMenuOpen((v) => !v)}
                   className={cn(
-                    "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border",
+                    "flex h-8 min-w-0 items-center gap-1 rounded-[10px] border px-2 text-[11px] font-medium transition-colors",
                     modelMenuOpen
-                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-                      : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:text-[var(--text)]",
+                      ? "border-[var(--accent)] bg-[var(--bg-hover)] text-[var(--accent)]"
+                      : "border-[var(--border)] bg-[var(--bg-subtle,rgba(127,127,127,0.04))] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
                   )}
                 >
-                  <CpuChipIcon size={13} className="text-[var(--accent)] shrink-0" />
-                  <span className="max-w-[72px] truncate sm:max-w-[130px]">{selectedModel}</span>
-                  <ChevronDown className="h-2.5 w-2.5 opacity-60 shrink-0" />
+                  <CpuChipIcon size={12} className="shrink-0 text-[var(--accent)]" />
+                  <span className="max-w-[112px] truncate sm:max-w-[180px]">{selectedModel}</span>
+                  <ChevronDown className="h-2.5 w-2.5 shrink-0 opacity-60" />
                 </button>
-
                 {modelMenuOpen ? (
-                  <div className="absolute bottom-8 left-0 z-50 w-56 max-h-[60vh] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-1 shadow-2xl animate-spring-up">
+                  <div className="absolute bottom-9 left-0 z-50 max-h-[60vh] w-56 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-1 shadow-xl animate-spring-up">
                     <div className="space-y-0.5">
                       {PRESET_MODELS.map((item) => (
                         <button
@@ -413,14 +409,11 @@ export function Composer({
                           type="button"
                           onClick={() => handleSelectModel(item.id)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors",
+                            "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[11px] transition-colors",
                             selectedModel === item.id ? "bg-[var(--accent)]/15 text-[var(--accent)] font-semibold" : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
                           )}
                         >
-                          <div>
-                            <div className="font-medium">{item.label}</div>
-                            <div className="text-[9px] text-[var(--text-dim)]">{item.desc}</div>
-                          </div>
+                          <div><div className="font-medium">{item.label}</div><div className="text-[9px] text-[var(--text-dim)]">{item.desc}</div></div>
                           <span>{item.badge}</span>
                         </button>
                       ))}
@@ -428,8 +421,9 @@ export function Composer({
                   </div>
                 ) : null}
               </div>
+            </div>
 
-              {/* Thinking Level Pill */}
+            <div className="flex items-center justify-end gap-1">
               <ThinkingLevelSelector
                 value={thinkingLevel}
                 onChange={(level) => {
@@ -437,50 +431,20 @@ export function Composer({
                   setDeepThinkingActive(level !== "none");
                 }}
               />
-
-              {/* Web search toggle pill */}
               <button
                 type="button"
                 onClick={() => setWebSearchActive((v) => !v)}
                 title="联网检索"
                 className={cn(
-                  "flex h-7 items-center gap-1 rounded-lg px-2 text-[11px] font-medium transition-colors border shrink-0",
+                  "flex h-8 items-center gap-1 rounded-[10px] border px-2 text-[11px] font-medium transition-colors",
                   webSearchActive
-                    ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold"
-                    : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:border-[var(--text-muted)] hover:text-[var(--text)]",
+                    ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                    : "border-[var(--border)] bg-[var(--bg-subtle,rgba(127,127,127,0.04))] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text)]",
                 )}
               >
-                <GlobeWireIcon size={13} className="shrink-0" />
+                <GlobeWireIcon size={12} />
                 <span className="hidden sm:inline">联网</span>
               </button>
-            </div>
-
-            {/* Right: Circular Send or Stop Button (Claude/ChatGPT style) */}
-            <div className="shrink-0 ml-1.5">
-              {streaming ? (
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  title="停止生成"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-all active:scale-95"
-                >
-                  <Square className="h-3 w-3 fill-current" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!canSend}
-                  title="发送"
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full transition-all duration-150 active:scale-95",
-                    canSend
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm hover:scale-105"
-                      : "bg-zinc-100 text-zinc-400 dark:bg-white/10 dark:text-zinc-600 border border-[var(--border)] cursor-not-allowed",
-                  )}
-                >
-                  <SendArrowIcon size={15} />
-                </button>
-              )}
             </div>
           </div>
         </form>
