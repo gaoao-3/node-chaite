@@ -550,6 +550,12 @@ export function applyAgentEvent(view: StreamView, event: AgentWebEvent): StreamV
         }),
       };
     }
+    case "session_title":
+      return {
+        ...view,
+        lastEventAt: event.timestamp,
+        session: patchSession(view.session, { title: event.title }),
+      };
     case "session_closed":
       return {
         ...view,

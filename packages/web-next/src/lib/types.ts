@@ -246,6 +246,11 @@ export interface SessionClosedWebEvent extends AgentWebEventBase {
   reason?: string;
 }
 
+export interface SessionTitleWebEvent extends AgentWebEventBase {
+  type: "session_title";
+  title: string;
+}
+
 export type AgentWebEvent =
   | ThoughtChunkWebEvent
   | TextChunkWebEvent
@@ -257,6 +262,7 @@ export type AgentWebEvent =
   | ErrorWebEvent
   | TurnStartedWebEvent
   | TurnFinishedWebEvent
+  | SessionTitleWebEvent
   | SessionClosedWebEvent;
 
 export interface AgentSessionSnapshot {

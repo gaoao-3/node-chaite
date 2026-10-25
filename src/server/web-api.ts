@@ -18,6 +18,7 @@ import { createAgentEventStream, type AgentEventStreamOptions } from './sse-stre
 import type { AgentSessionStatus, SessionCreateInput } from './types'
 import type { GatewayManager } from '../gateway/gateway-manager'
 import { WorkspaceService } from './workspace-service'
+import type { TitleNamingService } from './title-naming-service'
 import type { PluginLoader } from '../agent/plugins/plugin-loader'
 import {
   COMMUNITY_MCP_CATALOG,
@@ -34,6 +35,7 @@ export interface AgentWebApiDependencies {
   skills?: SkillsService
   gateways?: GatewayManager
   plugins?: PluginLoader
+  titleNaming?: TitleNamingService
   /** Extra middleware (auth, rate limiting) applied to every new route. */
   auth?: RequestHandler[]
   /** SSE tuning; tests use short heartbeats and small backlog limits. */
@@ -246,6 +248,16 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
       typeof req.body.timeout === 'number' ? req.body.timeout : 30,
     )
     sendOk(res, result)
+  }))
+
+  // ─── Auxiliary session title model ──────────────────────────────────────────
+  router.get('/title-naming', route(async (_req, res) => {
+    sendOk(res, await requireService(dependencies.titleNaming, 'TitleNamingService').getPublicConfig())
+  }))
+
+  router.put('/title-naming', route(async (req, res) => {
+    if (!isRecord(req.body)) throw new BadRequestError('Body must be an object')
+    sendOk(res, await requireService(dependencies.titleNaming, 'TitleNamingService').updateConfig(req.body))
   }))
 
   // ─── Sessions ──────────────────────────────────────────────────────────────

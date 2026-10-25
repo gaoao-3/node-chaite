@@ -59,6 +59,7 @@ export function ChatWorkspace({
     sessionId: session?.id ?? null,
     preview,
     onUnauthorized,
+    onTitleChange: () => onSessionsChanged(),
   });
   const [draft, setDraft] = React.useState("");
 
@@ -111,7 +112,7 @@ export function ChatWorkspace({
     if (preview && agent.view.session) return agent.view.session;
     if (!agent.view.session) return session;
     if (!session) return agent.view.session;
-    return { ...agent.view.session, title: session.title };
+    return agent.view.session;
   }, [agent.view.session, preview, session]);
 
   const latestUsage = React.useMemo(() => {
@@ -141,9 +142,6 @@ export function ChatWorkspace({
       if (options?.webSearch) {
         finalPrompt = `[联网搜索模式: 请检索互联网最新信息] ${finalPrompt}`;
       }
-      if (options?.deepThinking) {
-        finalPrompt = `[深度思考模式: 请详细展现推理推演全过程] ${finalPrompt}`;
-      }
 
       const imageAttachments = options?.attachments
         ?.filter(a => a.type === "image" && a.dataUrl)
@@ -161,7 +159,7 @@ export function ChatWorkspace({
         if (onCreateSession) {
           const created = await onCreateSession({
             platform: "web",
-            title: text.slice(0, 24) || "新会话",
+            title: "新会话",
             model: targetModel,
           });
           if (created && token) {
@@ -201,9 +199,11 @@ export function ChatWorkspace({
   const rename = React.useCallback(
     async (title: string) => {
       if (!session) return false;
-      return onRename(session.id, title);
+      const ok = await onRename(session.id, title);
+      if (ok) agent.refresh();
+      return ok;
     },
-    [onRename, session],
+    [agent, onRename, session],
   );
 
   return (

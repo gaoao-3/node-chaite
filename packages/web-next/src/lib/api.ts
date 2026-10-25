@@ -698,3 +698,26 @@ export function runWorkspaceCommand(
 ): Promise<WorkspaceTerminalResult> {
   return request("/api/agent/workspace/terminal", { token, method: "POST", body: { command, cwd, timeout } });
 }
+
+
+// ─── Auxiliary model for automatic session titles ─────────────────────────────
+
+export interface TitleNamingConfig {
+  enabled: boolean;
+  model: string;
+  baseUrl: string;
+  timeoutMs: number;
+  maxChars: number;
+  apiKeyConfigured: boolean;
+}
+
+export function fetchTitleNamingConfig(token: string): Promise<TitleNamingConfig> {
+  return request<TitleNamingConfig>("/api/agent/title-naming", { token });
+}
+
+export function updateTitleNamingConfig(
+  token: string,
+  payload: Partial<Omit<TitleNamingConfig, "apiKeyConfigured">> & { apiKey?: string },
+): Promise<TitleNamingConfig> {
+  return request<TitleNamingConfig>("/api/agent/title-naming", { token, method: "PUT", body: payload });
+}

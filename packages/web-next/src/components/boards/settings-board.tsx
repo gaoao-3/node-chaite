@@ -82,6 +82,9 @@ import {
   type PluginHubItem,
   fetchDshHub,
   type DshMarketPlugin,
+  fetchTitleNamingConfig,
+  updateTitleNamingConfig,
+  type TitleNamingConfig,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -145,6 +148,10 @@ export function SettingsBoard({
   }, [initialTab]);
 
   const [reveal, setReveal] = React.useState(false);
+  const [titleNaming, setTitleNaming] = React.useState<TitleNamingConfig | null>(null);
+  const [titleApiKey, setTitleApiKey] = React.useState("");
+  const [titleNamingSaving, setTitleNamingSaving] = React.useState(false);
+  const [titleNamingNotice, setTitleNamingNotice] = React.useState<string | null>(null);
   const origin = typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:3300";
 
   // ─── Channels State ────────────────────────────────────────────────────────
@@ -310,12 +317,45 @@ export function SettingsBoard({
     }
   }, [token]);
 
+  const loadTitleNaming = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      setTitleNaming(await fetchTitleNamingConfig(token));
+    } catch (error) {
+      console.warn("Fetch title naming config failed:", error);
+    }
+  }, [token]);
+
+  const saveTitleNaming = async () => {
+    if (!token || !titleNaming) return;
+    setTitleNamingSaving(true);
+    setTitleNamingNotice(null);
+    try {
+      const next = await updateTitleNamingConfig(token, {
+        enabled: titleNaming.enabled,
+        model: titleNaming.model,
+        baseUrl: titleNaming.baseUrl,
+        timeoutMs: titleNaming.timeoutMs,
+        maxChars: titleNaming.maxChars,
+        ...(titleApiKey.trim() ? { apiKey: titleApiKey.trim() } : {}),
+      });
+      setTitleNaming(next);
+      setTitleApiKey("");
+      setTitleNamingNotice("已保存，下一轮新会话生效");
+    } catch (error) {
+      setTitleNamingNotice(error instanceof Error ? error.message : "保存失败");
+    } finally {
+      setTitleNamingSaving(false);
+    }
+  };
+
   React.useEffect(() => {
+    if (activeTab === "general") void loadTitleNaming();
     if (activeTab === "channels") void loadChannels();
     if (activeTab === "skills") void loadSkills();
     if (activeTab === "mcp") void loadMcp();
     if (activeTab === "plugins") void loadPlugins();
-  }, [activeTab, loadChannels, loadSkills, loadMcp, loadPlugins]);
+  }, [activeTab, loadChannels, loadSkills, loadMcp, loadPlugins, loadTitleNaming]);
 
   React.useEffect(() => {
     if (activeTab === "plugins" && pluginSubTab === "hub") {
@@ -810,6 +850,69 @@ export function SettingsBoard({
                 label="默认联网搜索"
               />
             </SettingRow>
+          </SectionCard>
+
+          <SectionCard title="会话标题自动命名" hint="Auxiliary Model">
+            {titleNaming ? (
+              <>
+                <SettingRow
+                  title="首轮自动生成短标题"
+                  description="主会话模型负责回答，独立小模型只负责提炼标题；手动改名后不再覆盖。"
+                >
+                  <Switch
+                    checked={titleNaming.enabled}
+                    onChange={(enabled) => setTitleNaming({ ...titleNaming, enabled })}
+                    label="自动命名"
+                  />
+                </SettingRow>
+                <SettingRow
+                  title="命名小模型"
+                  description="可填本地小模型或任意 OpenAI 兼容模型，例如 deepseek-v4.1-flash。"
+                >
+                  <input
+                    type="text"
+                    value={titleNaming.model}
+                    onChange={(event) => setTitleNaming({ ...titleNaming, model: event.target.value })}
+                    className="w-full max-w-[250px] rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 font-mono text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                  />
+                </SettingRow>
+                <SettingRow
+                  title="独立命名接口"
+                  description="不会复用会话上下文，也不会给命名模型挂载工具。"
+                >
+                  <input
+                    type="text"
+                    value={titleNaming.baseUrl}
+                    onChange={(event) => setTitleNaming({ ...titleNaming, baseUrl: event.target.value })}
+                    placeholder="http://127.0.0.1:3000/v1"
+                    className="w-full max-w-[280px] rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 font-mono text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                  />
+                </SettingRow>
+                <SettingRow
+                  title="命名接口 API Key"
+                  description={titleNaming.apiKeyConfigured ? "已保存密钥；留空表示不修改。" : "按你的服务要求填写，留空则不发送 Authorization。"}
+                >
+                  <input
+                    type="password"
+                    value={titleApiKey}
+                    onChange={(event) => setTitleApiKey(event.target.value)}
+                    placeholder="留空保持当前配置"
+                    className="w-full max-w-[250px] rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 font-mono text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                  />
+                </SettingRow>
+                <div className="flex items-center justify-between gap-2 pt-2">
+                  <span className="text-[10px] text-[var(--text-dim)]">
+                    {titleNamingNotice || `超时 ${Math.round(titleNaming.timeoutMs / 1000)}s · 最长 ${titleNaming.maxChars} 字`}
+                  </span>
+                  <Button size="xs" variant="primary" disabled={titleNamingSaving} onClick={() => void saveTitleNaming()}>
+                    <Save className="h-3 w-3" />
+                    {titleNamingSaving ? "保存中…" : "保存命名配置"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="py-2 text-[11px] text-[var(--text-dim)]">正在读取命名配置…</div>
+            )}
           </SectionCard>
 
           <SectionCard title="助理人格与指令" hint="Persona">

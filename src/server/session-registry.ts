@@ -40,6 +40,8 @@ export interface SessionRegistryOptions {
   idFactory?: () => string
   /** Durable store so sessions, timelines and titles survive a restart. */
   persistence?: SessionPersistence
+  /** Optional auxiliary model used to name the first turn without blocking it. */
+  titleNamer?: (input: { prompt: string; reply: string; model?: string }) => Promise<string | undefined>
 }
 
 export interface ApprovalResponseInput {
@@ -157,7 +159,11 @@ export class AgentSession {
     this.lastActiveAt = this.createdAt
     this.skills = [...(input.skills ?? [])]
     this.model = input.model
-    this.metadata = { ...(input.metadata ?? {}) }
+    this.metadata = {
+      ...(input.metadata ?? {}),
+      titleSource: input.metadata?.titleSource
+        ?? (input.title?.trim() && !['New session', '新会话'].includes(input.title.trim()) ? 'manual' : 'auto'),
+    }
   }
 
   get isStreaming(): boolean {
@@ -285,11 +291,29 @@ export class AgentSession {
   }
 
   update(patch: Partial<Pick<SessionCreateInput, 'title' | 'model' | 'skills' | 'metadata'>>): void {
-    if (patch.title !== undefined) this.title = patch.title
+    if (patch.title !== undefined) {
+      this.title = patch.title
+      this.metadata = { ...this.metadata, titleSource: 'manual' }
+    }
     if (patch.model !== undefined) this.model = patch.model
     if (patch.skills !== undefined) this.skills = [...patch.skills]
     if (patch.metadata !== undefined) this.metadata = { ...this.metadata, ...patch.metadata }
     this.lastActiveAt = this.now()
+  }
+
+  /** Only the first turn of an automatically titled session may be renamed by the auxiliary model. */
+  canAutoTitle(): boolean {
+    return this.turnCount === 1 && this.metadata.titleSource !== 'manual' && this.metadata.titleSource !== 'model'
+  }
+
+  /** Apply a generated title and notify connected clients without touching the transcript. */
+  setAutoTitle(title: string): void {
+    const normalized = title.trim()
+    if (!normalized) return
+    this.title = normalized
+    this.metadata = { ...this.metadata, titleSource: 'model' }
+    this.lastActiveAt = this.now()
+    this.append({ type: 'session_title', title: normalized })
   }
 
   /** Append one event, assign its sequence id, trim the log and notify streams. */
@@ -842,6 +866,17 @@ export class SessionRegistry {
       session.finishTurn(outcome)
     }
 
+
+    if (outcome === 'success' && this.options.titleNamer && session.canAutoTitle()) {
+      const reply = result?.text ?? session.activeTurnTextSoFar
+      void this.options.titleNamer({ prompt: input.prompt, reply, model: session.info().model })
+        .then(title => {
+          if (title && session.canAutoTitle()) session.setAutoTitle(title)
+        })
+        .catch((error: unknown) => {
+          console.warn('[session-registry] Auxiliary title generation failed:', (error as Error).message)
+        })
+    }
     if (outcome !== 'success') {
       const error = new WebApiError(outcome === 'cancelled' ? 'Turn cancelled' : 'Agent turn failed', {
         status: outcome === 'cancelled' ? 499 : 500,

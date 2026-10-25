@@ -46,6 +46,7 @@ interface UseAgentSessionOptions {
   enabled?: boolean;
   preview?: boolean;
   onUnauthorized?: () => void;
+  onTitleChange?: (title: string) => void;
 }
 
 export interface UseAgentSessionResult {
@@ -116,6 +117,7 @@ export function useAgentSession({
   enabled = true,
   preview = false,
   onUnauthorized,
+  onTitleChange,
 }: UseAgentSessionOptions): UseAgentSessionResult {
   const [view, setViewState] = useState<StreamView>(() => createInitialStreamView());
   const viewRef = useRef(view);
@@ -128,6 +130,8 @@ export function useAgentSession({
   const mountedRef = useRef(true);
   const unauthorizedRef = useRef(onUnauthorized);
   unauthorizedRef.current = onUnauthorized;
+  const titleChangeRef = useRef(onTitleChange);
+  titleChangeRef.current = onTitleChange;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -223,6 +227,9 @@ export function useAgentSession({
               seen.add(event.seq);
             }
             next = applyAgentEvent(next, event);
+            if (event.type === "session_title") {
+              titleChangeRef.current?.(event.title);
+            }
           }
           next = applySnapshot(next, snapshot, false);
           setLoading(false);
@@ -235,6 +242,9 @@ export function useAgentSession({
           seen.add(event.seq);
         }
         next = applyAgentEvent(next, event);
+        if (event.type === "session_title") {
+          titleChangeRef.current?.(event.title);
+        }
         if (event.type === "session_closed") {
           closed = true;
         }

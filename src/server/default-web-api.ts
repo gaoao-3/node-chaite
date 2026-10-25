@@ -6,6 +6,7 @@ import { EvolutionService } from './evolution-service'
 import { FusionTaskService } from './fusion-service'
 import { JsonFilePersistence } from './persistence'
 import { SessionRegistry } from './session-registry'
+import { TitleNamingService } from './title-naming-service'
 import { FileSessionPersistence } from './session-persistence'
 import { SkillsService } from './skills-service'
 import type { AgentWebApiDependencies } from './web-api'
@@ -45,6 +46,7 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
     skillsDir: path.resolve(process.cwd(), 'skills/active'),
     onPersistError: error => console.warn('[chaite-web] Failed to persist evolution traces:', error),
   })
+  const titleNaming = new TitleNamingService()
   const sessions = new SessionRegistry({
     driver: createChaitePromptDriver({
       resolveChaite: async () => resolveChaiteSync(),
@@ -52,6 +54,7 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
       evolutionService: evolution,
     }),
     persistence: new FileSessionPersistence(path.join(stateDirectory(), 'storage/sessions.json')),
+    titleNamer: ({ prompt, reply }) => titleNaming.generateTitle(prompt, reply),
   })
   const fusion = new FusionTaskService({
     persistence: new JsonFilePersistence(path.join(stateDirectory(), 'web-fusion-tasks.json')),
@@ -64,7 +67,7 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
 
   const plugins = new PluginLoader()
 
-  return { sessions, fusion, evolution, skills, gateways, plugins }
+  return { sessions, fusion, evolution, skills, gateways, plugins, titleNaming }
 }
 
 function ensureHydrated(deps: AgentWebApiDependencies): void {

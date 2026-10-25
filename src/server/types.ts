@@ -199,6 +199,11 @@ export interface SessionClosedWebEvent extends AgentWebEventBase {
   reason?: string
 }
 
+export interface SessionTitleWebEvent extends AgentWebEventBase {
+  type: 'session_title'
+  title: string
+}
+
 export type AgentWebEvent =
   | ThoughtChunkWebEvent
   | TextChunkWebEvent
@@ -210,6 +215,7 @@ export type AgentWebEvent =
   | ErrorWebEvent
   | TurnStartedWebEvent
   | TurnFinishedWebEvent
+  | SessionTitleWebEvent
   | SessionClosedWebEvent
 
 /** Input accepted by {@link AgentSession.append}; base fields are filled in. */
@@ -267,6 +273,7 @@ export type AgentEventDraft =
       error?: GatewayErrorPayload
     }
   | { type: 'session_closed'; reason?: string; turnId?: string }
+  | { type: 'session_title'; title: string; turnId?: string }
 
 // ─── Transport events (not persisted in the session event log) ────────────────
 
