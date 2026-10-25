@@ -13,12 +13,16 @@ const QUICK_CHIPS = [
 export function ChatEmptyState({
   onSuggestion,
   hasSession,
+  botName,
 }: {
   onSuggestion: (prompt: string) => void;
   hasSession: boolean;
   preview?: boolean;
   onCreateSession?: () => void;
+  botName?: string;
 }) {
+  const currentName = botName?.trim() || "天童凯伊";
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center select-none">
       {/* Claude-style Minimal Centered Hero */}
@@ -27,9 +31,8 @@ export function ChatEmptyState({
       </div>
 
       <h1 className="text-[20px] font-medium tracking-tight text-mist-100 sm:text-[22px]">
-        {hasSession ? "天童凯伊已就绪" : "有什么我可以帮你的？"}
+        {hasSession ? `${currentName}已就绪` : "有什么我可以帮你的？"}
       </h1>
-
       <p className="mt-1.5 max-w-sm text-[13px] text-mist-500 leading-relaxed">
         支持深度推理思考、Pi 哈希高精度编辑与多端网关协同
       </p>

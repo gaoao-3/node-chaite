@@ -46,7 +46,7 @@ import { BoardPage, SectionCard } from "@/components/boards/board-shell";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Segmented, Switch } from "@/components/ui/switch";
-import type { ConsolePreferences, Density } from "@/hooks/use-preferences";
+import { PERSONA_TEMPLATES, type ConsolePreferences, type Density } from "@/hooks/use-preferences";
 import { THEME_OPTIONS } from "@/lib/theme";
 import type { SessionListStats } from "@/lib/types";
 import {
@@ -940,28 +940,117 @@ export function SettingsBoard({
             )}
           </SectionCard>
 
-          <SectionCard title="助理人格与指令" hint="Persona">
+          <SectionCard title="助理设定与人设管理" hint="Persona">
             <SettingRow
-              title="用户称呼"
-              description="Agent 对你的称呼，默认尊称「老师 (Sensei)」。"
+              title="助理名称 (Bot Name)"
+              description="Agent 的专属称呼，将显示在欢迎页与界面各处。"
+            >
+              <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5">
+                <div className="flex items-center gap-1">
+                  {["天童凯伊", "全栈架构师", "代码助手"].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => update({ botName: n })}
+                      className="rounded border border-[var(--border)] bg-[var(--bg-hover)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--text-dim)] hover:text-[var(--text)] transition-colors"
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={preferences.botName}
+                  onChange={(e) => update({ botName: e.target.value })}
+                  placeholder="例如：天童凯伊、JARVIS"
+                  className="w-36 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2.5 py-1 text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+                />
+              </div>
+            </SettingRow>
+
+            <SettingRow
+              title="人设预设模板 (Persona Template)"
+              description="一键切换助理的性格风格与行为模式，或选择自定义。"
+            >
+              <div className="flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: "kaiyi", label: "天童凯伊 (傲娇系统娘)" },
+                    { id: "architect", label: "全栈架构师 (严谨专业)" },
+                    { id: "minimal", label: "代码助手 (极简)" },
+                    { id: "custom", label: "自定义人设" },
+                  ] as const
+                ).map((tpl) => {
+                  const active = preferences.personaType === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => {
+                        if (tpl.id === "custom") {
+                          update({ personaType: "custom" });
+                        } else {
+                          const item = PERSONA_TEMPLATES[tpl.id];
+                          update({
+                            personaType: tpl.id,
+                            botName: item.name,
+                            systemPersona: item.prompt,
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "rounded-md border px-2 py-0.5 text-[10.5px] font-medium transition-colors",
+                        active
+                          ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--accent)] font-semibold shadow-xs"
+                          : "border-[var(--border)] bg-[var(--bg-hover)] text-[var(--text-muted)] hover:text-[var(--text)]",
+                      )}
+                    >
+                      {tpl.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </SettingRow>
+
+            {/* System Persona Prompt Editor */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[12px] font-medium text-[var(--text)]">核心主系统提示词 (System Persona)</div>
+                <span className="font-mono text-[9.5px] text-[var(--text-dim)]">可随时编辑覆盖</span>
+              </div>
+              <textarea
+                value={preferences.systemPersona}
+                onChange={(e) => update({ systemPersona: e.target.value, personaType: "custom" })}
+                rows={4}
+                placeholder="输入该助理的核心角色设定与行为原则…"
+                className="mt-1.5 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-2.5 font-mono text-[11px] leading-relaxed text-[var(--text)] outline-none focus:border-[var(--accent)] resize-y"
+              />
+            </div>
+
+            <SettingRow
+              title="用户称呼 (User Title)"
+              description="Agent 对你的尊称，默认「老师 (Sensei)」，可填老板、主人、管理员或自定义。"
             >
               <input
                 type="text"
                 value={preferences.userTitle}
                 onChange={(e) => update({ userTitle: e.target.value })}
-                placeholder="老师"
-                className="w-24 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)] text-right"
+                placeholder="例如：老师、老板、管理员"
+                className="w-28 rounded-md border border-[var(--border)] bg-[var(--bg-hover)] px-2 py-1 text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)] text-right"
               />
             </SettingRow>
 
-            <div className="pt-2">
-              <div className="text-[12.5px] font-medium text-[var(--text)]">附加系统提示词 (Custom Instructions)</div>
+            <div className="pt-2 border-t border-[var(--border)]">
+              <div className="text-[12px] font-medium text-[var(--text)]">附加系统指令 (Custom Instructions)</div>
+              <div className="mt-0.5 text-[10.5px] text-[var(--text-muted)] leading-relaxed">
+                追加到系统提示词末尾的个人定制规则（如优先使用 TypeScript、中文注释等）。
+              </div>
               <textarea
                 value={preferences.customSystemPrompt}
                 onChange={(e) => update({ customSystemPrompt: e.target.value })}
                 rows={2}
                 placeholder="例如：优先使用 TypeScript 并给出可直接运行的完整代码…"
-                className="mt-2 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-2 text-[11.5px] text-[var(--text)] outline-none focus:border-[var(--accent)] resize-none"
+                className="mt-1.5 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-hover)] p-2 text-[11px] text-[var(--text)] outline-none focus:border-[var(--accent)] resize-none"
               />
             </div>
           </SectionCard>

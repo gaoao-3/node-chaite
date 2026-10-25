@@ -180,7 +180,7 @@ export function fetchSessions(
 
 export function createSession(
   token: string,
-  input: { platform?: "qq" | "dsh" | "web"; title?: string; model?: string; skills?: string[] },
+  input: { platform?: "qq" | "dsh" | "web"; title?: string; model?: string; skills?: string[]; metadata?: Record<string, unknown> },
 ): Promise<AgentSessionInfo> {
   return request<AgentSessionInfo>("/api/agent/sessions", {
     token,

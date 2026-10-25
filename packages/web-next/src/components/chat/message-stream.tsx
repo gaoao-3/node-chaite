@@ -24,6 +24,7 @@ interface MessageStreamProps {
   onExitPreview: () => void;
   onCreateSession?: () => void;
   autoScroll?: boolean;
+  botName?: string;
 }
 
 function LoadingIndicator() {
@@ -76,6 +77,7 @@ export function MessageStream({
   onExitPreview,
   onCreateSession,
   autoScroll = true,
+  botName,
 }: MessageStreamProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const bottomRef = React.useRef<HTMLDivElement>(null);
@@ -198,7 +200,7 @@ export function MessageStream({
         {loading && totalItems === 0 ? (
           <LoadingIndicator />
         ) : totalItems === 0 ? (
-          <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} />
+          <ChatEmptyState onSuggestion={onSuggestion} hasSession={hasSession} preview={preview} onCreateSession={onCreateSession} botName={botName} />
         ) : (
           <div className="chat-stream mx-auto flex w-full max-w-[var(--chat-content-max-width,820px)] flex-col gap-0 pb-2">
             {groupedItems.map((entry) => {

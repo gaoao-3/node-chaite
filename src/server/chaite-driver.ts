@@ -241,6 +241,9 @@ export function createChaitePromptDriver(options: ChaitePromptDriverOptions = {}
         chatPreset: preset,
         conversationId,
         model: activeTurn?.model ?? context.session.model ?? presetOptions?.model,
+        systemOverride: (typeof metadata.systemOverride === 'string' && metadata.systemOverride.trim())
+          ? metadata.systemOverride.trim()
+          : (presetOptions as any)?.systemOverride,
         skillName,
         enableReasoning,
         isThinkingModel: enableReasoning,

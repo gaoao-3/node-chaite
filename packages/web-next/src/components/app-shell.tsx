@@ -163,6 +163,11 @@ export function AppShell() {
         platform: input?.platform ?? preferences.preferences.defaultPlatform,
         title: input?.title ?? "新会话",
         model: requestedModel,
+        metadata: {
+          botName: preferences.preferences.botName,
+          systemOverride: preferences.preferences.systemPersona || undefined,
+          userTitle: preferences.preferences.userTitle,
+        },
       });
       if (!session) return null;
       setSelectedId(session.id);

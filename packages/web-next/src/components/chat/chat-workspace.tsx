@@ -255,6 +255,7 @@ export function ChatWorkspace({
           onExitPreview={onExitPreview}
           autoScroll={autoScroll}
           onCreateSession={onCreateSession ? () => void onCreateSession({ platform: "web", title: "新会话" }) : undefined}
+          botName={preferences.botName}
         />
 
         <Composer
