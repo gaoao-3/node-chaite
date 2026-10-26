@@ -32,6 +32,7 @@ import type { EvolutionData, FusionData } from "@/hooks/use-boards";
 import type { UseApprovalsFeedResult } from "@/hooks/use-approvals-feed";
 import type { EvolutionTraceRecord, FusionTaskRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { GatewayCard } from "@/components/chat/gateway-card";
 
 export type InspectorTab = "fusion" | "evolution" | "approvals" | "plugins";
 
@@ -601,38 +602,7 @@ export function InspectorDrawer({
                     </div>
                   ) : (
                     gateways.map((gw) => (
-                      <div
-                        key={gw.id}
-                        className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-panel)] p-2.5 shadow-xs"
-                      >
-                        <div className="min-w-0 pr-2">
-                          <div className="flex items-center gap-1.5">
-                            <Radio
-                              className={cn(
-                                "h-3 w-3",
-                                gw.status === "running" ? "text-emerald-500" : "text-[var(--text-muted)]",
-                              )}
-                            />
-                            <span className="text-[11.5px] font-medium text-[var(--text)] truncate">{gw.name}</span>
-                          </div>
-                          <div className="mt-0.5 flex items-center gap-2 font-mono text-[9px] text-[var(--text-muted)]">
-                            <span>{gw.platform.toUpperCase()}</span>
-                            <span>·</span>
-                            <span className={gw.status === "running" ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-[var(--text-muted)]"}>
-                              {gw.status}
-                            </span>
-                          </div>
-                        </div>
-                        <Button
-                          size="xs"
-                          variant={gw.status === "running" ? "subtle" : "primary"}
-                          onClick={() => handleToggleGateway(gw)}
-                          disabled={actionPending === gw.id}
-                          className="shrink-0 h-6 text-[10px]"
-                        >
-                          {gw.status === "running" ? "停止" : "启动"}
-                        </Button>
-                      </div>
+                      <GatewayCard key={gw.id} gateway={gw} token={token} onChanged={() => void loadData()} />
                     ))
                   )}
                 </div>

@@ -403,6 +403,31 @@ export function stopGateway(token: string, id: string): Promise<GatewayInfo> {
   return request<GatewayInfo>(`/api/agent/gateways/${encodeURIComponent(id)}/stop`, { token, method: "POST", body: {} });
 }
 
+export interface GatewayConfig {
+  id: string
+  name: string
+  platform: string
+  enabled: boolean
+  settings: Record<string, string | undefined>
+  credentials?: { wsTokenConfigured: boolean; httpTokenConfigured: boolean }
+  updatedAt?: number
+}
+
+export function fetchGatewayConfigs(token: string): Promise<GatewayConfig[]> {
+  return request<GatewayConfig[]>("/api/agent/gateways/configs", { token })
+}
+
+export function saveGatewayConfig(token: string, id: string, config: Partial<GatewayConfig>): Promise<GatewayConfig> {
+  return request<GatewayConfig>(`/api/agent/gateways/${encodeURIComponent(id)}/config`, { token, method: "PUT", body: config })
+}
+
+export function reloadGateway(token: string, id: string): Promise<GatewayInfo> {
+  return request<GatewayInfo>(`/api/agent/gateways/${encodeURIComponent(id)}/reload`, { token, method: "POST", body: {} })
+}
+
+export function testGateway(token: string, id: string): Promise<{ success: boolean; wsReachable?: boolean; httpReachable?: boolean; botNickname?: string; error?: string }> {
+  return request(`/api/agent/gateways/${encodeURIComponent(id)}/test`, { token, method: "POST", body: {} })
+}
 export function fetchPlugins(token: string, signal?: AbortSignal): Promise<PluginInfo[]> {
   return request<PluginInfo[]>("/api/agent/plugins", { token, signal });
 }

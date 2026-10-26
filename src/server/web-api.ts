@@ -18,6 +18,7 @@ import { createAgentEventStream, type AgentEventStreamOptions } from './sse-stre
 import type { AgentSessionStatus, SessionCreateInput } from './types'
 import type { GatewayManager } from '../gateway/gateway-manager'
 import { WorkspaceService } from './workspace-service'
+import type { GatewayConfigService } from './gateway-config-service'
 import type { TitleNamingService } from './title-naming-service'
 import type { PluginLoader } from '../agent/plugins/plugin-loader'
 import {
@@ -36,6 +37,7 @@ export interface AgentWebApiDependencies {
   skills?: SkillsService
   gateways?: GatewayManager
   plugins?: PluginLoader
+  gatewayConfig?: GatewayConfigService
   titleNaming?: TitleNamingService
   modelDiscovery?: ModelDiscoveryService
   /** Extra middleware (auth, rate limiting) applied to every new route. */
@@ -585,6 +587,43 @@ export function createAgentWebApiRouter(dependencies: AgentWebApiDependencies): 
   }))
 
   // ─── Gateways (Adapters) ──────────────────────────────────────────────────
+  router.get('/gateways/configs', route(async (_req, res) => {
+    const configs = dependencies.gatewayConfig ? await dependencies.gatewayConfig.getAllPublicConfigs() : []
+    sendOk(res, configs)
+  }))
+
+  router.get('/gateways/:id/config', route(async (req, res) => {
+    if (!dependencies.gatewayConfig) throw new BadRequestError('GatewayConfigService is not configured')
+    const config = await dependencies.gatewayConfig.getPublicConfig(req.params.id as string)
+    sendOk(res, config)
+  }))
+
+  router.put('/gateways/:id/config', route(async (req, res) => {
+    if (!dependencies.gatewayConfig) throw new BadRequestError('GatewayConfigService is not configured')
+    if (!isRecord(req.body)) throw new BadRequestError('Body must be an object')
+    const id = req.params.id as string
+    const config = await dependencies.gatewayConfig.updateConfig(id, req.body)
+    if (dependencies.gateways) {
+      await dependencies.gateways.configureAdapter(id, config.settings)
+      if (req.body.enabled === false) await dependencies.gateways.stopAdapter(id)
+    }
+    sendOk(res, config)
+  }))
+
+  router.post('/gateways/:id/reload', route(async (req, res) => {
+    if (!dependencies.gateways) throw new BadRequestError('GatewayManager is not configured')
+    const id = req.params.id as string
+    const config = dependencies.gatewayConfig ? await dependencies.gatewayConfig.getPublicConfig(id) : null
+    if (config) await dependencies.gateways.configureAdapter(id, config.settings)
+    const status = await dependencies.gateways.reloadAdapter(id)
+    sendOk(res, status)
+  }))
+
+  router.post('/gateways/:id/test', route(async (req, res) => {
+    if (!dependencies.gatewayConfig) throw new BadRequestError('GatewayConfigService is not configured')
+    sendOk(res, await dependencies.gatewayConfig.testConnectivity(req.params.id as string))
+  }))
+
 
   router.get('/gateways', route((_req, res) => {
     sendOk(res, dependencies.gateways ? dependencies.gateways.listAdapters() : [])

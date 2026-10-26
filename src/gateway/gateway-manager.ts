@@ -94,6 +94,22 @@ export class GatewayManager {
     await adapter.start(this.runtime)
     return adapter.getStatus()
   }
+  async configureAdapter(id: string, config: Record<string, unknown>): Promise<GatewayStatusInfo> {
+    const adapter = this.adapters.get(id)
+    if (!adapter) throw new Error(`Gateway adapter "${id}" not found`)
+    const configurable = adapter as GatewayAdapterPlugin & { configure?: (config: Record<string, unknown>) => Promise<void> }
+    if (typeof configurable.configure === 'function') await configurable.configure(config)
+    return adapter.getStatus()
+  }
+
+  async reloadAdapter(id: string): Promise<GatewayStatusInfo> {
+    const adapter = this.adapters.get(id)
+    if (!adapter) throw new Error(`Gateway adapter "${id}" not found`)
+    await adapter.stop()
+    await adapter.start(this.runtime)
+    return adapter.getStatus()
+  }
+
 
   async stopAdapter(id: string): Promise<GatewayStatusInfo> {
     const adapter = this.adapters.get(id)

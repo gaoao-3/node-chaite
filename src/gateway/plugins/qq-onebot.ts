@@ -36,9 +36,9 @@ export class QqOnebotPlugin implements GatewayAdapterPlugin {
   constructor(config: QqOnebotConfig = {}) {
     this.config = {
       wsUrl: config.wsUrl || process.env.ONEBOT_WS_URL || 'ws://127.0.0.1:3001',
-      wsToken: config.wsToken || process.env.ONEBOT_WS_TOKEN || '7m51-6aOcSzlv4JO_NId9Vlj2WcRVEh5SkBSlUT6nPk',
+      wsToken: config.wsToken || process.env.ONEBOT_WS_TOKEN || '',
       httpUrl: config.httpUrl || process.env.ONEBOT_HTTP_URL || 'http://127.0.0.1:3004',
-      httpToken: config.httpToken || process.env.ONEBOT_HTTP_TOKEN || 'X4PmQtXLnLNgT4hHstI7B1aSpivoB_PQBNX-onzdgQM',
+      httpToken: config.httpToken || process.env.ONEBOT_HTTP_TOKEN || '',
       botQq: config.botQq || process.env.BOT_QQ || '1579989279',
       ownerQq: config.ownerQq || process.env.OWNER_QQ || '3094274628',
     }
@@ -61,6 +61,23 @@ export class QqOnebotPlugin implements GatewayAdapterPlugin {
       },
     }
   }
+  async configure(config: Record<string, unknown>): Promise<void> {
+    const wasRunning = this.status === 'running' || this.status === 'starting'
+    const next = { ...this.config }
+    for (const [key, value] of Object.entries(config)) {
+      if (key === 'wsToken' || key === 'httpToken') {
+        if (typeof value === 'string' && value.trim()) next[key] = value.trim()
+      } else if (key === 'wsUrl' || key === 'httpUrl' || key === 'botQq' || key === 'ownerQq') {
+        if (typeof value === 'string') next[key] = value.trim()
+      }
+    }
+    this.config = next
+    if (wasRunning && this.runtime) {
+      await this.stop()
+      await this.start(this.runtime)
+    }
+  }
+
 
   async start(runtime: GatewayRuntime): Promise<void> {
     if (this.status === 'running' || this.status === 'starting') {

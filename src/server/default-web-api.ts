@@ -7,6 +7,7 @@ import { FusionTaskService } from './fusion-service'
 import { JsonFilePersistence } from './persistence'
 import { SessionRegistry } from './session-registry'
 import { TitleNamingService } from './title-naming-service'
+import { GatewayConfigService } from './gateway-config-service'
 import { FileSessionPersistence } from './session-persistence'
 import { SkillsService } from './skills-service'
 import type { AgentWebApiDependencies } from './web-api'
@@ -63,14 +64,22 @@ export function createDefaultAgentWebApiDependencies(): AgentWebApiDependencies 
   })
   const skills = new SkillsService(() => resolveChaiteSync()?.getSkillRegistry())
   const gateways = new GatewayManager(sessions)
+  const gatewayConfig = new GatewayConfigService()
   gateways.registerAdapter(new QqOnebotPlugin())
   gateways.registerAdapter(new DshMobilePlugin())
+  void (async () => {
+    const saved = await gatewayConfig.getAllPublicConfigs()
+    for (const item of saved) {
+      await gateways.configureAdapter(item.id, item.settings)
+      if (item.enabled) await gateways.startAdapter(item.id).catch(() => undefined)
+    }
+  })()
 
   const plugins = new PluginLoader()
 
   const modelDiscovery = getModelDiscoveryService()
 
-  return { sessions, fusion, evolution, skills, gateways, plugins, titleNaming, modelDiscovery }
+  return { sessions, fusion, evolution, skills, gateways, plugins, titleNaming, modelDiscovery, gatewayConfig }
 }
 
 function ensureHydrated(deps: AgentWebApiDependencies): void {
